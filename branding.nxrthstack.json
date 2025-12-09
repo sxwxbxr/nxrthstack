@@ -1,0 +1,146 @@
+{
+  "brand_name": "NxrthStack",
+  "description": "NxrthStack ist eine persönliche Marke für Software- und Game-Engineering mit Fokus auf stabile, pragmatische Lösungen und einem dezenten Gaming-Einfluss.",
+  "core_tags": ["software_engineering", "web_apps", "saas", "systems", "game_development", "indie_games", "swiss_based"],
+
+  "positioning": {
+    "one_liner": "NxrthStack baut stabile Software und Spiele mit einem klaren, technischen Fokus.",
+    "focus_areas": [
+      "Web- und Backend-Entwicklung (z. B. Next.js, TypeScript, Node.js)",
+      "SaaS- und Tool-Entwicklung für Unternehmen",
+      "Game- und Prototypen-Entwicklung als Indie-Projects"
+    ],
+    "target_audience": [
+      "KMU und Tech-Unternehmen, die zuverlässige Softwarelösungen benötigen",
+      "Teams, die pragmatische Engineering-Unterstützung für Prototypen oder interne Tools suchen",
+      "Gamer und Spieler, die kleinere, hochwertige Indie-Titel schätzen"
+    ],
+    "tone_of_voice": {
+      "primary_language": "de",
+      "attributes": [
+        "klar",
+        "technisch",
+        "direkt",
+        "unkompliziert",
+        "leicht locker, aber professionell"
+      ],
+      "do": [
+        "konkrete Formulierungen, wenig Marketing-Buzzwords",
+        "Fokus auf Stabilität, Pragmatismus und Zuverlässigkeit",
+        "kurze, prägnante Sätze und Bulletpoints"
+      ],
+      "dont": [
+        "übertriebene Werbesprache",
+        "zu viele Emojis",
+        "verspielte oder ironische Formulierungen im B2B-Kontext"
+      ]
+    }
+  },
+
+  "visual_identity": {
+    "logo": {
+      "type": "wordmark_plus_symbol",
+      "wordmark": "NxrthStack",
+      "symbol_description": "Abstrakter Nordpfeil (nach oben oder oben-rechts) kombiniert mit 2–3 gestapelten Linien, die einen „Stack“ darstellen. Sehr minimal, flach, ohne Schatten.",
+      "usage": [
+        "Symbol allein als Icon/Favicon und Profilbild",
+        "Symbol + Wortmarke in horizontaler Anordnung für Website-Header",
+        "Wordmark allein für Text-only-Kontexte"
+      ]
+    },
+    "colors": {
+      "mode": "dark_first",
+      "palette": {
+        "background": "#020617",
+        "surface": "#0F172A",
+        "primary": "#0F172A",
+        "primary_alt": "#1E293B",
+        "accent": "#22D3EE",
+        "accent_alt": "#A3E635",
+        "text_primary": "#E5E7EB",
+        "text_secondary": "#9CA3AF",
+        "border_subtle": "#1F2933",
+        "error": "#EF4444",
+        "success": "#22C55E"
+      },
+      "usage_guidelines": {
+        "background": "Standardmässig dunkle Hintergründe verwenden (background oder surface).",
+        "primary": "Für Header, Navigation, Buttons und Card-Hintergründe.",
+        "accent": "Für CTA-Buttons, aktive States, Links oder kleine Highlights (max. 10–15% der Fläche).",
+        "text": "Text nur in text_primary oder text_secondary auf dunklem Hintergrund verwenden.",
+        "games_vs_business": "Business-Sektionen eher mit Blau/Indigo (primary) + Cyan-Akzent, Game-Sektionen dürfen etwas mehr accent_alt (Lime) nutzen."
+      }
+    },
+    "typography": {
+      "primary_font": "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "scale": {
+        "h1": { "size": "2.25rem", "weight": 700, "tracking": "-0.03em" },
+        "h2": { "size": "1.75rem", "weight": 600, "tracking": "-0.02em" },
+        "h3": { "size": "1.5rem", "weight": 600, "tracking": "-0.01em" },
+        "body": { "size": "1rem", "weight": 400, "tracking": "0" },
+        "caption": { "size": "0.875rem", "weight": 400, "tracking": "0.01em" }
+      },
+      "usage_guidelines": {
+        "headings": "Überschriften kurz halten, maximal 1–2 Zeilen. Keine Versalien-Pflicht.",
+        "body": "Body-Text technisch, klar, ohne unnötigen Fülltext.",
+        "code": "Für Code-Beispiele monospace-Font (z. B. JetBrains Mono, Fira Code) verwenden."
+      }
+    },
+    "layout": {
+      "general": [
+        "Viel Whitespace, klare Spalten, maximal 2–3 Hauptspalten.",
+        "Komponenten und Karten mit leichter Rundung (z. B. 0.5rem) und subtiler Border.",
+        "Dark-Mode als Standard, Light-Mode optional, aber nicht zwingend."
+      ],
+      "components": {
+        "button_primary": {
+          "background": "accent",
+          "text_color": "#0F172A",
+          "border_radius": "9999px",
+          "font_weight": 600
+        },
+        "card": {
+          "background": "surface",
+          "border_color": "border_subtle",
+          "border_radius": "0.75rem",
+          "padding": "1.25rem"
+        }
+      }
+    }
+  },
+
+  "brand_structure": {
+    "sections": [
+      "Hero",
+      "Services",
+      "Projects",
+      "About",
+      "Contact"
+    ],
+    "hero": {
+      "title_pattern": "NxrthStack – Software & Game Engineering",
+      "subtitle_pattern": "Stabile Webanwendungen, Tools und Spiele – pragmatisch umgesetzt.",
+      "cta_primary_label": "Projekt anfragen",
+      "cta_secondary_label": "Mehr erfahren"
+    },
+    "service_categories": [
+      {
+        "id": "business_software",
+        "title": "Business Software",
+        "description": "Webanwendungen, Tools und Integrationen für Unternehmen.",
+        "example_tags": ["nextjs", "typescript", "saas", "automation"]
+      },
+      {
+        "id": "game_dev",
+        "title": "Game Development",
+        "description": "Indie-Games und Prototypen mit klarem Fokus auf Spielgefühl.",
+        "example_tags": ["indie_game", "prototype", "tools"]
+      }
+    ]
+  },
+
+  "voice_examples": {
+    "short_introduction_de": "NxrthStack entwickelt stabile Webanwendungen, Tools und Spiele. Der Fokus liegt auf pragmatischem Engineering, sauberem Code und Lösungen, die im Alltag funktionieren.",
+    "short_introduction_en": "NxrthStack builds reliable web applications, tools, and games. The focus is on pragmatic engineering, clean code, and solutions that work in real life."
+  }
+}
