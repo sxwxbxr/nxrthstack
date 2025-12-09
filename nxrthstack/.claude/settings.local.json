@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "WebFetch(domain:animate-ui.com)",
+      "WebFetch(domain:21st.dev)",
+      "WebFetch(domain:www.animate-ui.com)",
+      "WebSearch",
+      "WebFetch(domain:ui.aceternity.com)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
