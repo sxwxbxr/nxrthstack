@@ -2,13 +2,34 @@
 
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import {
+  DollarSign,
+  ShoppingBag,
+  Package,
+  Users,
+  TrendingUp,
+  Calendar,
+  CreditCard,
+  Download,
+  type LucideIcon,
+} from "lucide-react";
+
+const iconMap: Record<string, LucideIcon> = {
+  DollarSign,
+  ShoppingBag,
+  Package,
+  Users,
+  TrendingUp,
+  Calendar,
+  CreditCard,
+  Download,
+};
 
 interface StatsCardProps {
   title: string;
   value: string | number;
   description?: string;
-  icon: LucideIcon;
+  icon: keyof typeof iconMap;
   trend?: {
     value: number;
     isPositive: boolean;
@@ -20,10 +41,12 @@ export function StatsCard({
   title,
   value,
   description,
-  icon: Icon,
+  icon,
   trend,
   className,
 }: StatsCardProps) {
+  const Icon = iconMap[icon] || DollarSign;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

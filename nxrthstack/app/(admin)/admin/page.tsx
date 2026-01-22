@@ -1,7 +1,7 @@
-import { db, products, purchases, subscriptions, users } from "@/lib/db";
+import { db, products, purchases, users } from "@/lib/db";
 import { eq, count, sum, and, gte } from "drizzle-orm";
 import { StatsCard } from "@/components/admin/stats-card";
-import { Icons } from "@/components/icons";
+import { Plus, ShoppingBag, ExternalLink } from "lucide-react";
 
 export const metadata = {
   title: "Admin Dashboard | NxrthStack",
@@ -53,23 +53,23 @@ export default async function AdminDashboardPage() {
           title="Total Revenue"
           value={`$${stats.totalRevenue.toLocaleString()}`}
           description="All time"
-          icon={Icons.DollarSign}
+          icon="DollarSign"
         />
         <StatsCard
           title="Orders (30 days)"
           value={stats.recentOrders}
           description="Last 30 days"
-          icon={Icons.ShoppingBag}
+          icon="ShoppingBag"
         />
         <StatsCard
           title="Active Products"
           value={stats.totalProducts}
-          icon={Icons.Package}
+          icon="Package"
         />
         <StatsCard
           title="Customers"
           value={stats.totalCustomers}
-          icon={Icons.Users}
+          icon="Users"
         />
       </div>
 
@@ -83,7 +83,7 @@ export default async function AdminDashboardPage() {
             className="flex items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-accent"
           >
             <div className="rounded-lg bg-primary/10 p-2">
-              <Icons.Plus className="h-5 w-5 text-primary" />
+              <Plus className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="font-medium text-foreground">Add Product</p>
@@ -97,7 +97,7 @@ export default async function AdminDashboardPage() {
             className="flex items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-accent"
           >
             <div className="rounded-lg bg-primary/10 p-2">
-              <Icons.ShoppingBag className="h-5 w-5 text-primary" />
+              <ShoppingBag className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="font-medium text-foreground">View Orders</p>
@@ -112,7 +112,7 @@ export default async function AdminDashboardPage() {
             className="flex items-center gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-accent"
           >
             <div className="rounded-lg bg-primary/10 p-2">
-              <Icons.ExternalLink className="h-5 w-5 text-primary" />
+              <ExternalLink className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="font-medium text-foreground">View Shop</p>
