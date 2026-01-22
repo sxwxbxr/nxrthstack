@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(node -e:*)",
+      "Bash(if exist \"D:\\\\Projects\\\\nxrthstack\\\\.env.local\" move \"D:\\\\Projects\\\\nxrthstack\\\\.env.local\" \"D:\\\\Projects\\\\nxrthstack\\\\nxrthstack\\\\.env.local\")",
+      "Bash(npm run db:push:*)",
+      "Bash(npm run dev:*)"
+    ]
+  }
+}

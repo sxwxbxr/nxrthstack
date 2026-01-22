@@ -1,0 +1,181 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { db, products, productPrices, productImages } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { FadeIn } from "@/components/ui/fade-in";
+import { PricingTable } from "@/components/shop/pricing-table";
+import { Icons } from "@/components/icons";
+
+interface ProductPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+async function getProduct(slug: string) {
+  const product = await db.query.products.findFirst({
+    where: eq(products.slug, slug),
+    with: {
+      prices: {
+        where: eq(productPrices.isActive, true),
+        orderBy: [productPrices.sortOrder],
+      },
+      images: {
+        orderBy: [productImages.sortOrder],
+      },
+    },
+  });
+
+  return product;
+}
+
+export async function generateMetadata({ params }: ProductPageProps) {
+  const { slug } = await params;
+  const product = await getProduct(slug);
+
+  if (!product) {
+    return { title: "Product Not Found" };
+  }
+
+  return {
+    title: `${product.name} | NxrthStack Shop`,
+    description: product.shortDescription || product.description,
+  };
+}
+
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { slug } = await params;
+  const product = await getProduct(slug);
+
+  if (!product || !product.isActive) {
+    notFound();
+  }
+
+  const allFeatures = product.prices
+    .flatMap((price) => (price.features as string[]) || [])
+    .filter((value, index, self) => self.indexOf(value) === index);
+
+  return (
+    <div className="mx-auto max-w-7xl px-6 py-16">
+      <FadeIn>
+        <Link
+          href="/shop"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <Icons.ArrowRight className="h-4 w-4 rotate-180" />
+          Back to Shop
+        </Link>
+      </FadeIn>
+
+      <div className="mt-8 grid gap-12 lg:grid-cols-2">
+        {/* Product Info */}
+        <FadeIn>
+          <div>
+            {/* Image */}
+            <div className="aspect-video overflow-hidden rounded-2xl bg-muted">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <Icons.Package className="h-24 w-24 text-muted-foreground/50" />
+                </div>
+              )}
+            </div>
+
+            {/* Gallery */}
+            {product.images.length > 0 && (
+              <div className="mt-4 grid grid-cols-4 gap-4">
+                {product.images.slice(0, 4).map((image) => (
+                  <div
+                    key={image.id}
+                    className="aspect-video overflow-hidden rounded-lg bg-muted"
+                  >
+                    <img
+                      src={image.url}
+                      alt={image.altText || ""}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Details */}
+            <div className="mt-8">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-foreground">
+                  {product.name}
+                </h1>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    product.productType === "free"
+                      ? "bg-green-500/10 text-green-500"
+                      : product.productType === "subscription"
+                      ? "bg-purple-500/10 text-purple-500"
+                      : "bg-blue-500/10 text-blue-500"
+                  }`}
+                >
+                  {product.productType === "free"
+                    ? "Free"
+                    : product.productType === "subscription"
+                    ? "Subscription"
+                    : "License"}
+                </span>
+              </div>
+
+              {product.shortDescription && (
+                <p className="mt-4 text-lg text-muted-foreground">
+                  {product.shortDescription}
+                </p>
+              )}
+
+              {product.description && (
+                <div className="mt-6 prose prose-invert max-w-none">
+                  <p className="text-foreground whitespace-pre-wrap">
+                    {product.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Features */}
+              {allFeatures.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Features
+                  </h2>
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {allFeatures.map((feature, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center gap-3 text-foreground"
+                      >
+                        <Icons.Check className="h-5 w-5 text-green-500 shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* Pricing */}
+        <FadeIn delay={0.2}>
+          <div className="lg:sticky lg:top-24">
+            <h2 className="text-lg font-semibold text-foreground mb-6">
+              {product.productType === "free" ? "Get Started" : "Select a Plan"}
+            </h2>
+            <PricingTable
+              productId={product.id}
+              productType={product.productType}
+              prices={product.prices}
+            />
+          </div>
+        </FadeIn>
+      </div>
+    </div>
+  );
+}
