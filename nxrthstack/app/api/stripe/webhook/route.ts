@@ -6,6 +6,13 @@ import { eq } from "drizzle-orm";
 import { generateLicense } from "@/lib/license";
 import Stripe from "stripe";
 
+// Type helper for subscription properties that may vary across API versions
+interface SubscriptionPeriod {
+  current_period_start: number;
+  current_period_end: number;
+  cancel_at_period_end?: boolean;
+}
+
 export async function POST(request: Request) {
   const body = await request.text();
   const headersList = await headers();
@@ -43,7 +50,7 @@ export async function POST(request: Request) {
       }
 
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object as Stripe.Subscription & SubscriptionPeriod;
         await handleSubscriptionUpdated(subscription);
         break;
       }
@@ -101,7 +108,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     // Create subscription record
     const stripeSubscription = await stripe.subscriptions.retrieve(
       session.subscription as string
-    );
+    ) as unknown as Stripe.Subscription & SubscriptionPeriod;
 
     await db.insert(subscriptions).values({
       userId,
@@ -143,17 +150,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  if (!invoice.subscription) return;
+  const subscriptionId = (invoice as { subscription?: string | null }).subscription;
+  if (!subscriptionId) return;
 
   const subscription = await db.query.subscriptions.findFirst({
-    where: eq(subscriptions.stripeSubscriptionId, invoice.subscription as string),
+    where: eq(subscriptions.stripeSubscriptionId, subscriptionId),
   });
 
   if (!subscription) return;
 
   const stripeSubscription = await stripe.subscriptions.retrieve(
-    invoice.subscription as string
-  );
+    subscriptionId
+  ) as unknown as Stripe.Subscription & SubscriptionPeriod;
 
   await db
     .update(subscriptions)
@@ -166,7 +174,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     .where(eq(subscriptions.id, subscription.id));
 }
 
-async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription) {
+async function handleSubscriptionUpdated(stripeSubscription: Stripe.Subscription & SubscriptionPeriod) {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.stripeSubscriptionId, stripeSubscription.id),
   });

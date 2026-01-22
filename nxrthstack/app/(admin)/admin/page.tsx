@@ -31,7 +31,7 @@ async function getStats() {
   return {
     totalProducts: totalProducts[0]?.count ?? 0,
     totalCustomers: totalCustomers[0]?.count ?? 0,
-    totalRevenue: (totalRevenue[0]?.total ?? 0) / 100,
+    totalRevenue: Number(totalRevenue[0]?.total ?? 0) / 100,
     recentOrders: recentOrders[0]?.count ?? 0,
   };
 }
