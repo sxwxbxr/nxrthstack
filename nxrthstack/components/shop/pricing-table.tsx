@@ -53,6 +53,38 @@ export function PricingTable({ productId, productType, prices }: PricingTablePro
     }
   };
 
+  const handleClaimFree = async () => {
+    if (status === "unauthenticated") {
+      router.push(`/login?callbackUrl=/shop`);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/claim-free", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        router.push("/dashboard/downloads");
+      } else if (data.alreadyClaimed) {
+        router.push("/dashboard/downloads");
+      } else if (data.error) {
+        alert(data.error);
+      }
+    } catch (error) {
+      console.error("Claim error:", error);
+      alert("Failed to claim product. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const formatPrice = (priceCents: number, billingPeriod: string | null) => {
     const price = (priceCents / 100).toFixed(2);
     if (!billingPeriod) return `$${price}`;
@@ -67,6 +99,34 @@ export function PricingTable({ productId, productType, prices }: PricingTablePro
     }
   };
 
+  // Handle free products without price tiers
+  if (productType === "free" && prices.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-8">
+        <div className="text-center">
+          <p className="text-3xl font-bold text-foreground">Free</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No payment required
+          </p>
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleClaimFree}
+          disabled={isLoading}
+          className="mt-8 w-full rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+        >
+          {isLoading ? (
+            <Icons.Loader2 className="mx-auto h-5 w-5 animate-spin" />
+          ) : (
+            "Get your hands on it"
+          )}
+        </motion.button>
+      </div>
+    );
+  }
+
   if (prices.length === 0) {
     return (
       <div className="rounded-2xl border border-border bg-card p-8 text-center">
@@ -79,14 +139,19 @@ export function PricingTable({ productId, productType, prices }: PricingTablePro
 
   if (prices.length === 1) {
     const price = prices[0];
+    const isFree = productType === "free" || price.priceCents === 0;
+
     return (
       <div className="rounded-2xl border border-border bg-card p-8">
         <div className="text-center">
           <p className="text-3xl font-bold text-foreground">
-            {price.priceCents === 0 ? "Free" : formatPrice(price.priceCents, price.billingPeriod)}
+            {isFree ? "Free" : formatPrice(price.priceCents, price.billingPeriod)}
           </p>
           {productType === "paid" && price.priceCents > 0 && (
             <p className="mt-1 text-sm text-muted-foreground">One-time purchase</p>
+          )}
+          {isFree && (
+            <p className="mt-1 text-sm text-muted-foreground">No payment required</p>
           )}
         </div>
 
@@ -104,14 +169,14 @@ export function PricingTable({ productId, productType, prices }: PricingTablePro
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => handleCheckout(price.id)}
+          onClick={() => isFree ? handleClaimFree() : handleCheckout(price.id)}
           disabled={isLoading}
           className="mt-8 w-full rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
         >
           {isLoading ? (
             <Icons.Loader2 className="mx-auto h-5 w-5 animate-spin" />
-          ) : price.priceCents === 0 ? (
-            "Download Free"
+          ) : isFree ? (
+            "Get your hands on it"
           ) : (
             "Buy Now"
           )}
