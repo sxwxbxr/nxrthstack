@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
+import { upload } from "@vercel/blob/client";
 import { Icons } from "@/components/icons";
 import type { ProductFile, ProductPrice } from "@/lib/db/schema";
 
@@ -46,26 +47,22 @@ export function FilesManager({ productId, files, prices }: FilesManagerProps) {
     if (!formData.file) return;
 
     setIsLoading(true);
-    setUploadProgress(10);
+    setUploadProgress(5);
 
     try {
-      // First, upload the file to Vercel Blob
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", formData.file);
+      // Upload directly to Vercel Blob (supports large files up to 500MB)
+      const timestamp = Date.now();
+      const filename = `${timestamp}-${formData.file.name}`;
 
-      setUploadProgress(30);
-
-      const uploadRes = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: uploadFormData,
+      const blob = await upload(filename, formData.file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/upload/token",
+        onUploadProgress: (progress) => {
+          setUploadProgress(Math.round(progress.percentage * 0.9)); // 0-90%
+        },
       });
 
-      if (!uploadRes.ok) {
-        throw new Error("Failed to upload file");
-      }
-
-      const { url, fileKey } = await uploadRes.json();
-      setUploadProgress(70);
+      setUploadProgress(95);
 
       // Then, create the file record
       await fetch(`/api/admin/products/${productId}/files`, {
@@ -74,7 +71,7 @@ export function FilesManager({ productId, files, prices }: FilesManagerProps) {
         body: JSON.stringify({
           name: formData.name,
           priceId: formData.priceId || null,
-          fileKey: url,
+          fileKey: blob.url,
           fileSizeBytes: formData.file.size,
           fileType: formData.file.type,
         }),

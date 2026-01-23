@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { put } from "@vercel/blob";
 
+// Note: For large files (>4MB), use the client upload via /api/admin/upload/token
+// This endpoint is kept for backward compatibility with small files
+
 export async function POST(request: Request) {
   try {
     const session = await auth();

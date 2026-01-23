@@ -112,37 +112,36 @@ export function PricingManager({
     }
   };
 
-  if (productType === "free") {
-    return (
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">Pricing</h2>
-        <p className="mt-2 text-muted-foreground">
-          This product is free. No pricing configuration needed.
-        </p>
-      </div>
-    );
-  }
+  const isFreeProduct = productType === "free";
+  const hasFreeTier = isFreeProduct && prices.length > 0;
 
   return (
     <div className="rounded-xl border border-border bg-card p-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground">
-            Pricing Tiers
+            {isFreeProduct ? "Features" : "Pricing Tiers"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {productType === "subscription"
+            {isFreeProduct
+              ? "Add features to display on the product page"
+              : productType === "subscription"
               ? "Set up subscription pricing tiers"
               : "Configure one-time purchase pricing"}
           </p>
         </div>
-        {!isAdding && (
+        {!isAdding && !hasFreeTier && (
           <button
-            onClick={() => setIsAdding(true)}
+            onClick={() => {
+              if (isFreeProduct) {
+                setFormData((prev) => ({ ...prev, name: "Free", priceCents: 0 }));
+              }
+              setIsAdding(true);
+            }}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
             <Icons.Plus className="h-4 w-4" />
-            Add Tier
+            {isFreeProduct ? "Add Features" : "Add Tier"}
           </button>
         )}
       </div>
@@ -156,48 +155,50 @@ export function PricingManager({
             onSubmit={handleSubmit}
             className="mt-6 space-y-4 border-t border-border pt-6"
           >
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Tier Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  required
-                  className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground"
-                  placeholder="e.g., Basic, Pro, Enterprise"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Price (USD)
-                </label>
-                <div className="mt-2 flex items-center">
-                  <span className="rounded-l-lg border border-r-0 border-input bg-muted px-3 py-2.5 text-muted-foreground">
-                    $
-                  </span>
+            {!isFreeProduct && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Tier Name
+                  </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={(formData.priceCents / 100).toFixed(2)}
+                    type="text"
+                    value={formData.name}
                     onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        priceCents: Math.round(parseFloat(e.target.value || "0") * 100),
-                      }))
+                      setFormData((prev) => ({ ...prev, name: e.target.value }))
                     }
                     required
-                    className="w-full rounded-r-lg border border-input bg-background px-4 py-2.5 text-foreground"
+                    className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground"
+                    placeholder="e.g., Basic, Pro, Enterprise"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Price (USD)
+                  </label>
+                  <div className="mt-2 flex items-center">
+                    <span className="rounded-l-lg border border-r-0 border-input bg-muted px-3 py-2.5 text-muted-foreground">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={(formData.priceCents / 100).toFixed(2)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          priceCents: Math.round(parseFloat(e.target.value || "0") * 100),
+                        }))
+                      }
+                      required
+                      className="w-full rounded-r-lg border border-input bg-background px-4 py-2.5 text-foreground"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
             {productType === "subscription" && (
               <div className="grid gap-4 md:grid-cols-2">
@@ -307,7 +308,7 @@ export function PricingManager({
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
                 {isLoading && <Icons.Loader2 className="h-4 w-4 animate-spin" />}
-                {editingId ? "Update Tier" : "Add Tier"}
+                {editingId ? (isFreeProduct ? "Update Features" : "Update Tier") : (isFreeProduct ? "Save Features" : "Add Tier")}
               </button>
             </div>
           </motion.form>
@@ -320,43 +321,64 @@ export function PricingManager({
             <div
               key={price.id}
               className={cn(
-                "flex items-center justify-between rounded-lg border p-4",
+                "rounded-lg border p-4",
                 price.isActive ? "border-border" : "border-border/50 opacity-60"
               )}
             >
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-foreground">{price.name}</p>
-                  {!price.isActive && (
-                    <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                      Inactive
-                    </span>
+              <div className="flex items-center justify-between">
+                <div>
+                  {!isFreeProduct && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-foreground">{price.name}</p>
+                        {!price.isActive && (
+                          <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        ${(price.priceCents / 100).toFixed(2)}
+                        {price.billingPeriod && ` / ${price.billingPeriod}`}
+                      </p>
+                    </>
+                  )}
+                  {!isFreeProduct && ((price.features as string[]) || []).length > 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {((price.features as string[]) || []).length} features
+                    </p>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  ${(price.priceCents / 100).toFixed(2)}
-                  {price.billingPeriod && ` / ${price.billingPeriod}`}
-                </p>
-                {((price.features as string[]) || []).length > 0 && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {((price.features as string[]) || []).length} features
-                  </p>
-                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEdit(price)}
+                    className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  >
+                    <Icons.Pencil className="h-4 w-4" />
+                  </button>
+                  {!isFreeProduct && (
+                    <button
+                      onClick={() => handleDelete(price.id)}
+                      className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Icons.Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleEdit(price)}
-                  className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
-                >
-                  <Icons.Pencil className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(price.id)}
-                  className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Icons.Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+              {isFreeProduct && ((price.features as string[]) || []).length > 0 && (
+                <ul className="mt-3 space-y-2">
+                  {((price.features as string[]) || []).map((feature, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center gap-2 text-sm text-foreground"
+                    >
+                      <Icons.Check className="h-4 w-4 text-green-500" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           ))}
         </div>
