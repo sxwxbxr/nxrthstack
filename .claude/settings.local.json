@@ -13,7 +13,8 @@
       "Bash(node check-product.mjs:*)",
       "Bash(node:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd NxrthGuard API endpoints and fix purchases page\n\n- Add licenses, device_activations, refresh_tokens tables\n- Create /api/v1/auth/login, logout, refresh endpoints\n- Create /api/v1/license/status, activate, deactivate, trial/start\n- Fix purchases page onClick handler error with LicenseKeyDisplay component\n- Update checkout verification to create license records\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd NxrthGuard API endpoints and fix purchases page\n\n- Add licenses, device_activations, refresh_tokens tables\n- Create /api/v1/auth/login, logout, refresh endpoints\n- Create /api/v1/license/status, activate, deactivate, trial/start\n- Fix purchases page onClick handler error with LicenseKeyDisplay component\n- Update checkout verification to create license records\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)"
     ]
   }
 }
