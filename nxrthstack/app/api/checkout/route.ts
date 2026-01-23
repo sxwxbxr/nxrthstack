@@ -17,6 +17,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get base URL from request or environment
+    const url = new URL(request.url);
+    const baseUrl = process.env.NEXTAUTH_URL || `${url.protocol}//${url.host}`;
+
     const body = await request.json();
     const parsed = checkoutSchema.safeParse(body);
 
@@ -97,8 +101,8 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXTAUTH_URL}/dashboard/purchases?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/shop/${product.slug}`,
+      success_url: `${baseUrl}/dashboard/purchases?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/shop/${product.slug}`,
       metadata: {
         userId: session.user.id,
         productId,
