@@ -129,6 +129,52 @@ export const subscriptions = pgTable("subscriptions", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// NxrthGuard Licenses
+export const licenses = pgTable("licenses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  licenseKey: varchar("license_key", { length: 100 }).notNull().unique(),
+  tier: varchar("tier", { length: 20 }).notNull(), // 'free' | 'plus' | 'trial'
+  features: jsonb("features").default([]).notNull(),
+  maxDevices: integer("max_devices").default(5).notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }), // NULL for lifetime
+  isTrial: boolean("is_trial").default(false).notNull(),
+  trialStartedAt: timestamp("trial_started_at", { mode: "date" }),
+  purchaseId: uuid("purchase_id").references(() => purchases.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Device activations for NxrthGuard
+export const deviceActivations = pgTable("device_activations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  licenseId: uuid("license_id")
+    .notNull()
+    .references(() => licenses.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  deviceName: varchar("device_name", { length: 255 }),
+  deviceFingerprint: varchar("device_fingerprint", { length: 255 }),
+  activatedAt: timestamp("activated_at", { mode: "date" }).defaultNow().notNull(),
+  lastSeenAt: timestamp("last_seen_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Refresh tokens for NxrthGuard API
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: varchar("token_hash", { length: 255 }).notNull(),
+  deviceName: varchar("device_name", { length: 255 }),
+  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // NextAuth sessions
 export const sessions = pgTable("sessions", {
   sessionToken: varchar("session_token", { length: 255 }).notNull().primaryKey(),
@@ -154,6 +200,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   purchases: many(purchases),
   subscriptions: many(subscriptions),
   sessions: many(sessions),
+  licenses: many(licenses),
+  deviceActivations: many(deviceActivations),
+  refreshTokens: many(refreshTokens),
 }));
 
 export const productsRelations = relations(products, ({ many }) => ({
@@ -232,6 +281,36 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   }),
 }));
 
+export const licensesRelations = relations(licenses, ({ one, many }) => ({
+  user: one(users, {
+    fields: [licenses.userId],
+    references: [users.id],
+  }),
+  purchase: one(purchases, {
+    fields: [licenses.purchaseId],
+    references: [purchases.id],
+  }),
+  deviceActivations: many(deviceActivations),
+}));
+
+export const deviceActivationsRelations = relations(deviceActivations, ({ one }) => ({
+  license: one(licenses, {
+    fields: [deviceActivations.licenseId],
+    references: [licenses.id],
+  }),
+  user: one(users, {
+    fields: [deviceActivations.userId],
+    references: [users.id],
+  }),
+}));
+
+export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [refreshTokens.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -247,3 +326,9 @@ export type Purchase = typeof purchases.$inferSelect;
 export type NewPurchase = typeof purchases.$inferInsert;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
+export type License = typeof licenses.$inferSelect;
+export type NewLicense = typeof licenses.$inferInsert;
+export type DeviceActivation = typeof deviceActivations.$inferSelect;
+export type NewDeviceActivation = typeof deviceActivations.$inferInsert;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type NewRefreshToken = typeof refreshTokens.$inferInsert;

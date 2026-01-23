@@ -5,7 +5,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { Icons } from "@/components/icons";
 import { FadeIn } from "@/components/ui/fade-in";
 import { CheckoutVerifier } from "@/components/dashboard/checkout-verifier";
-import { CopyButton } from "@/components/dashboard/copy-button";
+import { LicenseKeyDisplay } from "@/components/dashboard/license-key-display";
 
 export const dynamic = "force-dynamic";
 
@@ -112,19 +112,7 @@ export default async function PurchasesPage() {
 
                 {/* License Key */}
                 {purchase.licenseKey && (
-                  <div className="mt-4 rounded-lg bg-muted p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">
-                          LICENSE KEY
-                        </p>
-                        <p className="mt-1 font-mono text-sm text-foreground">
-                          {purchase.licenseKey}
-                        </p>
-                      </div>
-                      <CopyButton text={purchase.licenseKey} />
-                    </div>
-                  </div>
+                  <LicenseKeyDisplay licenseKey={purchase.licenseKey} />
                 )}
 
                 {/* Actions */}

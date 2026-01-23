@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
-import { db, purchases, products, productPrices, users } from "@/lib/db";
+import { db, purchases, products, productPrices, users, licenses } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { generateLicense } from "@/lib/license";
+import { getFeaturesForTier } from "@/lib/nxrthguard/features";
 
 export async function POST(request: Request) {
   try {
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
     }
 
     // Create purchase record
-    await db.insert(purchases).values({
+    const [purchase] = await db.insert(purchases).values({
       userId,
       productId,
       priceId,
@@ -94,7 +95,32 @@ export async function POST(request: Request) {
       status: "completed",
       licenseKey,
       completedAt: new Date(),
-    });
+    }).returning();
+
+    // Create license record for NxrthGuard API
+    if (licenseKey && product.productType === "paid") {
+      // Determine tier from price name
+      const tier = price.name.toLowerCase().includes("plus") ? "plus" : "plus";
+      const features = getFeaturesForTier(tier);
+
+      // Check if user already has a license
+      const existingLicense = await db.query.licenses.findFirst({
+        where: eq(licenses.userId, userId),
+      });
+
+      if (!existingLicense) {
+        await db.insert(licenses).values({
+          userId,
+          licenseKey,
+          tier,
+          features,
+          maxDevices: 5,
+          expiresAt: null, // Lifetime license
+          isTrial: false,
+          purchaseId: purchase.id,
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,
