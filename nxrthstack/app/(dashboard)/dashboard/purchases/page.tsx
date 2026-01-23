@@ -5,6 +5,9 @@ import { eq, and, desc } from "drizzle-orm";
 import { Icons } from "@/components/icons";
 import { FadeIn } from "@/components/ui/fade-in";
 import { CheckoutVerifier } from "@/components/dashboard/checkout-verifier";
+import { CopyButton } from "@/components/dashboard/copy-button";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Purchases | Dashboard - NxrthStack",
@@ -119,15 +122,7 @@ export default async function PurchasesPage() {
                           {purchase.licenseKey}
                         </p>
                       </div>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(purchase.licenseKey!);
-                        }}
-                        className="rounded-lg p-2 text-muted-foreground hover:bg-background hover:text-foreground"
-                        title="Copy license key"
-                      >
-                        <Icons.Copy className="h-4 w-4" />
-                      </button>
+                      <CopyButton text={purchase.licenseKey} />
                     </div>
                   </div>
                 )}
