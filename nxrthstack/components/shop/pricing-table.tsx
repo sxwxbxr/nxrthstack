@@ -12,13 +12,40 @@ interface PricingTableProps {
   productId: string;
   productType: string;
   prices: ProductPrice[];
+  isOwned?: boolean;
 }
 
-export function PricingTable({ productId, productType, prices }: PricingTableProps) {
+export function PricingTable({ productId, productType, prices, isOwned = false }: PricingTableProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [selectedPrice, setSelectedPrice] = useState(prices[0]?.id);
   const [isLoading, setIsLoading] = useState(false);
+
+  // If user already owns this product, show "Go to Downloads" button
+  if (isOwned) {
+    return (
+      <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-8">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+            <Icons.Check className="h-6 w-6 text-green-500" />
+          </div>
+          <p className="text-lg font-semibold text-foreground">You own this product</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Access your downloads in the dashboard
+          </p>
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => router.push("/dashboard/downloads")}
+          className="mt-6 w-full rounded-lg bg-green-500 py-3 text-sm font-medium text-white transition-colors hover:bg-green-600"
+        >
+          Go to Downloads
+        </motion.button>
+      </div>
+    );
+  }
 
   const handleCheckout = async (priceId: string) => {
     if (status === "unauthenticated") {

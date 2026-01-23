@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { db, products, productPrices, productImages } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { db, products, productPrices, productImages, purchases, subscriptions } from "@/lib/db";
+import { eq, and } from "drizzle-orm";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PricingTable } from "@/components/shop/pricing-table";
 import { Icons } from "@/components/icons";
@@ -29,6 +30,30 @@ async function getProduct(slug: string) {
   return product;
 }
 
+async function checkOwnership(userId: string, productId: string): Promise<boolean> {
+  // Check for completed purchase
+  const purchase = await db.query.purchases.findFirst({
+    where: and(
+      eq(purchases.userId, userId),
+      eq(purchases.productId, productId),
+      eq(purchases.status, "completed")
+    ),
+  });
+
+  if (purchase) return true;
+
+  // Check for active subscription
+  const subscription = await db.query.subscriptions.findFirst({
+    where: and(
+      eq(subscriptions.userId, userId),
+      eq(subscriptions.productId, productId),
+      eq(subscriptions.status, "active")
+    ),
+  });
+
+  return !!subscription;
+}
+
 export async function generateMetadata({ params }: ProductPageProps) {
   const { slug } = await params;
   const product = await getProduct(slug);
@@ -45,11 +70,16 @@ export async function generateMetadata({ params }: ProductPageProps) {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const [product, session] = await Promise.all([getProduct(slug), auth()]);
 
   if (!product || !product.isActive) {
     notFound();
   }
+
+  // Check if user already owns this product
+  const isOwned = session?.user?.id
+    ? await checkOwnership(session.user.id, product.id)
+    : false;
 
   const allFeatures = product.prices
     .flatMap((price) => (price.features as string[]) || [])
@@ -174,6 +204,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               productId={product.id}
               productType={product.productType}
               prices={product.prices}
+              isOwned={isOwned}
             />
           </div>
         </FadeIn>
