@@ -9,7 +9,9 @@
       "Bash(npx tsc --noEmit)",
       "Bash(npm show:*)",
       "Bash(cd:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(node check-product.mjs:*)",
+      "Bash(node:*)"
     ]
   }
 }
