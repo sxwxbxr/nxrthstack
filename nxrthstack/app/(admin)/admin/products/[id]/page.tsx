@@ -61,9 +61,7 @@ export default async function ProductEditPage({ params }: ProductEditPageProps) 
 
         <PricingManager productId={product.id} prices={product.prices} productType={product.productType} />
 
-        {product.productType !== "free" && (
-          <FilesManager productId={product.id} files={product.files} prices={product.prices} />
-        )}
+        <FilesManager productId={product.id} files={product.files} prices={product.prices} />
       </div>
     </div>
   );
