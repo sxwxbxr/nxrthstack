@@ -3,6 +3,8 @@ import { eq, desc } from "drizzle-orm";
 import { ProductCard } from "@/components/shop/product-card";
 import { FadeIn } from "@/components/ui/fade-in";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Shop | NxrthStack",
   description: "Browse and download professional software tools and applications",

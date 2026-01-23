@@ -6,6 +6,8 @@ import { FadeIn } from "@/components/ui/fade-in";
 import { PricingTable } from "@/components/shop/pricing-table";
 import { Icons } from "@/components/icons";
 
+export const dynamic = "force-dynamic";
+
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
