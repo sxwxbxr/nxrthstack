@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { db, purchases } from "@/lib/db";
 import { eq, and, desc } from "drizzle-orm";
 import { Icons } from "@/components/icons";
 import { FadeIn } from "@/components/ui/fade-in";
+import { CheckoutVerifier } from "@/components/dashboard/checkout-verifier";
 
 export const metadata = {
   title: "Purchases | Dashboard - NxrthStack",
@@ -27,6 +29,10 @@ export default async function PurchasesPage() {
 
   return (
     <div>
+      <Suspense fallback={null}>
+        <CheckoutVerifier />
+      </Suspense>
+
       <FadeIn>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Purchases</h1>
