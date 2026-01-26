@@ -9,6 +9,7 @@ import { GradientText } from "@/components/ui/gradient-text";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { RecordMatchForm } from "@/components/gamehub/record-match-form";
 import { LobbyActions } from "@/components/gamehub/lobby-actions";
+import { R6StatsCharts } from "@/components/gamehub/r6-stats-charts";
 
 interface PageProps {
   params: Promise<{ lobbyId: string }>;
@@ -326,6 +327,24 @@ export default async function LobbyDetailPage({ params }: PageProps) {
               );
             })}
           </StaggerContainer>
+        </FadeIn>
+      )}
+
+      {/* Stats Visualization */}
+      {lobby.matches.length > 0 && lobby.opponent && (
+        <FadeIn delay={0.4}>
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Icons.TrendingUp className="w-5 h-5 text-primary" />
+            Statistics
+          </h2>
+          <R6StatsCharts
+            matches={lobby.matches}
+            player1Id={lobby.hostId}
+            player2Id={lobby.opponentId!}
+            player1Name={lobby.host?.name || "Host"}
+            player2Name={lobby.opponent?.name || "Opponent"}
+            trackKills={lobby.trackKills}
+          />
         </FadeIn>
       )}
     </div>

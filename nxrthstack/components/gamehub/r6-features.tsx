@@ -19,6 +19,20 @@ const features = [
     link: "/dashboard/gamehub/r6/randomizer",
     icon: <Icons.Zap className="h-6 w-6" />,
   },
+  {
+    title: "Strat Roulette",
+    description:
+      "Spin the wheel for random strategies and challenges. Spice up your matches with fun and challenging rules.",
+    link: "/dashboard/gamehub/r6/strat-roulette",
+    icon: <Icons.Shuffle className="h-6 w-6" />,
+  },
+  {
+    title: "Callout Maps",
+    description:
+      "Interactive maps with all the callouts you need. Search, filter, and learn callouts for every map.",
+    link: "/dashboard/gamehub/r6/callouts",
+    icon: <Icons.Globe className="h-6 w-6" />,
+  },
 ];
 
 export function R6Features() {
