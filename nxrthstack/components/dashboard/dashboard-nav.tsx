@@ -35,12 +35,6 @@ const navItems = [
     requiresFriend: true,
   },
   {
-    title: "Feedback",
-    href: "/dashboard/feedback",
-    icon: Icons.Message,
-    requiresFriend: true,
-  },
-  {
     title: "Settings",
     href: "/dashboard/settings",
     icon: Icons.Settings,

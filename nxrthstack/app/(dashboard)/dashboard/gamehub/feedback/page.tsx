@@ -5,15 +5,15 @@ import { GradientText } from "@/components/ui/gradient-text";
 import { FeedbackClient } from "@/components/feedback/feedback-client";
 
 export const metadata = {
-  title: "Feedback | NxrthStack",
-  description: "Submit feature ideas and bug reports",
+  title: "Feedback | GameHub - NxrthStack",
+  description: "Submit feature ideas and bug reports for GameHub",
 };
 
 export default async function FeedbackPage() {
   const session = await auth();
 
   if (!session?.user?.isFriend && session?.user?.role !== "admin") {
-    redirect("/dashboard");
+    redirect("/dashboard/gamehub");
   }
 
   return (

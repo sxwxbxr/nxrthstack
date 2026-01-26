@@ -28,6 +28,11 @@ const gameHubNavItems = [
     href: "/dashboard/gamehub/minecraft",
     icon: Icons.Package,
   },
+  {
+    title: "Feedback",
+    href: "/dashboard/gamehub/feedback",
+    icon: Icons.Message,
+  },
 ];
 
 export function GameHubNav() {
