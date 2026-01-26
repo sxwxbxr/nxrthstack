@@ -1,0 +1,86 @@
+Here are some ideas for GameHub improvements and additions:                                                                                                                                           
+                                                                                                                                                                                                        
+  Rainbow Six Siege Enhancements                                                                                                                                                                          ┌──────────────────────────┬───────────────────────────────────────────────────────────────┐
+  │         Feature          │                          Description                          │                                                                                                          
+  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤                                                                                                          
+  │ Match History Export     │ Export 1v1 stats to CSV/JSON for external analysis            │
+  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+  │ Stats Visualization      │ Graphs showing K/D trends, win rates over time                │
+  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+  │ Map Tracker              │ Track which maps you play, win rates per map                  │
+  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+  │ Operator Usage Stats     │ See which operators you pick most often                       │
+  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+  │ Strat Roulette           │ Random challenge generator ("Win a round using only pistols") │
+  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+  │ Interactive Callout Maps │ Clickable maps with callout names for learning                │
+  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+  │ Tournament Brackets      │ Support for 4/8 player mini-tournaments                       │
+  └──────────────────────────┴───────────────────────────────────────────────────────────────┘
+  Pokemon Additions
+  ┌────────────────────┬─────────────────────────────────────────────────────┐
+  │      Feature       │                     Description                     │
+  ├────────────────────┼─────────────────────────────────────────────────────┤
+  │ Team Builder       │ Build competitive teams with type coverage analysis │
+  ├────────────────────┼─────────────────────────────────────────────────────┤
+  │ Damage Calculator  │ Calculate move damage with stats/items/abilities    │
+  ├────────────────────┼─────────────────────────────────────────────────────┤
+  │ Nuzlocke Tracker   │ Track encounters, deaths, rules for Nuzlocke runs   │
+  ├────────────────────┼─────────────────────────────────────────────────────┤
+  │ Shiny Counter      │ Track shiny hunting attempts with odds calculator   │
+  ├────────────────────┼─────────────────────────────────────────────────────┤
+  │ Living Dex Tracker │ Track progress toward completing a living Pokedex   │
+  ├────────────────────┼─────────────────────────────────────────────────────┤
+  │ IV Calculator      │ Calculate IVs from Pokemon stats                    │
+  └────────────────────┴─────────────────────────────────────────────────────┘
+  Minecraft Tools
+  ┌───────────────────────┬──────────────────────────────────────────────────────┐
+  │        Feature        │                     Description                      │
+  ├───────────────────────┼──────────────────────────────────────────────────────┤
+  │ Server Status Checker │ Check if a Minecraft server is online + player count │
+  ├───────────────────────┼──────────────────────────────────────────────────────┤
+  │ Crafting Calculator   │ Calculate materials needed for builds                │
+  ├───────────────────────┼──────────────────────────────────────────────────────┤
+  │ Coordinate Saver      │ Save important locations (base, portals, spawners)   │
+  ├───────────────────────┼──────────────────────────────────────────────────────┤
+  │ Seed Library          │ Share/browse interesting world seeds                 │
+  ├───────────────────────┼──────────────────────────────────────────────────────┤
+  │ Enchantment Planner   │ Plan optimal enchantment combinations                │
+  └───────────────────────┴──────────────────────────────────────────────────────┘
+  New Game Support
+  ┌───────────────┬───────────────────────────────────────────────┐
+  │     Game      │                   Features                    │
+  ├───────────────┼───────────────────────────────────────────────┤
+  │ Valorant      │ Agent randomizer, 1v1 tracker, lineup library │
+  ├───────────────┼───────────────────────────────────────────────┤
+  │ Rocket League │ Rank tracker, training pack organizer         │
+  ├───────────────┼───────────────────────────────────────────────┤
+  │ CS2           │ Similar to R6 - 1v1 tracker, map stats        │
+  ├───────────────┼───────────────────────────────────────────────┤
+  │ Apex Legends  │ Legend randomizer, loadout randomizer         │
+  └───────────────┴───────────────────────────────────────────────┘
+  Cross-Game Features
+  ┌────────────────────────┬─────────────────────────────────────────────────────────────┐
+  │        Feature         │                         Description                         │
+  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
+  │ Gaming Stats Dashboard │ Overview of all your GameHub activity                       │
+  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
+  │ Achievement System     │ Badges for milestones (100 matches, first bug report, etc.) │
+  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
+  │ Session Scheduler      │ Plan gaming sessions with friends                           │
+  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
+  │ Discord Integration    │ Bot commands to access GameHub features                     │
+  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
+  │ Stream Overlays        │ Generate OBS overlays for 1v1 scores                        │
+  └────────────────────────┴─────────────────────────────────────────────────────────────┘
+  ---
+  Quick wins (easy to implement):
+  1. Match history export for R6
+  2. Strat Roulette for R6
+  3. Shiny counter for Pokemon
+  4. Server status checker for Minecraft
+
+  High impact (more complex):
+  1. Stats visualization with charts
+  2. Team builder for Pokemon
+  3. Achievement system

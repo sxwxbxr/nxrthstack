@@ -59,6 +59,7 @@ import {
   FileEdit,
   HelpCircle,
   Cpu,
+  RefreshCw,
 } from "lucide-react";
 
 export const Icons = {
@@ -123,6 +124,7 @@ export const Icons = {
   Cpu,
   ChevronLeft,
   Gamepad2,
+  RefreshCw,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,
