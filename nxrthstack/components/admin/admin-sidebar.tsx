@@ -81,6 +81,15 @@ export function AdminSidebar() {
 
         {/* Footer */}
         <div className="border-t border-border p-4">
+          <Link href="/dashboard">
+            <motion.div
+              whileHover={{ x: 4 }}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              <Icons.User className="h-5 w-5" />
+              Customer Dashboard
+            </motion.div>
+          </Link>
           <Link href="/shop">
             <motion.div
               whileHover={{ x: 4 }}

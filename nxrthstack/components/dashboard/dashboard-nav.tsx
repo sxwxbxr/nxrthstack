@@ -111,6 +111,17 @@ export function DashboardNav() {
 
         {/* Footer */}
         <div className="border-t border-border p-4">
+          {session?.user?.role === "admin" && (
+            <Link href="/admin">
+              <motion.div
+                whileHover={{ x: 4 }}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              >
+                <Icons.Shield className="h-5 w-5" />
+                Admin Dashboard
+              </motion.div>
+            </Link>
+          )}
           <Link href="/shop">
             <motion.div
               whileHover={{ x: 4 }}

@@ -50,6 +50,7 @@ import {
   Shuffle,
   FileUp,
   HardDrive,
+  Shield,
 } from "lucide-react";
 
 export const Icons = {
@@ -104,6 +105,7 @@ export const Icons = {
   Shuffle,
   FileUp,
   HardDrive,
+  Shield,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

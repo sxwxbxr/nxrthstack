@@ -66,6 +66,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as { role?: string }).role;
         token.isFriend = (user as { isFriend?: boolean }).isFriend;
       }
+
+      // Always fetch fresh user data to reflect admin changes (e.g., isFriend toggle)
+      if (token.id) {
+        const freshUser = await db.query.users.findFirst({
+          where: eq(users.id, token.id as string),
+          columns: {
+            role: true,
+            isFriend: true,
+            name: true,
+          },
+        });
+
+        if (freshUser) {
+          token.role = freshUser.role;
+          token.isFriend = freshUser.isFriend;
+          token.name = freshUser.name;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
