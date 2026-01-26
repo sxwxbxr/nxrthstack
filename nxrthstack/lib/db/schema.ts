@@ -19,6 +19,7 @@ export const users = pgTable("users", {
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }),
   role: varchar("role", { length: 20 }).default("customer").notNull(), // 'customer' | 'admin'
+  isFriend: boolean("is_friend").default(false).notNull(), // GameHub access
   emailVerified: timestamp("email_verified", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
@@ -195,6 +196,76 @@ export const verificationTokens = pgTable(
   (table) => [primaryKey({ columns: [table.identifier, table.token] })]
 );
 
+// ============================================================================
+// GameHub Tables
+// ============================================================================
+
+// GameHub Announcements (Blackboard)
+export const gamehubAnnouncements = pgTable("gamehub_announcements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  category: varchar("category", { length: 50 }), // 'general' | 'r6' | 'minecraft'
+  isPinned: boolean("is_pinned").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// R6 1v1 Lobbies
+export const r6Lobbies = pgTable("r6_lobbies", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  hostId: uuid("host_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  opponentId: uuid("opponent_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  inviteCode: varchar("invite_code", { length: 20 }).notNull().unique(),
+  status: varchar("status", { length: 20 }).default("open").notNull(), // 'open' | 'active' | 'completed'
+  trackKills: boolean("track_kills").default(false).notNull(),
+  deletionRequestedBy: uuid("deletion_requested_by").references(() => users.id, {
+    onDelete: "set null",
+  }), // User who requested deletion (other user must confirm)
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// R6 1v1 Matches
+export const r6Matches = pgTable("r6_matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  lobbyId: uuid("lobby_id")
+    .notNull()
+    .references(() => r6Lobbies.id, { onDelete: "cascade" }),
+  winnerId: uuid("winner_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  player1Kills: integer("player1_kills"),
+  player1Deaths: integer("player1_deaths"),
+  player2Kills: integer("player2_kills"),
+  player2Deaths: integer("player2_deaths"),
+  screenshotUrl: varchar("screenshot_url", { length: 500 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// R6 Operators (Static Data for Randomizer)
+export const r6Operators = pgTable("r6_operators", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  role: varchar("role", { length: 20 }).notNull(), // 'attacker' | 'defender'
+  iconUrl: varchar("icon_url", { length: 500 }),
+  primaryWeapons: jsonb("primary_weapons").default([]).notNull(),
+  secondaryWeapons: jsonb("secondary_weapons").default([]).notNull(),
+  gadgets: jsonb("gadgets").default([]).notNull(),
+  sights: jsonb("sights").default([]).notNull(),
+  barrels: jsonb("barrels").default([]).notNull(),
+  grips: jsonb("grips").default([]).notNull(),
+  underbarrels: jsonb("underbarrels").default([]).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   purchases: many(purchases),
@@ -203,6 +274,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   licenses: many(licenses),
   deviceActivations: many(deviceActivations),
   refreshTokens: many(refreshTokens),
+  hostedLobbies: many(r6Lobbies, { relationName: "host" }),
+  joinedLobbies: many(r6Lobbies, { relationName: "opponent" }),
 }));
 
 export const productsRelations = relations(products, ({ many }) => ({
@@ -311,6 +384,108 @@ export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
   }),
 }));
 
+// GameHub Relations
+export const gamehubAnnouncementsRelations = relations(
+  gamehubAnnouncements,
+  () => ({})
+);
+
+export const r6LobbiesRelations = relations(r6Lobbies, ({ one, many }) => ({
+  host: one(users, {
+    fields: [r6Lobbies.hostId],
+    references: [users.id],
+    relationName: "host",
+  }),
+  opponent: one(users, {
+    fields: [r6Lobbies.opponentId],
+    references: [users.id],
+    relationName: "opponent",
+  }),
+  matches: many(r6Matches),
+}));
+
+export const r6MatchesRelations = relations(r6Matches, ({ one }) => ({
+  lobby: one(r6Lobbies, {
+    fields: [r6Matches.lobbyId],
+    references: [r6Lobbies.id],
+  }),
+  winner: one(users, {
+    fields: [r6Matches.winnerId],
+    references: [users.id],
+  }),
+}));
+
+export const r6OperatorsRelations = relations(r6Operators, () => ({}));
+
+// ============================================================================
+// Pokemon ROM Editor Tables
+// ============================================================================
+
+// Pokemon Species Data (for randomization pools)
+export const pokemonSpecies = pgTable("pokemon_species", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  pokedexId: integer("pokedex_id").notNull().unique(),
+  name: varchar("name", { length: 50 }).notNull(),
+  generation: integer("generation").notNull(), // 1-3
+  types: jsonb("types").notNull(), // ["grass", "poison"]
+  hpBase: integer("hp_base").notNull(),
+  attackBase: integer("attack_base").notNull(),
+  defenseBase: integer("defense_base").notNull(),
+  spAtkBase: integer("sp_atk_base").notNull(),
+  spDefBase: integer("sp_def_base").notNull(),
+  speedBase: integer("speed_base").notNull(),
+  isLegendary: boolean("is_legendary").default(false).notNull(),
+  isStarter: boolean("is_starter").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+// ROM Configuration (offsets per game)
+export const romConfigs = pgTable("rom_configs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  gameCode: varchar("game_code", { length: 20 }).notNull().unique(), // "POKEMON RED", "BPRE"
+  gameName: varchar("game_name", { length: 100 }).notNull(),
+  generation: integer("generation").notNull(),
+  platform: varchar("platform", { length: 10 }).notNull(), // "GB", "GBC", "GBA"
+  region: varchar("region", { length: 10 }).default("US").notNull(),
+  pokemonCount: integer("pokemon_count").notNull(),
+  offsets: jsonb("offsets").notNull(), // All ROM offsets
+  structureSizes: jsonb("structure_sizes").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+// Type Effectiveness Chart
+export const typeChart = pgTable("type_chart", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  generation: integer("generation").notNull(), // 1, 2, or 3+
+  typeName: varchar("type_name", { length: 15 }).notNull(),
+  typeId: integer("type_id").notNull(),
+  effectiveness: jsonb("effectiveness").notNull(), // {water: 2, fire: 0.5, ...}
+});
+
+// Stored ROMs (for preset selection)
+export const storedRoms = pgTable("stored_roms", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  gameCode: varchar("game_code", { length: 20 }).notNull(), // Links to romConfigs.gameCode
+  displayName: varchar("display_name", { length: 100 }).notNull(),
+  fileKey: varchar("file_key", { length: 500 }).notNull(), // Vercel Blob key
+  fileSizeBytes: bigint("file_size_bytes", { mode: "number" }).notNull(),
+  checksum: varchar("checksum", { length: 64 }), // SHA-256 for verification
+  uploadedBy: uuid("uploaded_by").references(() => users.id, { onDelete: "set null" }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Pokemon Relations
+export const pokemonSpeciesRelations = relations(pokemonSpecies, () => ({}));
+export const romConfigsRelations = relations(romConfigs, () => ({}));
+export const typeChartRelations = relations(typeChart, () => ({}));
+export const storedRomsRelations = relations(storedRoms, ({ one }) => ({
+  uploader: one(users, {
+    fields: [storedRoms.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -332,3 +507,23 @@ export type DeviceActivation = typeof deviceActivations.$inferSelect;
 export type NewDeviceActivation = typeof deviceActivations.$inferInsert;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type NewRefreshToken = typeof refreshTokens.$inferInsert;
+
+// GameHub Types
+export type GamehubAnnouncement = typeof gamehubAnnouncements.$inferSelect;
+export type NewGamehubAnnouncement = typeof gamehubAnnouncements.$inferInsert;
+export type R6Lobby = typeof r6Lobbies.$inferSelect;
+export type NewR6Lobby = typeof r6Lobbies.$inferInsert;
+export type R6Match = typeof r6Matches.$inferSelect;
+export type NewR6Match = typeof r6Matches.$inferInsert;
+export type R6Operator = typeof r6Operators.$inferSelect;
+export type NewR6Operator = typeof r6Operators.$inferInsert;
+
+// Pokemon Types
+export type PokemonSpecies = typeof pokemonSpecies.$inferSelect;
+export type NewPokemonSpecies = typeof pokemonSpecies.$inferInsert;
+export type RomConfig = typeof romConfigs.$inferSelect;
+export type NewRomConfig = typeof romConfigs.$inferInsert;
+export type TypeChart = typeof typeChart.$inferSelect;
+export type NewTypeChart = typeof typeChart.$inferInsert;
+export type StoredRom = typeof storedRoms.$inferSelect;
+export type NewStoredRom = typeof storedRoms.$inferInsert;

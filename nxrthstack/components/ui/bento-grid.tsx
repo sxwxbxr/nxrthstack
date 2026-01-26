@@ -28,12 +28,14 @@ export const BentoGridItem = ({
   description,
   header,
   icon,
+  children,
 }: {
   className?: string;
   title?: string | React.ReactNode;
   description?: string | React.ReactNode;
   header?: React.ReactNode;
   icon?: React.ReactNode;
+  children?: React.ReactNode;
 }) => {
   return (
     <motion.div
@@ -44,16 +46,22 @@ export const BentoGridItem = ({
         className
       )}
     >
-      {header}
-      <div className="transition duration-200">
-        {icon}
-        <div className="font-sans font-bold text-foreground mb-2 mt-2">
-          {title}
-        </div>
-        <div className="font-sans font-normal text-muted-foreground text-sm">
-          {description}
-        </div>
-      </div>
+      {children ? (
+        children
+      ) : (
+        <>
+          {header}
+          <div className="transition duration-200">
+            {icon}
+            <div className="font-sans font-bold text-foreground mb-2 mt-2">
+              {title}
+            </div>
+            <div className="font-sans font-normal text-muted-foreground text-sm">
+              {description}
+            </div>
+          </div>
+        </>
+      )}
     </motion.div>
   );
 };

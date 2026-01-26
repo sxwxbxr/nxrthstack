@@ -46,6 +46,10 @@ import {
   Info,
   Home,
   Store,
+  Sparkles,
+  Shuffle,
+  FileUp,
+  HardDrive,
 } from "lucide-react";
 
 export const Icons = {
@@ -96,6 +100,10 @@ export const Icons = {
   Info,
   Home,
   Store,
+  Sparkles,
+  Shuffle,
+  FileUp,
+  HardDrive,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

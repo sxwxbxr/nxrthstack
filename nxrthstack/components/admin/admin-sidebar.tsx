@@ -28,6 +28,11 @@ const navItems = [
     href: "/admin/customers",
     icon: Icons.Users,
   },
+  {
+    title: "GameHub",
+    href: "/admin/gamehub",
+    icon: Icons.Gamepad,
+  },
 ];
 
 export function AdminSidebar() {

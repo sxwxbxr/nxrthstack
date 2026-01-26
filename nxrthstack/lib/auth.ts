@@ -54,6 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           role: user.role,
+          isFriend: user.isFriend,
         };
       },
     }),
@@ -63,6 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role;
+        token.isFriend = (user as { isFriend?: boolean }).isFriend;
       }
       return token;
     },
@@ -70,6 +72,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.isFriend = token.isFriend as boolean;
       }
       return session;
     },
@@ -84,11 +87,13 @@ declare module "next-auth" {
       email: string;
       name?: string | null;
       role: string;
+      isFriend: boolean;
     };
   }
 
   interface User {
     role?: string;
+    isFriend?: boolean;
   }
 }
 
@@ -96,5 +101,6 @@ declare module "@auth/core/jwt" {
   interface JWT {
     id?: string;
     role?: string;
+    isFriend?: boolean;
   }
 }

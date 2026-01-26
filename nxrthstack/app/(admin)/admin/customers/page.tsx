@@ -2,6 +2,7 @@ import { db, users, purchases, subscriptions } from "@/lib/db";
 import { eq, desc, count } from "drizzle-orm";
 import { Icons } from "@/components/icons";
 import { FadeIn } from "@/components/ui/fade-in";
+import { FriendToggle } from "@/components/admin/friend-toggle";
 
 export const metadata = {
   title: "Customers | Admin - NxrthStack",
@@ -85,6 +86,9 @@ export default async function CustomersPage() {
                   <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
                     Status
                   </th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+                    Friend
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -127,6 +131,12 @@ export default async function CustomersPage() {
                       >
                         {customer.emailVerified ? "Verified" : "Unverified"}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <FriendToggle
+                        userId={customer.id}
+                        initialValue={customer.isFriend}
+                      />
                     </td>
                   </tr>
                 ))}

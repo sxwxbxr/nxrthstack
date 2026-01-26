@@ -1,0 +1,398 @@
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "../lib/db/schema";
+import * as dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
+dotenv.config({ path: ".env" });
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
+
+const sql = neon(process.env.DATABASE_URL);
+const db = drizzle(sql, { schema });
+
+// ROM Configurations for Gen 1-3 Pokemon games
+// Contains offsets for wild encounters, starters, and other game data
+const romConfigs = [
+  // Generation 1 - Game Boy
+  {
+    gameCode: "POKEMON RED",
+    gameName: "Pokemon Red",
+    generation: 1,
+    platform: "GB",
+    region: "US",
+    pokemonCount: 151,
+    offsets: {
+      // Wild encounter offsets
+      wildEncounterPointer: 0xCEEB,
+      wildGrassEncounters: 0xD887,
+      wildWaterEncounters: 0xD945,
+      // Pokemon data
+      baseStatsPointer: 0x383DE,
+      evolutionPointer: 0x3B05C,
+      learnsetPointer: 0x3B1E5,
+      // Starters
+      starterOffsets: [0x1D10E, 0x1D11F, 0x1D130],
+      rivalStarterOffset: 0x1D131,
+      // Type chart
+      typeEffectivenessOffset: 0x3E62D,
+      // Text encoding
+      textEncodingType: "gen1",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 2,
+      encounterArea: 20,
+      moveData: 6,
+    },
+  },
+  {
+    gameCode: "POKEMON BLUE",
+    gameName: "Pokemon Blue",
+    generation: 1,
+    platform: "GB",
+    region: "US",
+    pokemonCount: 151,
+    offsets: {
+      wildEncounterPointer: 0xCEEB,
+      wildGrassEncounters: 0xD887,
+      wildWaterEncounters: 0xD945,
+      baseStatsPointer: 0x383DE,
+      evolutionPointer: 0x3B05C,
+      learnsetPointer: 0x3B1E5,
+      starterOffsets: [0x1D10E, 0x1D11F, 0x1D130],
+      rivalStarterOffset: 0x1D131,
+      typeEffectivenessOffset: 0x3E62D,
+      textEncodingType: "gen1",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 2,
+      encounterArea: 20,
+      moveData: 6,
+    },
+  },
+  {
+    gameCode: "POKEMON YELLOW",
+    gameName: "Pokemon Yellow",
+    generation: 1,
+    platform: "GBC",
+    region: "US",
+    pokemonCount: 151,
+    offsets: {
+      wildEncounterPointer: 0xCB95,
+      wildGrassEncounters: 0xD5A7,
+      wildWaterEncounters: 0xD665,
+      baseStatsPointer: 0x383DE,
+      evolutionPointer: 0x3B05C,
+      learnsetPointer: 0x3B1E5,
+      // Yellow has unique starter handling (Pikachu)
+      starterOffsets: [0x1CC4C], // Pikachu only
+      rivalStarterOffset: 0x1CC4D,
+      typeEffectivenessOffset: 0x3E474,
+      textEncodingType: "gen1",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 2,
+      encounterArea: 20,
+      moveData: 6,
+    },
+  },
+
+  // Generation 2 - Game Boy Color
+  {
+    gameCode: "POKEMON GOLD",
+    gameName: "Pokemon Gold",
+    generation: 2,
+    platform: "GBC",
+    region: "US",
+    pokemonCount: 251,
+    offsets: {
+      wildEncounterPointer: 0x2A5E9,
+      wildGrassEncounters: 0x2A5E9,
+      wildWaterEncounters: 0x2B7AE,
+      wildCaveEncounters: 0x2B61D,
+      baseStatsPointer: 0x51424,
+      evolutionPointer: 0x427BD,
+      learnsetPointer: 0x42AB1,
+      starterOffsets: [0x78E6E, 0x78E6F, 0x78E70],
+      typeEffectivenessOffset: 0x34D01,
+      timeDependentEncounters: true,
+      textEncodingType: "gen2",
+    },
+    structureSizes: {
+      baseStats: 32,
+      encounterSlot: 2,
+      encounterArea: 14, // Morning/Day/Night slots
+      moveData: 7,
+    },
+  },
+  {
+    gameCode: "POKEMON SILVER",
+    gameName: "Pokemon Silver",
+    generation: 2,
+    platform: "GBC",
+    region: "US",
+    pokemonCount: 251,
+    offsets: {
+      wildEncounterPointer: 0x2A5E9,
+      wildGrassEncounters: 0x2A5E9,
+      wildWaterEncounters: 0x2B7AE,
+      wildCaveEncounters: 0x2B61D,
+      baseStatsPointer: 0x51424,
+      evolutionPointer: 0x427BD,
+      learnsetPointer: 0x42AB1,
+      starterOffsets: [0x78E6E, 0x78E6F, 0x78E70],
+      typeEffectivenessOffset: 0x34D01,
+      timeDependentEncounters: true,
+      textEncodingType: "gen2",
+    },
+    structureSizes: {
+      baseStats: 32,
+      encounterSlot: 2,
+      encounterArea: 14,
+      moveData: 7,
+    },
+  },
+  {
+    gameCode: "POKEMON CRYSTAL",
+    gameName: "Pokemon Crystal",
+    generation: 2,
+    platform: "GBC",
+    region: "US",
+    pokemonCount: 251,
+    offsets: {
+      wildEncounterPointer: 0x2A5E9,
+      wildGrassEncounters: 0x2A5E9,
+      wildWaterEncounters: 0x2B7AE,
+      wildCaveEncounters: 0x2B61D,
+      baseStatsPointer: 0x51424,
+      evolutionPointer: 0x425B1,
+      learnsetPointer: 0x428A1,
+      starterOffsets: [0x78E6E, 0x78E6F, 0x78E70],
+      typeEffectivenessOffset: 0x34CFE,
+      timeDependentEncounters: true,
+      textEncodingType: "gen2",
+    },
+    structureSizes: {
+      baseStats: 32,
+      encounterSlot: 2,
+      encounterArea: 14,
+      moveData: 7,
+    },
+  },
+
+  // Generation 3 - Game Boy Advance
+  {
+    gameCode: "BPRE",
+    gameName: "Pokemon FireRed",
+    generation: 3,
+    platform: "GBA",
+    region: "US",
+    pokemonCount: 386,
+    offsets: {
+      // GBA uses pointers stored as 32-bit values
+      wildEncounterPointer: 0x3C9CB8, // Pointer to encounter table
+      baseStatsPointer: 0x254784,
+      evolutionPointer: 0x25977C,
+      movesPointer: 0x250C04,
+      learnsetPointer: 0x25D7B4,
+      starterOffsets: [0x169C2C, 0x169C2E, 0x169C30], // Species IDs
+      starterTextOffset: 0x169C34,
+      typeEffectivenessPointer: 0x24F050,
+      typeNamesPointer: 0x24F1A0,
+      abilityNamesPointer: 0x24FC40,
+      itemDataPointer: 0x3DB028,
+      // GBA-specific
+      usePointers: true,
+      pointerOffset: 0x08000000, // GBA ROM base address
+      textEncodingType: "gen3",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 4, // species (2) + level range (2)
+      encounterHeader: 20,
+      moveData: 12,
+      evolutionEntry: 8,
+    },
+  },
+  {
+    gameCode: "BPGE",
+    gameName: "Pokemon LeafGreen",
+    generation: 3,
+    platform: "GBA",
+    region: "US",
+    pokemonCount: 386,
+    offsets: {
+      wildEncounterPointer: 0x3C9CB8,
+      baseStatsPointer: 0x254784,
+      evolutionPointer: 0x25977C,
+      movesPointer: 0x250C04,
+      learnsetPointer: 0x25D7B4,
+      starterOffsets: [0x169C2C, 0x169C2E, 0x169C30],
+      starterTextOffset: 0x169C34,
+      typeEffectivenessPointer: 0x24F050,
+      typeNamesPointer: 0x24F1A0,
+      abilityNamesPointer: 0x24FC40,
+      itemDataPointer: 0x3DB028,
+      usePointers: true,
+      pointerOffset: 0x08000000,
+      textEncodingType: "gen3",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 4,
+      encounterHeader: 20,
+      moveData: 12,
+      evolutionEntry: 8,
+    },
+  },
+  {
+    gameCode: "AXVE",
+    gameName: "Pokemon Ruby",
+    generation: 3,
+    platform: "GBA",
+    region: "US",
+    pokemonCount: 386,
+    offsets: {
+      wildEncounterPointer: 0x39D454,
+      baseStatsPointer: 0x1FEC18,
+      evolutionPointer: 0x203B60,
+      movesPointer: 0x1FB12C,
+      learnsetPointer: 0x207BC8,
+      starterOffsets: [0x5B1DF8, 0x5B1DFA, 0x5B1DFC],
+      typeEffectivenessPointer: 0x1F9700,
+      typeNamesPointer: 0x1F9850,
+      abilityNamesPointer: 0x1FA248,
+      itemDataPointer: 0x3C5580,
+      usePointers: true,
+      pointerOffset: 0x08000000,
+      textEncodingType: "gen3",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 4,
+      encounterHeader: 20,
+      moveData: 12,
+      evolutionEntry: 8,
+    },
+  },
+  {
+    gameCode: "AXPE",
+    gameName: "Pokemon Sapphire",
+    generation: 3,
+    platform: "GBA",
+    region: "US",
+    pokemonCount: 386,
+    offsets: {
+      wildEncounterPointer: 0x39D29C,
+      baseStatsPointer: 0x1FEC18,
+      evolutionPointer: 0x203B60,
+      movesPointer: 0x1FB12C,
+      learnsetPointer: 0x207BC8,
+      starterOffsets: [0x5B1C40, 0x5B1C42, 0x5B1C44],
+      typeEffectivenessPointer: 0x1F9700,
+      typeNamesPointer: 0x1F9850,
+      abilityNamesPointer: 0x1FA248,
+      itemDataPointer: 0x3C53C8,
+      usePointers: true,
+      pointerOffset: 0x08000000,
+      textEncodingType: "gen3",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 4,
+      encounterHeader: 20,
+      moveData: 12,
+      evolutionEntry: 8,
+    },
+  },
+  {
+    gameCode: "BPEE",
+    gameName: "Pokemon Emerald",
+    generation: 3,
+    platform: "GBA",
+    region: "US",
+    pokemonCount: 386,
+    offsets: {
+      wildEncounterPointer: 0x552D48,
+      baseStatsPointer: 0x3203CC,
+      evolutionPointer: 0x32531C,
+      movesPointer: 0x31C898,
+      learnsetPointer: 0x32937C,
+      starterOffsets: [0x5B1DF8, 0x5B1DFA, 0x5B1DFC],
+      typeEffectivenessPointer: 0x31AE38,
+      typeNamesPointer: 0x31AF88,
+      abilityNamesPointer: 0x31B988,
+      itemDataPointer: 0x5839A0,
+      // Battle Frontier data
+      battleFrontierPointer: 0x5A1A90,
+      usePointers: true,
+      pointerOffset: 0x08000000,
+      textEncodingType: "gen3",
+    },
+    structureSizes: {
+      baseStats: 28,
+      encounterSlot: 4,
+      encounterHeader: 20,
+      moveData: 12,
+      evolutionEntry: 8,
+    },
+  },
+];
+
+async function seed() {
+  console.log("Seeding ROM configurations...\n");
+  let successCount = 0;
+  let errorCount = 0;
+
+  for (const config of romConfigs) {
+    try {
+      await db
+        .insert(schema.romConfigs)
+        .values({
+          gameCode: config.gameCode,
+          gameName: config.gameName,
+          generation: config.generation,
+          platform: config.platform,
+          region: config.region,
+          pokemonCount: config.pokemonCount,
+          offsets: config.offsets,
+          structureSizes: config.structureSizes,
+          isActive: true,
+        })
+        .onConflictDoUpdate({
+          target: schema.romConfigs.gameCode,
+          set: {
+            gameName: config.gameName,
+            generation: config.generation,
+            platform: config.platform,
+            region: config.region,
+            pokemonCount: config.pokemonCount,
+            offsets: config.offsets,
+            structureSizes: config.structureSizes,
+          },
+        });
+
+      console.log(`  ✓ ${config.gameName} (${config.gameCode})`);
+      successCount++;
+    } catch (error) {
+      errorCount++;
+      console.error(`  ✗ ${config.gameName}:`, error);
+    }
+  }
+
+  console.log("\nSeeding complete!");
+  console.log(`Total configs: ${romConfigs.length}`);
+  console.log(`Successfully seeded: ${successCount}`);
+  console.log(`Errors: ${errorCount}`);
+  console.log(`\nPlatform breakdown:`);
+  console.log(`  GB: ${romConfigs.filter(c => c.platform === "GB").length}`);
+  console.log(`  GBC: ${romConfigs.filter(c => c.platform === "GBC").length}`);
+  console.log(`  GBA: ${romConfigs.filter(c => c.platform === "GBA").length}`);
+}
+
+seed().catch(console.error);
