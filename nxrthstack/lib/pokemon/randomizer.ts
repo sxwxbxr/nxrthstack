@@ -339,6 +339,97 @@ function randomizeGBEncounters(
   return { totalChanges, changes };
 }
 
+// Read a 32-bit pointer from ROM and convert to file offset
+function readPointer(data: Uint8Array, offset: number): number {
+  const ptr = data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24);
+  // GBA pointers have 0x08000000 base address - remove it to get file offset
+  if ((ptr & 0x08000000) !== 0) {
+    return ptr & 0x01FFFFFF;
+  }
+  return ptr;
+}
+
+// Check if a pointer is valid (points within ROM bounds)
+function isValidPointer(ptr: number, romLength: number): boolean {
+  return ptr > 0 && ptr < romLength - 4;
+}
+
+// Check if a pointer looks like a valid GBA ROM pointer
+function isValidGBAPointer(data: Uint8Array, offset: number, romLength: number): boolean {
+  if (offset + 4 > romLength) return false;
+  const ptr = data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24);
+  // Valid GBA pointers are in the range 0x08000000 - 0x09FFFFFF or are 0
+  if (ptr === 0) return true;
+  return (ptr >= 0x08000000 && ptr < 0x0A000000);
+}
+
+// Dynamically find the wild encounter table by searching for its pattern
+function findEncounterTable(data: Uint8Array, hintOffset: number): number | null {
+  // First try the hint offset
+  if (validateEncounterTable(data, hintOffset)) {
+    return hintOffset;
+  }
+
+  // Search nearby the hint (within +/- 0x10000 bytes)
+  const searchRadius = 0x10000;
+  const startSearch = Math.max(0x100000, hintOffset - searchRadius);
+  const endSearch = Math.min(data.length - 100, hintOffset + searchRadius);
+
+  for (let offset = startSearch; offset < endSearch; offset += 4) {
+    if (validateEncounterTable(data, offset)) {
+      return offset;
+    }
+  }
+
+  return null;
+}
+
+// Validate that an offset points to a valid encounter table
+function validateEncounterTable(data: Uint8Array, tableOffset: number): boolean {
+  if (tableOffset + 60 >= data.length) return false; // Need space for at least 3 entries
+
+  let validEntries = 0;
+
+  // Check first few entries
+  for (let i = 0; i < 3; i++) {
+    const entryOffset = tableOffset + (i * 20);
+    const bank = readU8(data, entryOffset);
+    const map = readU8(data, entryOffset + 1);
+
+    // Bank and map should be reasonable values (not all 0xFF except for terminator)
+    if (bank > 50 || map > 100) {
+      if (bank === 0xFF && map === 0xFF && i > 0) break; // Valid terminator
+      continue;
+    }
+
+    // Check that the pointers look valid
+    const grassPtr = readPointer(data, entryOffset + 4);
+    const waterPtr = readPointer(data, entryOffset + 8);
+
+    // At least one encounter type should have valid data
+    if (grassPtr > 0 && grassPtr < data.length) {
+      // Verify grass pointer points to valid encounter data
+      const encounterRate = readU8(data, grassPtr);
+      if (encounterRate > 0 && encounterRate <= 100) {
+        if (isValidGBAPointer(data, grassPtr + 4, data.length)) {
+          validEntries++;
+        }
+      }
+    }
+
+    if (waterPtr > 0 && waterPtr < data.length) {
+      const encounterRate = readU8(data, waterPtr);
+      if (encounterRate > 0 && encounterRate <= 100) {
+        if (isValidGBAPointer(data, waterPtr + 4, data.length)) {
+          validEntries++;
+        }
+      }
+    }
+  }
+
+  return validEntries >= 2; // Need at least 2 valid looking entries
+}
+
 function randomizeGBAEncounters(
   romData: Uint8Array,
   romInfo: ROMInfo,
@@ -347,57 +438,176 @@ function randomizeGBAEncounters(
   changes: { originalName: string; newName: string }[]
 ): RandomizeResult {
   const offsets = romInfo.offsets as Record<string, number>;
-  const encounterPointer = offsets.wildEncounterPointer;
+  const hintOffset = offsets.wildEncounterPointer;
 
-  if (!encounterPointer) {
+  if (!hintOffset) {
     throw new Error("Wild encounter pointer not found for this ROM");
+  }
+
+  // Find the actual encounter table (may differ from hint in regional versions)
+  const encounterTablePointer = findEncounterTable(romData, hintOffset);
+
+  if (!encounterTablePointer) {
+    throw new Error(
+      `Could not locate wild encounter table for ${romInfo.gameName}. ` +
+      `This ROM version may not be supported for randomization yet.`
+    );
   }
 
   let totalChanges = 0;
 
-  // GBA encounter structure is more complex - uses pointers
-  // For simplicity, we'll scan for encounter patterns
-  // Each encounter slot in GBA is 4 bytes: minLevel (1), maxLevel (1), species (2)
+  // GBA Pokemon games use a structured encounter table
+  // The encounter table pointer points to an array of map encounter headers
+  // Each header is 20 bytes:
+  //   - Bank (1 byte)
+  //   - Map (1 byte)
+  //   - Padding (2 bytes)
+  //   - Grass encounter pointer (4 bytes) - points to grass encounter data or 0
+  //   - Water encounter pointer (4 bytes) - points to surf encounter data or 0
+  //   - Rock smash encounter pointer (4 bytes) - points to rock smash data or 0
+  //   - Fishing encounter pointer (4 bytes) - points to fishing data or 0
 
-  // Scan ROM for encounter data patterns
-  for (let offset = 0x100000; offset < romData.length - 4; offset += 4) {
-    const byte1 = readU8(romData, offset);
-    const byte2 = readU8(romData, offset + 1);
-    const speciesId = readU16LE(romData, offset + 2);
+  // Each encounter data block has:
+  //   - Encounter rate (1 byte)
+  //   - Padding (3 bytes)
+  //   - Encounter slots pointer (4 bytes)
 
-    // Check if this looks like an encounter entry
-    // Levels should be 2-100, species ID should be valid
-    if (byte1 >= 2 && byte1 <= 100 && byte2 >= byte1 && byte2 <= 100 && speciesId > 0 && speciesId <= 386) {
-      const originalPokemon = pool.find((p) => p.pokedexId === speciesId);
-      if (!originalPokemon) continue;
+  // Each encounter slot is 4 bytes:
+  //   - Min level (1 byte)
+  //   - Max level (1 byte)
+  //   - Species ID (2 bytes)
 
-      // Find replacement
-      let replacement: PokemonSpecies | null = null;
+  // Grass encounters have 12 slots, water/rock smash have 5 slots, fishing has 10 slots
 
-      if (options.sameType) {
-        replacement = findSameTypePokemon(originalPokemon.types as string[], pool);
-      }
+  const GRASS_SLOTS = 12;
+  const WATER_SLOTS = 5;
+  const ROCK_SMASH_SLOTS = 5;
+  const FISHING_SLOTS = 10;
 
-      if (!replacement && options.matchBST) {
-        const originalBST = calculateBST(originalPokemon);
-        replacement = findSimilarBSTPokemon(originalBST, pool, options.bstVariance);
-      }
+  // Process encounter table entries
+  // The table ends when we hit an invalid entry (both bank and map are 0xFF or pointer is 0)
+  let tableOffset = encounterTablePointer;
+  const maxMaps = 500; // Safety limit
+  let mapCount = 0;
 
-      if (!replacement) {
-        replacement = getRandomPokemon(pool);
-      }
+  while (mapCount < maxMaps && tableOffset < romData.length - 20) {
+    const bank = readU8(romData, tableOffset);
+    const map = readU8(romData, tableOffset + 1);
 
-      // Write new species ID
-      writeU16LE(romData, offset + 2, replacement.pokedexId);
-      changes.push({
-        originalName: originalPokemon.name,
-        newName: replacement.name,
-      });
-      totalChanges++;
+    // End of table marker
+    if (bank === 0xFF && map === 0xFF) break;
+    if (bank === 0 && map === 0) {
+      // Check if all pointers are also 0 (true end of table)
+      const grassPtr = readPointer(romData, tableOffset + 4);
+      if (grassPtr === 0) break;
     }
+
+    // Read encounter data pointers
+    const grassDataPtr = readPointer(romData, tableOffset + 4);
+    const waterDataPtr = readPointer(romData, tableOffset + 8);
+    const rockSmashDataPtr = readPointer(romData, tableOffset + 12);
+    const fishingDataPtr = readPointer(romData, tableOffset + 16);
+
+    // Process grass encounters
+    if (isValidPointer(grassDataPtr, romData.length)) {
+      const slotsPtr = readPointer(romData, grassDataPtr + 4);
+      if (isValidPointer(slotsPtr, romData.length)) {
+        totalChanges += randomizeEncounterSlots(
+          romData, slotsPtr, GRASS_SLOTS, pool, options, changes
+        );
+      }
+    }
+
+    // Process water encounters
+    if (isValidPointer(waterDataPtr, romData.length)) {
+      const slotsPtr = readPointer(romData, waterDataPtr + 4);
+      if (isValidPointer(slotsPtr, romData.length)) {
+        totalChanges += randomizeEncounterSlots(
+          romData, slotsPtr, WATER_SLOTS, pool, options, changes
+        );
+      }
+    }
+
+    // Process rock smash encounters
+    if (isValidPointer(rockSmashDataPtr, romData.length)) {
+      const slotsPtr = readPointer(romData, rockSmashDataPtr + 4);
+      if (isValidPointer(slotsPtr, romData.length)) {
+        totalChanges += randomizeEncounterSlots(
+          romData, slotsPtr, ROCK_SMASH_SLOTS, pool, options, changes
+        );
+      }
+    }
+
+    // Process fishing encounters
+    if (isValidPointer(fishingDataPtr, romData.length)) {
+      const slotsPtr = readPointer(romData, fishingDataPtr + 4);
+      if (isValidPointer(slotsPtr, romData.length)) {
+        totalChanges += randomizeEncounterSlots(
+          romData, slotsPtr, FISHING_SLOTS, pool, options, changes
+        );
+      }
+    }
+
+    tableOffset += 20; // Move to next map header
+    mapCount++;
   }
 
   return { totalChanges, changes };
+}
+
+function randomizeEncounterSlots(
+  romData: Uint8Array,
+  slotsPtr: number,
+  numSlots: number,
+  pool: PokemonSpecies[],
+  options: RandomizeOptions,
+  changes: { originalName: string; newName: string }[]
+): number {
+  let changesCount = 0;
+
+  for (let slot = 0; slot < numSlots; slot++) {
+    const slotOffset = slotsPtr + (slot * 4);
+
+    if (slotOffset >= romData.length - 4) break;
+
+    const minLevel = readU8(romData, slotOffset);
+    const maxLevel = readU8(romData, slotOffset + 1);
+    const speciesId = readU16LE(romData, slotOffset + 2);
+
+    // Validate encounter slot data
+    if (minLevel === 0 || minLevel > 100) continue;
+    if (maxLevel === 0 || maxLevel > 100 || maxLevel < minLevel) continue;
+    if (speciesId === 0 || speciesId > 500) continue; // Pokemon IDs should be reasonable
+
+    const originalPokemon = pool.find((p) => p.pokedexId === speciesId);
+    if (!originalPokemon) continue;
+
+    // Find replacement
+    let replacement: PokemonSpecies | null = null;
+
+    if (options.sameType) {
+      replacement = findSameTypePokemon(originalPokemon.types as string[], pool);
+    }
+
+    if (!replacement && options.matchBST) {
+      const originalBST = calculateBST(originalPokemon);
+      replacement = findSimilarBSTPokemon(originalBST, pool, options.bstVariance);
+    }
+
+    if (!replacement) {
+      replacement = getRandomPokemon(pool);
+    }
+
+    // Write new species ID
+    writeU16LE(romData, slotOffset + 2, replacement.pokedexId);
+    changes.push({
+      originalName: originalPokemon.name,
+      newName: replacement.name,
+    });
+    changesCount++;
+  }
+
+  return changesCount;
 }
 
 /**

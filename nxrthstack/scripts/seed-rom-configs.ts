@@ -344,6 +344,7 @@ const romConfigs = [
 
   // European versions - Gen 3 GBA
   // German versions
+  // Note: The dynamic finder will locate the correct table even if offsets differ
   {
     gameCode: "BPED",
     gameName: "Pokemon Smaragd (DE)",
@@ -352,6 +353,7 @@ const romConfigs = [
     region: "DE",
     pokemonCount: 386,
     offsets: {
+      // Using US offset as hint - dynamic finder locates actual table
       wildEncounterPointer: 0x552D48,
       baseStatsPointer: 0x3203CC,
       evolutionPointer: 0x32531C,
