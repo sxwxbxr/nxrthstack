@@ -21,7 +21,10 @@
       "Bash(npm run:*)",
       "WebFetch(domain:pkhex-web.github.io)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:theglobalgaming.com)",
+      "Bash(find:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }

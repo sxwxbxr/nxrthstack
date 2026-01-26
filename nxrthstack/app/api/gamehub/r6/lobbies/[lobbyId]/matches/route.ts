@@ -14,6 +14,8 @@ const createMatchSchema = z.object({
   player1Deaths: z.number().int().min(0).optional(),
   player2Kills: z.number().int().min(0).optional(),
   player2Deaths: z.number().int().min(0).optional(),
+  player1RoundsWon: z.number().int().min(0).max(10).optional(),
+  player2RoundsWon: z.number().int().min(0).max(10).optional(),
   screenshotUrl: z.string().url().optional(),
   notes: z.string().max(500).optional(),
 });
@@ -132,6 +134,8 @@ export async function POST(request: Request, { params }: RouteParams) {
         player1Deaths: parsed.data.player1Deaths,
         player2Kills: parsed.data.player2Kills,
         player2Deaths: parsed.data.player2Deaths,
+        player1RoundsWon: parsed.data.player1RoundsWon,
+        player2RoundsWon: parsed.data.player2RoundsWon,
         screenshotUrl: parsed.data.screenshotUrl,
         notes: parsed.data.notes,
       })

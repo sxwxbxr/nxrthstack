@@ -75,6 +75,17 @@ export default async function LobbyDetailPage({ params }: PageProps) {
     });
   }
 
+  // Calculate total rounds won
+  let hostRoundsWon = 0;
+  let opponentRoundsWon = 0;
+
+  lobby.matches.forEach((match) => {
+    hostRoundsWon += match.player1RoundsWon || 0;
+    opponentRoundsWon += match.player2RoundsWon || 0;
+  });
+
+  const hasRoundData = hostRoundsWon > 0 || opponentRoundsWon > 0;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -161,13 +172,22 @@ export default async function LobbyDetailPage({ params }: PageProps) {
                 <p className="text-5xl font-bold mt-2">
                   <AnimatedCounter value={hostWins} />
                 </p>
-                {lobby.trackKills && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    K/D: {hostKills}/{hostDeaths} (
-                    {hostDeaths > 0 ? (hostKills / hostDeaths).toFixed(2) : hostKills}
-                    )
-                  </p>
-                )}
+                <div className="mt-2 space-y-1">
+                  {hasRoundData && (
+                    <p className="text-sm text-muted-foreground">
+                      Rounds: <span className="text-green-500">{hostRoundsWon}</span>
+                      {" / "}
+                      <span className="text-destructive">{opponentRoundsWon}</span>
+                    </p>
+                  )}
+                  {lobby.trackKills && (
+                    <p className="text-sm text-muted-foreground">
+                      K/D: {hostKills}/{hostDeaths} (
+                      {hostDeaths > 0 ? (hostKills / hostDeaths).toFixed(2) : hostKills}
+                      )
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* VS */}
@@ -176,6 +196,11 @@ export default async function LobbyDetailPage({ params }: PageProps) {
                 <p className="text-sm text-muted-foreground mt-2">
                   {lobby.matches.length} matches
                 </p>
+                {hasRoundData && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {hostRoundsWon + opponentRoundsWon} rounds
+                  </p>
+                )}
               </div>
 
               {/* Opponent */}
@@ -189,15 +214,24 @@ export default async function LobbyDetailPage({ params }: PageProps) {
                 <p className="text-5xl font-bold mt-2">
                   <AnimatedCounter value={opponentWins} />
                 </p>
-                {lobby.trackKills && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    K/D: {opponentKills}/{opponentDeaths} (
-                    {opponentDeaths > 0
-                      ? (opponentKills / opponentDeaths).toFixed(2)
-                      : opponentKills}
-                    )
-                  </p>
-                )}
+                <div className="mt-2 space-y-1">
+                  {hasRoundData && (
+                    <p className="text-sm text-muted-foreground">
+                      Rounds: <span className="text-green-500">{opponentRoundsWon}</span>
+                      {" / "}
+                      <span className="text-destructive">{hostRoundsWon}</span>
+                    </p>
+                  )}
+                  {lobby.trackKills && (
+                    <p className="text-sm text-muted-foreground">
+                      K/D: {opponentKills}/{opponentDeaths} (
+                      {opponentDeaths > 0
+                        ? (opponentKills / opponentDeaths).toFixed(2)
+                        : opponentKills}
+                      )
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -253,8 +287,24 @@ export default async function LobbyDetailPage({ params }: PageProps) {
                         {new Date(match.createdAt).toLocaleString()}
                       </span>
                     </div>
+                    {/* Round Score */}
+                    {(match.player1RoundsWon !== null || match.player2RoundsWon !== null) && (
+                      <div className="mt-2 flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">Score:</span>
+                        <span className="font-semibold">
+                          <span className={isHostWinner ? "text-green-500" : "text-foreground"}>
+                            {match.player1RoundsWon || 0}
+                          </span>
+                          <span className="text-muted-foreground"> - </span>
+                          <span className={!isHostWinner ? "text-green-500" : "text-foreground"}>
+                            {match.player2RoundsWon || 0}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                    {/* K/D Stats */}
                     {lobby.trackKills && (match.player1Kills !== null || match.player2Kills !== null) && (
-                      <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
                         <span>
                           {lobby.host?.name}: {match.player1Kills || 0}/
                           {match.player1Deaths || 0}

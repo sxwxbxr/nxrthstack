@@ -245,6 +245,8 @@ export const r6Matches = pgTable("r6_matches", {
   player1Deaths: integer("player1_deaths"),
   player2Kills: integer("player2_kills"),
   player2Deaths: integer("player2_deaths"),
+  player1RoundsWon: integer("player1_rounds_won"),
+  player2RoundsWon: integer("player2_rounds_won"),
   screenshotUrl: varchar("screenshot_url", { length: 500 }),
   notes: text("notes"),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
