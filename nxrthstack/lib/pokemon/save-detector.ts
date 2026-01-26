@@ -1191,3 +1191,589 @@ export const EV_PRESETS = {
 };
 
 export type EVPresetName = keyof typeof EV_PRESETS;
+
+/**
+ * Game templates for creating new save files
+ */
+export interface GameTemplate {
+  id: string;
+  name: string;
+  generation: 1 | 2 | 3;
+  platform: "GB" | "GBC" | "GBA";
+  fileSize: number;
+  gameCode: string;
+  securityKey: number;
+  defaultTrainerGender: 0 | 1; // 0 = male, 1 = female
+}
+
+export const GAME_TEMPLATES: GameTemplate[] = [
+  // Gen 3 GBA Games
+  {
+    id: "ruby",
+    name: "Pokemon Ruby",
+    generation: 3,
+    platform: "GBA",
+    fileSize: 0x20000, // 128KB
+    gameCode: "AXVE",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "sapphire",
+    name: "Pokemon Sapphire",
+    generation: 3,
+    platform: "GBA",
+    fileSize: 0x20000,
+    gameCode: "AXPE",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "emerald",
+    name: "Pokemon Emerald",
+    generation: 3,
+    platform: "GBA",
+    fileSize: 0x20000,
+    gameCode: "BPEE",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "firered",
+    name: "Pokemon FireRed",
+    generation: 3,
+    platform: "GBA",
+    fileSize: 0x20000,
+    gameCode: "BPRE",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "leafgreen",
+    name: "Pokemon LeafGreen",
+    generation: 3,
+    platform: "GBA",
+    fileSize: 0x20000,
+    gameCode: "BPGE",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  // Gen 1 GB Games
+  {
+    id: "red",
+    name: "Pokemon Red",
+    generation: 1,
+    platform: "GB",
+    fileSize: 0x8000, // 32KB
+    gameCode: "RED",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "blue",
+    name: "Pokemon Blue",
+    generation: 1,
+    platform: "GB",
+    fileSize: 0x8000,
+    gameCode: "BLUE",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "yellow",
+    name: "Pokemon Yellow",
+    generation: 1,
+    platform: "GBC",
+    fileSize: 0x8000,
+    gameCode: "YELLOW",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  // Gen 2 GBC Games
+  {
+    id: "gold",
+    name: "Pokemon Gold",
+    generation: 2,
+    platform: "GBC",
+    fileSize: 0x8000,
+    gameCode: "GOLD",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "silver",
+    name: "Pokemon Silver",
+    generation: 2,
+    platform: "GBC",
+    fileSize: 0x8000,
+    gameCode: "SILVER",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+  {
+    id: "crystal",
+    name: "Pokemon Crystal",
+    generation: 2,
+    platform: "GBC",
+    fileSize: 0x8000,
+    gameCode: "CRYSTAL",
+    securityKey: 0,
+    defaultTrainerGender: 0,
+  },
+];
+
+/**
+ * Options for creating a new save file
+ */
+export interface NewSaveOptions {
+  gameId: string;
+  trainerName: string;
+  trainerId?: number;
+  secretId?: number;
+  trainerGender?: 0 | 1;
+  money?: number;
+  starterPokemon?: number; // Species ID of starter Pokemon
+}
+
+/**
+ * Create a new Gen 3 save file from scratch
+ */
+function createGen3Save(template: GameTemplate, options: NewSaveOptions): Uint8Array {
+  const data = new Uint8Array(template.fileSize);
+  data.fill(0xFF); // Fill with 0xFF (default flash memory state)
+
+  // Gen 3 save structure: 14 sections, each 0x1000 bytes (4KB)
+  // Two save slots: 0x0000-0xDFFF and 0xE000-0x1BFFF
+  // We'll initialize the first slot
+
+  // Generate trainer ID and secret ID if not provided
+  const trainerId = options.trainerId ?? Math.floor(Math.random() * 65536);
+  const secretId = options.secretId ?? Math.floor(Math.random() * 65536);
+  const trainerGender = options.trainerGender ?? template.defaultTrainerGender;
+
+  // Section sizes for Gen 3 (data size, not including footer)
+  const sectionDataSizes = [
+    0x0F2C, // Section 0: Trainer info
+    0x0F80, // Section 1: Team/Items
+    0x0F80, // Section 2: Game state
+    0x0F80, // Section 3: Misc data
+    0x0C40, // Section 4: Rival info
+    0x0F80, // Section 5-13: PC boxes
+    0x0F80, 0x0F80, 0x0F80, 0x0F80,
+    0x0F80, 0x0F80, 0x0F80, 0x07D0,
+  ];
+
+  // Initialize all 14 sections in slot 1
+  for (let sectionId = 0; sectionId < 14; sectionId++) {
+    const sectionOffset = sectionId * 0x1000;
+
+    // Clear section data area
+    for (let i = 0; i < 0xFF4; i++) {
+      data[sectionOffset + i] = 0x00;
+    }
+
+    // Section footer (0xFF4 - 0xFFF)
+    writeU16LE(data, sectionOffset + 0xFF4, sectionId); // Section ID
+    writeU16LE(data, sectionOffset + 0xFF6, 0); // Checksum (calculated later)
+    writeU32LE(data, sectionOffset + 0xFF8, 0x08012025); // Signature (magic number)
+    writeU32LE(data, sectionOffset + 0xFFC, 1); // Save index (1 for new save)
+  }
+
+  // Section 0: Trainer Info
+  const section0 = 0;
+
+  // Trainer name (offset 0x00, 7 bytes + terminator)
+  const encodedName = encodeGen3String(options.trainerName, 8);
+  for (let i = 0; i < 8; i++) {
+    data[section0 + i] = encodedName[i];
+  }
+
+  // Trainer gender (offset 0x08)
+  data[section0 + 0x08] = trainerGender;
+
+  // Trainer ID (offset 0x0A, 2 bytes)
+  writeU16LE(data, section0 + 0x0A, trainerId);
+
+  // Secret ID (offset 0x0C, 2 bytes)
+  writeU16LE(data, section0 + 0x0C, secretId);
+
+  // Play time (offset 0x0E: hours, 0x10: minutes, 0x11: seconds, 0x12: frames)
+  writeU16LE(data, section0 + 0x0E, 0); // Hours
+  data[section0 + 0x10] = 0; // Minutes
+  data[section0 + 0x11] = 0; // Seconds
+  data[section0 + 0x12] = 0; // Frames
+
+  // Game code (for some games, offset varies)
+  // Options bitmask at various offsets
+
+  // Section 1: Team/Items
+  const section1 = 0x1000;
+
+  // Team size (offset 0x234)
+  writeU32LE(data, section1 + 0x234, 0); // No Pokemon in party yet
+
+  // Money (offset 0x490, XOR encrypted with security key)
+  const money = options.money ?? 3000; // Default starting money
+  const securityKey = 0; // For new saves, security key starts at 0
+  writeU32LE(data, section1 + 0x490, money ^ securityKey);
+
+  // Security key (offset 0xF20 for R/S/E, different for FR/LG)
+  writeU32LE(data, section1 + 0xF20, securityKey);
+
+  // Add starter Pokemon if specified
+  if (options.starterPokemon) {
+    addStarterToParty(data, section1, options.starterPokemon, trainerId, secretId, options.trainerName);
+  }
+
+  // Update all section checksums
+  for (let sectionId = 0; sectionId < 14; sectionId++) {
+    const sectionOffset = sectionId * 0x1000;
+    updateGen3SectionChecksum(data, sectionOffset);
+  }
+
+  return data;
+}
+
+/**
+ * Add a starter Pokemon to the party in a Gen 3 save
+ */
+function addStarterToParty(
+  data: Uint8Array,
+  section1Offset: number,
+  species: number,
+  trainerId: number,
+  secretId: number,
+  trainerName: string
+): void {
+  // Set party count to 1
+  writeU32LE(data, section1Offset + 0x234, 1);
+
+  // Pokemon data starts at offset 0x238 (100 bytes per Pokemon)
+  const pokemonOffset = section1Offset + 0x238;
+
+  // Generate random personality value
+  const personality = Math.floor(Math.random() * 0xFFFFFFFF) >>> 0;
+  const fullOtId = (secretId << 16) | trainerId;
+
+  // Write Pokemon structure
+  writeU32LE(data, pokemonOffset, personality); // Personality
+  writeU32LE(data, pokemonOffset + 4, fullOtId); // OT ID
+
+  // Nickname (offset 8, 10 bytes)
+  const pokemonName = POKEMON_NAMES[species] || "Pokemon";
+  const encodedNickname = encodeGen3String(pokemonName.toUpperCase(), 10);
+  for (let i = 0; i < 10; i++) {
+    data[pokemonOffset + 8 + i] = encodedNickname[i];
+  }
+
+  // Language (offset 18)
+  writeU16LE(data, pokemonOffset + 18, 0x0202); // English
+
+  // OT Name (offset 20, 7 bytes)
+  const encodedOtName = encodeGen3String(trainerName, 7);
+  for (let i = 0; i < 7; i++) {
+    data[pokemonOffset + 20 + i] = encodedOtName[i];
+  }
+
+  // Markings (offset 27)
+  data[pokemonOffset + 27] = 0;
+
+  // Checksum (offset 28) - calculated after substructure
+  // Unused (offset 30)
+
+  // Prepare substructure data (48 bytes, will be encrypted)
+  const substructure = new Uint8Array(48);
+
+  // Determine substructure order based on personality
+  const substructOrder = personality % 24;
+  const substructOffsets = getSubstructOrder(substructOrder);
+
+  // Growth substructure (12 bytes)
+  const growthOffset = substructOffsets[0] * 12;
+  writeU16LE(substructure, growthOffset, species); // Species
+  writeU16LE(substructure, growthOffset + 2, 0); // Held item (none)
+  writeU32LE(substructure, growthOffset + 4, 125); // Experience (level 5 medium slow)
+  data[substructure[growthOffset + 8]] = 0; // PP bonuses
+  data[substructure[growthOffset + 9]] = 70; // Friendship
+
+  // Attacks substructure (12 bytes)
+  const attacksOffset = substructOffsets[1] * 12;
+  // Give starter moves based on species (simplified - just Tackle and Growl for now)
+  writeU16LE(substructure, attacksOffset, 33); // Tackle
+  writeU16LE(substructure, attacksOffset + 2, 45); // Growl
+  writeU16LE(substructure, attacksOffset + 4, 0); // No move
+  writeU16LE(substructure, attacksOffset + 6, 0); // No move
+  substructure[attacksOffset + 8] = 35; // Tackle PP
+  substructure[attacksOffset + 9] = 40; // Growl PP
+  substructure[attacksOffset + 10] = 0;
+  substructure[attacksOffset + 11] = 0;
+
+  // EVs & Condition substructure (12 bytes)
+  const evsOffset = substructOffsets[2] * 12;
+  // All EVs start at 0, condition values at 0
+
+  // Misc substructure (12 bytes)
+  const miscOffset = substructOffsets[3] * 12;
+  // Pokerus (offset 0)
+  substructure[miscOffset] = 0;
+  // Met location (offset 1)
+  substructure[miscOffset + 1] = 0; // Met at start
+  // Origins info (offset 2-3)
+  writeU16LE(substructure, miscOffset + 2, 5 | (3 << 7)); // Level 5, Poke Ball
+
+  // IVs and flags (offset 4-7)
+  // Random IVs for starter
+  const ivHp = Math.floor(Math.random() * 32);
+  const ivAtk = Math.floor(Math.random() * 32);
+  const ivDef = Math.floor(Math.random() * 32);
+  const ivSpd = Math.floor(Math.random() * 32);
+  const ivSpA = Math.floor(Math.random() * 32);
+  const ivSpD = Math.floor(Math.random() * 32);
+  const ivData = ivHp | (ivAtk << 5) | (ivDef << 10) | (ivSpd << 15) | (ivSpA << 20) | (ivSpD << 25);
+  writeU32LE(substructure, miscOffset + 4, ivData);
+
+  // Ribbons and obedience (offset 8-11)
+  writeU32LE(substructure, miscOffset + 8, 0);
+
+  // Calculate substructure checksum
+  let subChecksum = 0;
+  for (let i = 0; i < 48; i += 2) {
+    subChecksum = (subChecksum + readU16LE(substructure, i)) & 0xFFFF;
+  }
+  writeU16LE(data, pokemonOffset + 28, subChecksum);
+
+  // Encrypt and write substructure
+  const key = personality ^ fullOtId;
+  for (let i = 0; i < 48; i += 4) {
+    const value = readU32LE(substructure, i);
+    const encrypted = (value ^ key) >>> 0;
+    writeU32LE(data, pokemonOffset + 32 + i, encrypted);
+  }
+
+  // Status condition (offset 80)
+  writeU32LE(data, pokemonOffset + 80, 0); // No status
+
+  // Level (offset 84)
+  data[pokemonOffset + 84] = 5;
+
+  // Pokerus remaining (offset 85)
+  data[pokemonOffset + 85] = 0;
+
+  // Calculate stats for level 5
+  const baseStats = BASE_STATS[species] || DEFAULT_BASE_STATS;
+  const nature = personality % 25;
+
+  const hp = calculateGen3Stat(baseStats.hp, ivHp, 0, 5, nature, 0);
+  const atk = calculateGen3Stat(baseStats.attack, ivAtk, 0, 5, nature, 1);
+  const def = calculateGen3Stat(baseStats.defense, ivDef, 0, 5, nature, 2);
+  const spd = calculateGen3Stat(baseStats.speed, ivSpd, 0, 5, nature, 3);
+  const spa = calculateGen3Stat(baseStats.spAttack, ivSpA, 0, 5, nature, 4);
+  const spdef = calculateGen3Stat(baseStats.spDefense, ivSpD, 0, 5, nature, 5);
+
+  writeU16LE(data, pokemonOffset + 86, hp); // Current HP
+  writeU16LE(data, pokemonOffset + 88, hp); // Max HP
+  writeU16LE(data, pokemonOffset + 90, atk); // Attack
+  writeU16LE(data, pokemonOffset + 92, def); // Defense
+  writeU16LE(data, pokemonOffset + 94, spd); // Speed
+  writeU16LE(data, pokemonOffset + 96, spa); // Sp. Attack
+  writeU16LE(data, pokemonOffset + 98, spdef); // Sp. Defense
+}
+
+/**
+ * Create a new Gen 1 save file from scratch
+ */
+function createGen1Save(template: GameTemplate, options: NewSaveOptions): Uint8Array {
+  const data = new Uint8Array(template.fileSize);
+  data.fill(0x00);
+
+  // Trainer name at 0x2598 (11 bytes)
+  const encodedName = encodeGen1String(options.trainerName, 11);
+  for (let i = 0; i < 11; i++) {
+    data[0x2598 + i] = encodedName[i];
+  }
+
+  // Trainer ID at 0x2605 (2 bytes, big endian in Gen 1)
+  const trainerId = options.trainerId ?? Math.floor(Math.random() * 65536);
+  data[0x2605] = (trainerId >> 8) & 0xFF;
+  data[0x2606] = trainerId & 0xFF;
+
+  // Money at 0x25F3 (BCD encoded, 3 bytes)
+  const money = options.money ?? 3000;
+  const moneyBCD = Math.min(money, 999999);
+  data[0x25F3] = Math.floor(moneyBCD / 10000) % 100;
+  data[0x25F4] = Math.floor(moneyBCD / 100) % 100;
+  data[0x25F5] = moneyBCD % 100;
+
+  // Badges at 0x2602
+  data[0x2602] = 0;
+
+  // Options at 0x2601
+  data[0x2601] = 0x40; // Default options
+
+  // Party count at 0x2F2C
+  data[0x2F2C] = 0;
+
+  // Terminator for party
+  data[0x2F2D] = 0xFF;
+
+  // Play time at 0x2CED
+  data[0x2CED] = 0; // Hours
+  data[0x2CEE] = 0; // Minutes
+  data[0x2CEF] = 0; // Seconds
+
+  // Checksum calculation for Gen 1 (0x2598 to 0x3522)
+  let checksum = 0;
+  for (let i = 0x2598; i < 0x3523; i++) {
+    checksum = (checksum + data[i]) & 0xFF;
+  }
+  data[0x3523] = (~checksum) & 0xFF;
+
+  return data;
+}
+
+/**
+ * Create a new Gen 2 save file from scratch
+ */
+function createGen2Save(template: GameTemplate, options: NewSaveOptions): Uint8Array {
+  const data = new Uint8Array(template.fileSize);
+  data.fill(0x00);
+
+  // Player name at 0x200B (11 bytes for Crystal, different for Gold/Silver)
+  const nameOffset = template.id === "crystal" ? 0x200B : 0x200B;
+  const encodedName = encodeGen1String(options.trainerName, 11); // Gen 2 uses Gen 1 encoding
+  for (let i = 0; i < 11; i++) {
+    data[nameOffset + i] = encodedName[i];
+  }
+
+  // Trainer ID at 0x2009
+  const trainerId = options.trainerId ?? Math.floor(Math.random() * 65536);
+  writeU16LE(data, 0x2009, trainerId);
+
+  // Money at 0x23DB (3 bytes)
+  const money = options.money ?? 3000;
+  data[0x23DB] = money & 0xFF;
+  data[0x23DC] = (money >> 8) & 0xFF;
+  data[0x23DD] = (money >> 16) & 0xFF;
+
+  // Badges at 0x23E5-0x23E6 (Johto and Kanto)
+  writeU16LE(data, 0x23E5, 0);
+
+  // Gender at 0x3E3D (Crystal only)
+  if (template.id === "crystal") {
+    data[0x3E3D] = options.trainerGender ?? 0;
+  }
+
+  // Play time
+  data[0x2054] = 0; // Hours
+  data[0x2055] = 0; // Minutes
+  data[0x2056] = 0; // Seconds
+
+  // Party count
+  data[0x2865] = 0;
+
+  // Calculate checksums (Gen 2 has multiple checksums)
+  // Main data checksum
+  let checksum1 = 0;
+  for (let i = 0x2009; i < 0x2D69; i++) {
+    checksum1 = (checksum1 + data[i]) & 0xFFFF;
+  }
+  writeU16LE(data, 0x2D69, checksum1);
+
+  return data;
+}
+
+/**
+ * Create a new save file for the specified game
+ */
+export function createNewSave(options: NewSaveOptions): Uint8Array | null {
+  const template = GAME_TEMPLATES.find(t => t.id === options.gameId);
+  if (!template) return null;
+
+  switch (template.generation) {
+    case 1:
+      return createGen1Save(template, options);
+    case 2:
+      return createGen2Save(template, options);
+    case 3:
+      return createGen3Save(template, options);
+    default:
+      return null;
+  }
+}
+
+/**
+ * Get file extension for save file
+ */
+export function getSaveFileExtension(gameId: string): string {
+  const template = GAME_TEMPLATES.find(t => t.id === gameId);
+  if (!template) return ".sav";
+
+  switch (template.platform) {
+    case "GB":
+    case "GBC":
+      return ".sav";
+    case "GBA":
+      return ".sav";
+    default:
+      return ".sav";
+  }
+}
+
+/**
+ * Starter Pokemon options for each game
+ */
+export const STARTER_OPTIONS: Record<string, { species: number; name: string }[]> = {
+  ruby: [
+    { species: 252, name: "Treecko" },
+    { species: 255, name: "Torchic" },
+    { species: 258, name: "Mudkip" },
+  ],
+  sapphire: [
+    { species: 252, name: "Treecko" },
+    { species: 255, name: "Torchic" },
+    { species: 258, name: "Mudkip" },
+  ],
+  emerald: [
+    { species: 252, name: "Treecko" },
+    { species: 255, name: "Torchic" },
+    { species: 258, name: "Mudkip" },
+  ],
+  firered: [
+    { species: 1, name: "Bulbasaur" },
+    { species: 4, name: "Charmander" },
+    { species: 7, name: "Squirtle" },
+  ],
+  leafgreen: [
+    { species: 1, name: "Bulbasaur" },
+    { species: 4, name: "Charmander" },
+    { species: 7, name: "Squirtle" },
+  ],
+  red: [
+    { species: 1, name: "Bulbasaur" },
+    { species: 4, name: "Charmander" },
+    { species: 7, name: "Squirtle" },
+  ],
+  blue: [
+    { species: 1, name: "Bulbasaur" },
+    { species: 4, name: "Charmander" },
+    { species: 7, name: "Squirtle" },
+  ],
+  yellow: [
+    { species: 25, name: "Pikachu" },
+  ],
+  gold: [
+    { species: 152, name: "Chikorita" },
+    { species: 155, name: "Cyndaquil" },
+    { species: 158, name: "Totodile" },
+  ],
+  silver: [
+    { species: 152, name: "Chikorita" },
+    { species: 155, name: "Cyndaquil" },
+    { species: 158, name: "Totodile" },
+  ],
+  crystal: [
+    { species: 152, name: "Chikorita" },
+    { species: 155, name: "Cyndaquil" },
+    { species: 158, name: "Totodile" },
+  ],
+};

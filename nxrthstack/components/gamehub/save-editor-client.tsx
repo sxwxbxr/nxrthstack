@@ -8,14 +8,17 @@ import { TrainerEditor } from "./trainer-editor";
 import { PartyEditor } from "./party-editor";
 import { InventoryEditor } from "./inventory-editor";
 import { SaveDownloadButton } from "./save-download-button";
+import { NewSaveCreator } from "./new-save-creator";
 import {
   detectSave,
   parseSave,
+  GAME_TEMPLATES,
   type SaveInfo,
   type SaveData,
 } from "@/lib/pokemon/save-detector";
 
 type TabId = "trainer" | "party" | "boxes" | "inventory" | "pokedex";
+type ViewMode = "upload" | "create" | "edit";
 
 export function SaveEditorClient() {
   const [saveData, setSaveData] = useState<Uint8Array | null>(null);
@@ -24,6 +27,7 @@ export function SaveEditorClient() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("upload");
 
   const handleSaveLoaded = useCallback((data: Uint8Array, fileName: string) => {
     setError(null);
@@ -36,6 +40,7 @@ export function SaveEditorClient() {
         setParsedSave(parsed);
         setHasChanges(false);
         setActiveTab("trainer");
+        setViewMode("edit");
       } else {
         setError(
           "Could not parse save file. Make sure you're using a supported Gen 1-3 Pokemon save file."
@@ -54,12 +59,33 @@ export function SaveEditorClient() {
     }
   }, []);
 
+  const handleNewSaveCreated = useCallback((data: Uint8Array, gameId: string) => {
+    setError(null);
+    try {
+      const parsed = parseSave(data);
+      if (parsed) {
+        setSaveData(data);
+        setParsedSave(parsed);
+        setHasChanges(true); // Mark as changed since it's a new file
+        setActiveTab("trainer");
+        setViewMode("edit");
+      } else {
+        setError("Failed to parse created save file");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to create save file"
+      );
+    }
+  }, []);
+
   const handleReset = useCallback(() => {
     setSaveData(null);
     setParsedSave(null);
     setError(null);
     setActiveTab("trainer");
     setHasChanges(false);
+    setViewMode("upload");
   }, []);
 
   const handleDataChange = useCallback(
@@ -105,13 +131,76 @@ export function SaveEditorClient() {
 
   return (
     <div className="space-y-6">
-      {/* Save Uploader or Loaded State */}
-      {!saveData ? (
-        <SaveUploader
-          onSaveLoaded={handleSaveLoaded}
-          isProcessing={isProcessing}
-        />
-      ) : (
+      {/* Upload/Create Mode */}
+      {viewMode === "upload" && (
+        <div className="space-y-6">
+          {/* Mode Selection */}
+          <div className="flex gap-4 flex-wrap">
+            <button
+              onClick={() => setViewMode("upload")}
+              className="flex-1 min-w-[200px] rounded-xl border-2 border-primary bg-primary/5 p-6 text-left"
+            >
+              <Icons.Upload className="h-8 w-8 text-primary mb-3" />
+              <h3 className="text-lg font-semibold text-foreground">Upload Existing Save</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Load and edit a save file from your computer
+              </p>
+            </button>
+            <button
+              onClick={() => setViewMode("create")}
+              className="flex-1 min-w-[200px] rounded-xl border border-border bg-card p-6 text-left hover:border-primary/50 transition-colors"
+            >
+              <Icons.Plus className="h-8 w-8 text-muted-foreground mb-3" />
+              <h3 className="text-lg font-semibold text-foreground">Create New Save</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Create a fresh save file from scratch
+              </p>
+            </button>
+          </div>
+
+          <SaveUploader
+            onSaveLoaded={handleSaveLoaded}
+            isProcessing={isProcessing}
+          />
+        </div>
+      )}
+
+      {/* Create New Save Mode */}
+      {viewMode === "create" && (
+        <div className="space-y-6">
+          {/* Mode Selection */}
+          <div className="flex gap-4 flex-wrap">
+            <button
+              onClick={() => setViewMode("upload")}
+              className="flex-1 min-w-[200px] rounded-xl border border-border bg-card p-6 text-left hover:border-primary/50 transition-colors"
+            >
+              <Icons.Upload className="h-8 w-8 text-muted-foreground mb-3" />
+              <h3 className="text-lg font-semibold text-foreground">Upload Existing Save</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Load and edit a save file from your computer
+              </p>
+            </button>
+            <button
+              onClick={() => setViewMode("create")}
+              className="flex-1 min-w-[200px] rounded-xl border-2 border-primary bg-primary/5 p-6 text-left"
+            >
+              <Icons.Plus className="h-8 w-8 text-primary mb-3" />
+              <h3 className="text-lg font-semibold text-foreground">Create New Save</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Create a fresh save file from scratch
+              </p>
+            </button>
+          </div>
+
+          <NewSaveCreator
+            onSaveCreated={handleNewSaveCreated}
+            onCancel={() => setViewMode("upload")}
+          />
+        </div>
+      )}
+
+      {/* Edit Mode - Loaded Save */}
+      {viewMode === "edit" && saveData && (
         <>
           {/* Loaded Save Header */}
           <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5 p-6">
