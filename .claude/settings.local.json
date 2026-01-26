@@ -18,7 +18,10 @@
       "Bash(ls -la \"D:\\\\Projects\\\\nxrthstack\\\\lib\"\" 2>/dev/null || ls -la \"D:Projectsnxrthstack \")",
       "Bash(ls:*)",
       "Bash(xargs:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:pkhex-web.github.io)",
+      "WebSearch",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

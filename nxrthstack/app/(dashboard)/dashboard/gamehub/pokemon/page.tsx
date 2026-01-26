@@ -19,6 +19,13 @@ const pokemonFeatures = [
     features: ["GB/GBC/GBA Support", "Auto Detection", "Safe Editing"],
   },
   {
+    title: "Save Editor",
+    description: "Edit your save files - trainer data, party, inventory, and more",
+    href: "/dashboard/gamehub/pokemon/save-editor",
+    icon: Icons.FileText,
+    features: ["Trainer Editor", "Party Viewer", "Inventory"],
+  },
+  {
     title: "Wild Randomizer",
     description: "Randomize wild Pokemon encounters with customizable options",
     href: "/dashboard/gamehub/pokemon/rom-editor",
@@ -79,13 +86,20 @@ export default async function PokemonPage() {
 
       {/* Quick Start */}
       <FadeIn delay={0.1}>
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4 flex-wrap">
           <Link
             href="/dashboard/gamehub/pokemon/rom-editor"
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            <Icons.FileUp className="h-5 w-5" />
-            Open ROM Editor
+            <Icons.HardDrive className="h-5 w-5" />
+            ROM Editor
+          </Link>
+          <Link
+            href="/dashboard/gamehub/pokemon/save-editor"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary/10 px-8 py-4 text-lg font-semibold text-primary hover:bg-primary/20 transition-colors"
+          >
+            <Icons.FileText className="h-5 w-5" />
+            Save Editor
           </Link>
         </div>
       </FadeIn>

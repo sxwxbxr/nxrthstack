@@ -51,6 +51,10 @@ import {
   FileUp,
   HardDrive,
   Shield,
+  Swords,
+  Wand2,
+  Heart,
+  Star,
 } from "lucide-react";
 
 export const Icons = {
@@ -106,6 +110,10 @@ export const Icons = {
   FileUp,
   HardDrive,
   Shield,
+  Swords,
+  Wand: Wand2,
+  Heart,
+  Star,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,
