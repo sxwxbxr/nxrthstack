@@ -488,6 +488,62 @@ export const storedRomsRelations = relations(storedRoms, ({ one }) => ({
   }),
 }));
 
+// ============================================================================
+// Feature Requests & Bug Reports
+// ============================================================================
+
+// Feature Requests / Bug Reports
+export const featureRequests = pgTable("feature_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  authorId: uuid("author_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 20 }).notNull(), // 'feature' | 'bug'
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description").notNull(),
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending' | 'approved' | 'in_progress' | 'completed' | 'rejected'
+  priority: varchar("priority", { length: 20 }), // 'low' | 'medium' | 'high' | 'critical' (admin set)
+  adminNotes: text("admin_notes"), // Private notes from admin
+  category: varchar("category", { length: 50 }), // 'gamehub' | 'shop' | 'dashboard' | 'general' | etc.
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Votes on Feature Requests
+export const featureVotes = pgTable(
+  "feature_votes",
+  {
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => featureRequests.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.requestId, table.userId] })]
+);
+
+// Feature Request Relations
+export const featureRequestsRelations = relations(featureRequests, ({ one, many }) => ({
+  author: one(users, {
+    fields: [featureRequests.authorId],
+    references: [users.id],
+  }),
+  votes: many(featureVotes),
+}));
+
+export const featureVotesRelations = relations(featureVotes, ({ one }) => ({
+  request: one(featureRequests, {
+    fields: [featureVotes.requestId],
+    references: [featureRequests.id],
+  }),
+  user: one(users, {
+    fields: [featureVotes.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -529,3 +585,9 @@ export type TypeChart = typeof typeChart.$inferSelect;
 export type NewTypeChart = typeof typeChart.$inferInsert;
 export type StoredRom = typeof storedRoms.$inferSelect;
 export type NewStoredRom = typeof storedRoms.$inferInsert;
+
+// Feature Request Types
+export type FeatureRequest = typeof featureRequests.$inferSelect;
+export type NewFeatureRequest = typeof featureRequests.$inferInsert;
+export type FeatureVote = typeof featureVotes.$inferSelect;
+export type NewFeatureVote = typeof featureVotes.$inferInsert;
