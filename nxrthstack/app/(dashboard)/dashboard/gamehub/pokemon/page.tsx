@@ -101,6 +101,13 @@ export default async function PokemonPage() {
             <Icons.FileText className="h-5 w-5" />
             Save Editor
           </Link>
+          <Link
+            href="/dashboard/gamehub/pokemon/guide"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-8 py-4 text-lg font-semibold text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
+            <Icons.HelpCircle className="h-5 w-5" />
+            Guide & Wiki
+          </Link>
         </div>
       </FadeIn>
 

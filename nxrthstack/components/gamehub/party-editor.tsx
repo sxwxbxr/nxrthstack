@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Icons } from "@/components/icons";
 import {
@@ -15,6 +15,22 @@ import {
   setPerfectPokemon,
   healGen3Pokemon,
   recalculateGen3Stats,
+  setGen1PokemonIVs,
+  setGen1PokemonEVs,
+  setGen1PokemonLevel,
+  setPerfectGen1Pokemon,
+  healGen1Pokemon,
+  setGen2PokemonIVs,
+  setGen2PokemonEVs,
+  setGen2PokemonLevel,
+  setPerfectGen2Pokemon,
+  healGen2Pokemon,
+  setGen1PokemonNickname,
+  setGen2PokemonNickname,
+  setGen3PokemonNickname,
+  setGen1PokemonSpecies,
+  setGen2PokemonSpecies,
+  setGen3PokemonSpecies,
   EV_PRESETS,
   type EVPresetName,
 } from "@/lib/pokemon/save-detector";
@@ -164,42 +180,148 @@ function PokemonDetails({
   onDataChange: (newData: Uint8Array) => void;
 }) {
   const [isApplying, setIsApplying] = useState(false);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [editNickname, setEditNickname] = useState(pokemon.nickname);
+  const [isEditingSpecies, setIsEditingSpecies] = useState(false);
+  const [speciesSearch, setSpeciesSearch] = useState("");
+
+  const maxPokemon = generation === 1 ? 151 : generation === 2 ? 251 : 386;
+
+  const handleSaveNickname = useCallback(() => {
+    if (!editNickname.trim()) return;
+
+    const newData = new Uint8Array(saveData);
+    let success = false;
+
+    if (generation === 1) {
+      success = setGen1PokemonNickname(newData, partyIndex, editNickname.trim());
+    } else if (generation === 2) {
+      success = setGen2PokemonNickname(newData, partyIndex, editNickname.trim());
+    } else {
+      success = setGen3PokemonNickname(newData, partyIndex, editNickname.trim());
+    }
+
+    if (success) {
+      onDataChange(newData);
+      setIsEditingNickname(false);
+    }
+  }, [saveData, generation, partyIndex, editNickname, onDataChange]);
+
+  const handleChangeSpecies = useCallback((newSpecies: number) => {
+    const newData = new Uint8Array(saveData);
+    let success = false;
+
+    if (generation === 1) {
+      success = setGen1PokemonSpecies(newData, partyIndex, newSpecies);
+    } else if (generation === 2) {
+      success = setGen2PokemonSpecies(newData, partyIndex, newSpecies);
+    } else {
+      success = setGen3PokemonSpecies(newData, partyIndex, newSpecies);
+    }
+
+    if (success) {
+      onDataChange(newData);
+      setIsEditingSpecies(false);
+      setSpeciesSearch("");
+    }
+  }, [saveData, generation, partyIndex, onDataChange]);
+
+  // Filter Pokemon for species search
+  const filteredSpecies = speciesSearch
+    ? Object.entries(POKEMON_NAMES)
+        .filter(([id, name]) => {
+          const pokemonId = parseInt(id);
+          return pokemonId <= maxPokemon && (
+            name.toLowerCase().includes(speciesSearch.toLowerCase()) ||
+            id.includes(speciesSearch)
+          );
+        })
+        .slice(0, 10)
+    : [];
 
   const applyPreset = async (presetType: string, evPreset?: EVPresetName) => {
-    if (generation !== 3) return;
-
     setIsApplying(true);
     const newData = new Uint8Array(saveData);
 
     let success = false;
-    switch (presetType) {
-      case "maxIVs":
-        success = setGen3PokemonIVs(newData, partyIndex, {
-          hp: 31, attack: 31, defense: 31, speed: 31, spAttack: 31, spDefense: 31,
-        });
-        if (success) recalculateGen3Stats(newData, partyIndex);
-        break;
-      case "evPreset":
-        if (evPreset) {
-          success = setGen3PokemonEVs(newData, partyIndex, EV_PRESETS[evPreset]);
+
+    if (generation === 1) {
+      // Gen 1 presets
+      switch (presetType) {
+        case "maxIVs":
+          success = setGen1PokemonIVs(newData, partyIndex, {
+            attack: 15, defense: 15, speed: 15, special: 15,
+          });
+          break;
+        case "maxEVs":
+          success = setGen1PokemonEVs(newData, partyIndex, {
+            hp: 65535, attack: 65535, defense: 65535, speed: 65535, special: 65535,
+          });
+          break;
+        case "level100":
+          success = setGen1PokemonLevel(newData, partyIndex, 100);
+          break;
+        case "heal":
+          success = healGen1Pokemon(newData, partyIndex);
+          break;
+        case "perfect":
+          success = setPerfectGen1Pokemon(newData, partyIndex);
+          break;
+      }
+    } else if (generation === 2) {
+      // Gen 2 presets
+      switch (presetType) {
+        case "maxIVs":
+          success = setGen2PokemonIVs(newData, partyIndex, {
+            attack: 15, defense: 15, speed: 15, special: 15,
+          });
+          break;
+        case "maxEVs":
+          success = setGen2PokemonEVs(newData, partyIndex, {
+            hp: 65535, attack: 65535, defense: 65535, speed: 65535, special: 65535,
+          });
+          break;
+        case "level100":
+          success = setGen2PokemonLevel(newData, partyIndex, 100);
+          break;
+        case "heal":
+          success = healGen2Pokemon(newData, partyIndex);
+          break;
+        case "perfect":
+          success = setPerfectGen2Pokemon(newData, partyIndex);
+          break;
+      }
+    } else {
+      // Gen 3 presets
+      switch (presetType) {
+        case "maxIVs":
+          success = setGen3PokemonIVs(newData, partyIndex, {
+            hp: 31, attack: 31, defense: 31, speed: 31, spAttack: 31, spDefense: 31,
+          });
           if (success) recalculateGen3Stats(newData, partyIndex);
-        }
-        break;
-      case "level100":
-        success = setGen3PokemonLevel(newData, partyIndex, 100);
-        break;
-      case "heal":
-        success = healGen3Pokemon(newData, partyIndex);
-        break;
-      case "perfectPhysical":
-        success = setPerfectPokemon(newData, partyIndex, EV_PRESETS.physicalSweeper);
-        break;
-      case "perfectSpecial":
-        success = setPerfectPokemon(newData, partyIndex, EV_PRESETS.specialSweeper);
-        break;
-      case "perfectTank":
-        success = setPerfectPokemon(newData, partyIndex, EV_PRESETS.physicalTank);
-        break;
+          break;
+        case "evPreset":
+          if (evPreset) {
+            success = setGen3PokemonEVs(newData, partyIndex, EV_PRESETS[evPreset]);
+            if (success) recalculateGen3Stats(newData, partyIndex);
+          }
+          break;
+        case "level100":
+          success = setGen3PokemonLevel(newData, partyIndex, 100);
+          break;
+        case "heal":
+          success = healGen3Pokemon(newData, partyIndex);
+          break;
+        case "perfectPhysical":
+          success = setPerfectPokemon(newData, partyIndex, EV_PRESETS.physicalSweeper);
+          break;
+        case "perfectSpecial":
+          success = setPerfectPokemon(newData, partyIndex, EV_PRESETS.specialSweeper);
+          break;
+        case "perfectTank":
+          success = setPerfectPokemon(newData, partyIndex, EV_PRESETS.physicalTank);
+          break;
+      }
     }
 
     if (success) {
@@ -210,118 +332,266 @@ function PokemonDetails({
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-primary/10">
-          <span className="text-4xl font-bold text-primary">
-            #{pokemon.species.toString().padStart(3, "0")}
-          </span>
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-foreground">
-            {pokemon.nickname}
-            {pokemon.isShiny && (
-              <Icons.Sparkles className="inline h-5 w-5 ml-2 text-yellow-500" />
+      {/* Header with Edit Options */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setIsEditingSpecies(!isEditingSpecies)}
+            className="flex h-20 w-20 items-center justify-center rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors cursor-pointer"
+            title="Click to change species"
+          >
+            <span className="text-4xl font-bold text-primary">
+              #{pokemon.species.toString().padStart(3, "0")}
+            </span>
+          </button>
+          <div>
+            {isEditingNickname ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editNickname}
+                  onChange={(e) => setEditNickname(e.target.value.slice(0, 10))}
+                  className="rounded-lg border border-border bg-background px-3 py-1.5 text-lg font-bold text-foreground focus:border-primary focus:outline-none"
+                  maxLength={10}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveNickname();
+                    if (e.key === "Escape") setIsEditingNickname(false);
+                  }}
+                />
+                <button
+                  onClick={handleSaveNickname}
+                  className="rounded-lg bg-primary p-1.5 text-primary-foreground hover:bg-primary/90"
+                >
+                  <Icons.Check className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditingNickname(false);
+                    setEditNickname(pokemon.nickname);
+                  }}
+                  className="rounded-lg bg-muted p-1.5 text-muted-foreground hover:bg-accent"
+                >
+                  <Icons.Close className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <h3
+                className="text-xl font-bold text-foreground cursor-pointer hover:text-primary transition-colors flex items-center gap-2"
+                onClick={() => setIsEditingNickname(true)}
+                title="Click to edit nickname"
+              >
+                {pokemon.nickname}
+                <Icons.Pencil className="h-4 w-4 opacity-50" />
+                {pokemon.isShiny && (
+                  <Icons.Sparkles className="h-5 w-5 text-yellow-500" />
+                )}
+              </h3>
             )}
-          </h3>
-          <p className="text-muted-foreground">{pokemon.speciesName}</p>
-          {generation === 3 && pokemon.nature !== undefined && (
-            <p className="text-sm text-muted-foreground">
-              {NATURE_NAMES[pokemon.nature]} Nature
-            </p>
-          )}
+            <p className="text-muted-foreground">{pokemon.speciesName}</p>
+            {generation === 3 && pokemon.nature !== undefined && (
+              <p className="text-sm text-muted-foreground">
+                {NATURE_NAMES[pokemon.nature]} Nature
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Stat Presets - Only for Gen 3 */}
-      {generation === 3 && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+      {/* Species Changer */}
+      {isEditingSpecies && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
           <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Icons.Zap className="h-4 w-4 text-primary" />
-            Stat Presets
+            <Icons.Shuffle className="h-4 w-4 text-primary" />
+            Change Species
           </h4>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <button
-              onClick={() => applyPreset("maxIVs")}
-              disabled={isApplying}
-              className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
-            >
-              <Icons.TrendingUp className="h-4 w-4" />
-              Max IVs (31)
-            </button>
-            <button
-              onClick={() => applyPreset("level100")}
-              disabled={isApplying}
-              className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
-            >
-              <Icons.Star className="h-4 w-4" />
-              Level 100
-            </button>
-            <button
-              onClick={() => applyPreset("heal")}
-              disabled={isApplying}
-              className="flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-2 text-sm font-medium text-green-500 hover:bg-green-500/20 transition-colors disabled:opacity-50"
-            >
-              <Icons.Heart className="h-4 w-4" />
-              Full Heal
-            </button>
-            <button
-              onClick={() => applyPreset("evPreset", "physicalSweeper")}
-              disabled={isApplying}
-              className="flex items-center gap-2 rounded-lg bg-orange-500/10 px-3 py-2 text-sm font-medium text-orange-500 hover:bg-orange-500/20 transition-colors disabled:opacity-50"
-            >
-              <Icons.Swords className="h-4 w-4" />
-              Atk/Spd EVs
-            </button>
-            <button
-              onClick={() => applyPreset("evPreset", "specialSweeper")}
-              disabled={isApplying}
-              className="flex items-center gap-2 rounded-lg bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-500 hover:bg-blue-500/20 transition-colors disabled:opacity-50"
-            >
-              <Icons.Wand className="h-4 w-4" />
-              SpA/Spd EVs
-            </button>
-            <button
-              onClick={() => applyPreset("evPreset", "physicalTank")}
-              disabled={isApplying}
-              className="flex items-center gap-2 rounded-lg bg-gray-500/10 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-500/20 transition-colors disabled:opacity-50"
-            >
-              <Icons.Shield className="h-4 w-4" />
-              HP/Def EVs
-            </button>
+          <div className="relative">
+            <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={speciesSearch}
+              onChange={(e) => setSpeciesSearch(e.target.value)}
+              placeholder="Search Pokemon by name or number..."
+              className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+              autoFocus
+            />
           </div>
-
-          <div className="mt-3 pt-3 border-t border-border">
-            <p className="text-xs text-muted-foreground mb-2">Perfect Pokemon (Max IVs + EVs + Level 100)</p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <button
-                onClick={() => applyPreset("perfectPhysical")}
-                disabled={isApplying}
-                className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                <Icons.Swords className="h-4 w-4" />
-                Physical Sweeper
-              </button>
-              <button
-                onClick={() => applyPreset("perfectSpecial")}
-                disabled={isApplying}
-                className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                <Icons.Wand className="h-4 w-4" />
-                Special Sweeper
-              </button>
-              <button
-                onClick={() => applyPreset("perfectTank")}
-                disabled={isApplying}
-                className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-slate-600 px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                <Icons.Shield className="h-4 w-4" />
-                Tank
-              </button>
+          {filteredSpecies.length > 0 && (
+            <div className="mt-2 grid gap-1">
+              {filteredSpecies.map(([id, name]) => (
+                <button
+                  key={id}
+                  onClick={() => handleChangeSpecies(parseInt(id))}
+                  className="flex items-center gap-3 rounded-lg bg-background px-3 py-2 text-left hover:bg-accent transition-colors"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded bg-primary/10 text-xs font-bold text-primary">
+                    {id.padStart(3, "0")}
+                  </span>
+                  <span className="font-medium text-foreground">{name}</span>
+                </button>
+              ))}
             </div>
-          </div>
+          )}
+          {speciesSearch && filteredSpecies.length === 0 && (
+            <p className="mt-2 text-sm text-muted-foreground">No Pokemon found</p>
+          )}
+          <button
+            onClick={() => {
+              setIsEditingSpecies(false);
+              setSpeciesSearch("");
+            }}
+            className="mt-3 text-sm text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </button>
         </div>
       )}
+
+      {/* Stat Presets */}
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+        <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Icons.Zap className="h-4 w-4 text-primary" />
+          Stat Presets (Gen {generation})
+        </h4>
+
+        {/* Gen 1/2 Presets (simpler since they have single Special stat) */}
+        {(generation === 1 || generation === 2) && (
+          <>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <button
+                onClick={() => applyPreset("maxIVs")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.TrendingUp className="h-4 w-4" />
+                Max IVs (15)
+              </button>
+              <button
+                onClick={() => applyPreset("maxEVs")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-orange-500/10 px-3 py-2 text-sm font-medium text-orange-500 hover:bg-orange-500/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.TrendingUp className="h-4 w-4" />
+                Max EVs
+              </button>
+              <button
+                onClick={() => applyPreset("level100")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.Star className="h-4 w-4" />
+                Level 100
+              </button>
+              <button
+                onClick={() => applyPreset("heal")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-2 text-sm font-medium text-green-500 hover:bg-green-500/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.Heart className="h-4 w-4" />
+                Full Heal
+              </button>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-2">Perfect Pokemon (Max IVs + Max EVs + Level 100 + Full Heal)</p>
+              <button
+                onClick={() => applyPreset("perfect")}
+                disabled={isApplying}
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                <Icons.Sparkles className="h-4 w-4" />
+                Make Perfect
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Gen 3 Presets (more complex with separate SpAtk/SpDef) */}
+        {generation === 3 && (
+          <>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <button
+                onClick={() => applyPreset("maxIVs")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.TrendingUp className="h-4 w-4" />
+                Max IVs (31)
+              </button>
+              <button
+                onClick={() => applyPreset("level100")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.Star className="h-4 w-4" />
+                Level 100
+              </button>
+              <button
+                onClick={() => applyPreset("heal")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-green-500/10 px-3 py-2 text-sm font-medium text-green-500 hover:bg-green-500/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.Heart className="h-4 w-4" />
+                Full Heal
+              </button>
+              <button
+                onClick={() => applyPreset("evPreset", "physicalSweeper")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-orange-500/10 px-3 py-2 text-sm font-medium text-orange-500 hover:bg-orange-500/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.Swords className="h-4 w-4" />
+                Atk/Spd EVs
+              </button>
+              <button
+                onClick={() => applyPreset("evPreset", "specialSweeper")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-500 hover:bg-blue-500/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.Wand className="h-4 w-4" />
+                SpA/Spd EVs
+              </button>
+              <button
+                onClick={() => applyPreset("evPreset", "physicalTank")}
+                disabled={isApplying}
+                className="flex items-center gap-2 rounded-lg bg-gray-500/10 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-500/20 transition-colors disabled:opacity-50"
+              >
+                <Icons.Shield className="h-4 w-4" />
+                HP/Def EVs
+              </button>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-2">Perfect Pokemon (Max IVs + EVs + Level 100)</p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <button
+                  onClick={() => applyPreset("perfectPhysical")}
+                  disabled={isApplying}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  <Icons.Swords className="h-4 w-4" />
+                  Physical Sweeper
+                </button>
+                <button
+                  onClick={() => applyPreset("perfectSpecial")}
+                  disabled={isApplying}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  <Icons.Wand className="h-4 w-4" />
+                  Special Sweeper
+                </button>
+                <button
+                  onClick={() => applyPreset("perfectTank")}
+                  disabled={isApplying}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-slate-600 px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  <Icons.Shield className="h-4 w-4" />
+                  Tank
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Stats */}
       <div>

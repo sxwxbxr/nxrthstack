@@ -26,6 +26,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Upload,
   Image,
   FileText,
@@ -55,6 +56,9 @@ import {
   Wand2,
   Heart,
   Star,
+  FileEdit,
+  HelpCircle,
+  Cpu,
 } from "lucide-react";
 
 export const Icons = {
@@ -114,6 +118,11 @@ export const Icons = {
   Wand: Wand2,
   Heart,
   Star,
+  FileEdit,
+  HelpCircle,
+  Cpu,
+  ChevronLeft,
+  Gamepad2,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

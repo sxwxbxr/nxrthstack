@@ -308,23 +308,23 @@ export function NewSaveCreator({ onSaveCreated, onCancel }: NewSaveCreatorProps)
                       onClick={() => setTrainerGender(0)}
                       className={`flex-1 rounded-lg border p-3 text-center transition-colors ${
                         trainerGender === 0
-                          ? "border-blue-500 bg-blue-500/10 text-blue-500"
-                          : "border-border hover:border-blue-500/50"
+                          ? "border-blue-500 bg-blue-500/10"
+                          : "border-border bg-card hover:border-blue-500/50"
                       }`}
                     >
-                      <Icons.User className="mx-auto h-6 w-6 mb-1" />
-                      <span className="text-sm font-medium">Male</span>
+                      <Icons.User className={`mx-auto h-6 w-6 mb-1 ${trainerGender === 0 ? "text-blue-500" : "text-muted-foreground"}`} />
+                      <span className={`text-sm font-medium ${trainerGender === 0 ? "text-blue-500" : "text-foreground"}`}>Male</span>
                     </button>
                     <button
                       onClick={() => setTrainerGender(1)}
                       className={`flex-1 rounded-lg border p-3 text-center transition-colors ${
                         trainerGender === 1
-                          ? "border-pink-500 bg-pink-500/10 text-pink-500"
-                          : "border-border hover:border-pink-500/50"
+                          ? "border-pink-500 bg-pink-500/10"
+                          : "border-border bg-card hover:border-pink-500/50"
                       }`}
                     >
-                      <Icons.User className="mx-auto h-6 w-6 mb-1" />
-                      <span className="text-sm font-medium">Female</span>
+                      <Icons.User className={`mx-auto h-6 w-6 mb-1 ${trainerGender === 1 ? "text-pink-500" : "text-muted-foreground"}`} />
+                      <span className={`text-sm font-medium ${trainerGender === 1 ? "text-pink-500" : "text-foreground"}`}>Female</span>
                     </button>
                   </div>
                 </div>

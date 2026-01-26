@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Icons } from "@/components/icons";
-import { type SaveData, ITEM_NAMES } from "@/lib/pokemon/save-detector";
+import {
+  type SaveData,
+  ITEM_NAMES,
+  addItem,
+  removeItem,
+  setItemQuantity,
+} from "@/lib/pokemon/save-detector";
 
 interface InventoryEditorProps {
   saveData: Uint8Array;
@@ -12,14 +18,53 @@ interface InventoryEditorProps {
 
 type InventoryTab = "items" | "keyItems" | "pokeballs" | "tmHm";
 
+// Quick add item IDs per generation
+const QUICK_ADD_ITEMS_GEN1 = {
+  rareCandy: { id: 0x28, name: "Rare Candy", pocket: "items" as const },
+  masterBall: { id: 0x01, name: "Master Ball", pocket: "items" as const },
+  maxRevive: { id: 0x36, name: "Max Revive", pocket: "items" as const },
+  ppUp: { id: 0x32, name: "PP Up", pocket: "items" as const },
+  maxPotion: { id: 0x11, name: "Max Potion", pocket: "items" as const },
+  fullRestore: { id: 0x10, name: "Full Restore", pocket: "items" as const },
+};
+
+const QUICK_ADD_ITEMS_GEN2 = {
+  rareCandy: { id: 0x20, name: "Rare Candy", pocket: "items" as const },
+  masterBall: { id: 0x01, name: "Master Ball", pocket: "items" as const },
+  maxRevive: { id: 0x28, name: "Max Revive", pocket: "items" as const },
+  ppUp: { id: 0x3E, name: "PP Up", pocket: "items" as const },
+  maxPotion: { id: 0x0F, name: "Max Potion", pocket: "items" as const },
+  fullRestore: { id: 0x0E, name: "Full Restore", pocket: "items" as const },
+};
+
+const QUICK_ADD_ITEMS_GEN3 = {
+  rareCandy: { id: 68, name: "Rare Candy", pocket: "items" as const },
+  masterBall: { id: 1, name: "Master Ball", pocket: "pokeballs" as const },
+  maxRevive: { id: 25, name: "Max Revive", pocket: "items" as const },
+  ppUp: { id: 69, name: "PP Up", pocket: "items" as const },
+  maxPotion: { id: 20, name: "Max Potion", pocket: "items" as const },
+  fullRestore: { id: 19, name: "Full Restore", pocket: "items" as const },
+};
+
+function getQuickAddItems(generation: number) {
+  switch (generation) {
+    case 1: return QUICK_ADD_ITEMS_GEN1;
+    case 2: return QUICK_ADD_ITEMS_GEN2;
+    default: return QUICK_ADD_ITEMS_GEN3;
+  }
+}
+
 export function InventoryEditor({
   saveData,
   parsedSave,
   onDataChange,
 }: InventoryEditorProps) {
   const [activeTab, setActiveTab] = useState<InventoryTab>("items");
+  const [editingSlot, setEditingSlot] = useState<number | null>(null);
+  const [editQuantity, setEditQuantity] = useState<number>(0);
 
   const { inventory } = parsedSave;
+  const generation = parsedSave.info.generation;
 
   const tabs: { id: InventoryTab; label: string; count: number }[] = [
     { id: "items", label: "Items", count: inventory.items.length },
@@ -29,6 +74,48 @@ export function InventoryEditor({
   ];
 
   const currentItems = inventory[activeTab];
+
+  const quickAddItems = getQuickAddItems(generation);
+
+  const handleAddQuickItem = useCallback(
+    (itemKey: keyof typeof QUICK_ADD_ITEMS_GEN3) => {
+      const items = getQuickAddItems(generation);
+      const item = items[itemKey];
+      const newData = new Uint8Array(saveData);
+      if (addItem(newData, item.id, 99, item.pocket, generation)) {
+        onDataChange(newData);
+      }
+    },
+    [saveData, generation, onDataChange]
+  );
+
+  const handleRemoveItem = useCallback(
+    (slotIndex: number) => {
+      const newData = new Uint8Array(saveData);
+      if (removeItem(newData, slotIndex, activeTab, generation)) {
+        onDataChange(newData);
+      }
+    },
+    [saveData, activeTab, generation, onDataChange]
+  );
+
+  const handleStartEdit = useCallback((slotIndex: number, quantity: number) => {
+    setEditingSlot(slotIndex);
+    setEditQuantity(quantity);
+  }, []);
+
+  const handleSaveQuantity = useCallback(() => {
+    if (editingSlot === null) return;
+    const newData = new Uint8Array(saveData);
+    if (setItemQuantity(newData, editingSlot, editQuantity, activeTab, generation)) {
+      onDataChange(newData);
+    }
+    setEditingSlot(null);
+  }, [saveData, editingSlot, editQuantity, activeTab, generation, onDataChange]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingSlot(null);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -79,16 +166,55 @@ export function InventoryEditor({
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground">
-                    x{item.quantity}
-                  </span>
-                  <button
-                    className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
-                    title="Edit item (coming soon)"
-                    disabled
-                  >
-                    <Icons.Pencil className="h-4 w-4" />
-                  </button>
+                  {editingSlot === index ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={editQuantity}
+                        onChange={(e) => setEditQuantity(Math.min(99, Math.max(1, parseInt(e.target.value) || 1)))}
+                        min={1}
+                        max={99}
+                        className="w-16 rounded-lg border border-border bg-background px-2 py-1 text-center text-sm text-foreground focus:border-primary focus:outline-none"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleSaveQuantity}
+                        className="rounded-lg bg-primary p-1.5 text-primary-foreground hover:bg-primary/90"
+                        title="Save"
+                      >
+                        <Icons.Check className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="rounded-lg bg-muted p-1.5 text-muted-foreground hover:bg-accent"
+                        title="Cancel"
+                      >
+                        <Icons.Close className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground">
+                        x{item.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleStartEdit(index, item.quantity)}
+                        className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                        title="Edit quantity"
+                        disabled={false}
+                      >
+                        <Icons.Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRemoveItem(index)}
+                        className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        title="Remove item"
+                        disabled={false}
+                      >
+                        <Icons.Trash2 className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -112,10 +238,11 @@ export function InventoryEditor({
           <Icons.Zap className="h-5 w-5 text-primary" />
           Quick Actions
         </h3>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <button
+            onClick={() => handleAddQuickItem("rareCandy")}
             className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left hover:bg-accent transition-colors disabled:opacity-50"
-            disabled
+            disabled={false}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
               <Icons.Plus className="h-5 w-5 text-blue-500" />
@@ -126,8 +253,9 @@ export function InventoryEditor({
             </div>
           </button>
           <button
+            onClick={() => handleAddQuickItem("masterBall")}
             className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left hover:bg-accent transition-colors disabled:opacity-50"
-            disabled
+            disabled={false}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
               <Icons.Plus className="h-5 w-5 text-purple-500" />
@@ -138,8 +266,9 @@ export function InventoryEditor({
             </div>
           </button>
           <button
+            onClick={() => handleAddQuickItem("maxRevive")}
             className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left hover:bg-accent transition-colors disabled:opacity-50"
-            disabled
+            disabled={false}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
               <Icons.Plus className="h-5 w-5 text-green-500" />
@@ -150,21 +279,48 @@ export function InventoryEditor({
             </div>
           </button>
           <button
+            onClick={() => handleAddQuickItem("ppUp")}
             className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left hover:bg-accent transition-colors disabled:opacity-50"
-            disabled
+            disabled={false}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-500/10">
               <Icons.Plus className="h-5 w-5 text-yellow-500" />
             </div>
             <div>
-              <p className="font-medium text-foreground">Add PP Max</p>
+              <p className="font-medium text-foreground">Add PP Up</p>
+              <p className="text-xs text-muted-foreground">x99</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handleAddQuickItem("maxPotion")}
+            className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left hover:bg-accent transition-colors disabled:opacity-50"
+            disabled={false}
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/10">
+              <Icons.Plus className="h-5 w-5 text-pink-500" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Add Max Potion</p>
+              <p className="text-xs text-muted-foreground">x99</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handleAddQuickItem("fullRestore")}
+            className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left hover:bg-accent transition-colors disabled:opacity-50"
+            disabled={false}
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10">
+              <Icons.Plus className="h-5 w-5 text-cyan-500" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Add Full Restore</p>
               <p className="text-xs text-muted-foreground">x99</p>
             </div>
           </button>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
           <Icons.Info className="inline h-3 w-3 mr-1" />
-          Quick actions for inventory editing coming soon
+          Items will be added to your inventory bag
         </p>
       </div>
 

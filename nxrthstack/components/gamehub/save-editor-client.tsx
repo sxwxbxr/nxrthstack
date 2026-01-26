@@ -7,6 +7,8 @@ import { SaveUploader } from "./save-uploader";
 import { TrainerEditor } from "./trainer-editor";
 import { PartyEditor } from "./party-editor";
 import { InventoryEditor } from "./inventory-editor";
+import { BoxesEditor } from "./boxes-editor";
+import { PokedexEditor } from "./pokedex-editor";
 import { SaveDownloadButton } from "./save-download-button";
 import { NewSaveCreator } from "./new-save-creator";
 import {
@@ -313,16 +315,12 @@ export function SaveEditorClient() {
                   onDataChange={handleDataChange}
                 />
               )}
-              {activeTab === "boxes" && (
-                <div className="rounded-xl border border-border bg-card p-8 text-center">
-                  <Icons.Package className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-medium text-foreground">
-                    PC Boxes
-                  </h3>
-                  <p className="mt-2 text-muted-foreground">
-                    PC Box editing coming soon. View and manage your stored Pokemon.
-                  </p>
-                </div>
+              {activeTab === "boxes" && parsedSave && saveData && (
+                <BoxesEditor
+                  saveData={saveData}
+                  parsedSave={parsedSave}
+                  onDataChange={handleDataChange}
+                />
               )}
               {activeTab === "inventory" && parsedSave && saveData && (
                 <InventoryEditor
@@ -331,16 +329,12 @@ export function SaveEditorClient() {
                   onDataChange={handleDataChange}
                 />
               )}
-              {activeTab === "pokedex" && (
-                <div className="rounded-xl border border-border bg-card p-8 text-center">
-                  <Icons.FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-medium text-foreground">
-                    Pokedex
-                  </h3>
-                  <p className="mt-2 text-muted-foreground">
-                    Pokedex editing coming soon. Mark Pokemon as seen or caught.
-                  </p>
-                </div>
+              {activeTab === "pokedex" && parsedSave && saveData && (
+                <PokedexEditor
+                  saveData={saveData}
+                  parsedSave={parsedSave}
+                  onDataChange={handleDataChange}
+                />
               )}
             </motion.div>
           </AnimatePresence>
