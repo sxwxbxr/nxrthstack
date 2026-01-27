@@ -12,7 +12,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "build:pkhex": "pwsh -ExecutionPolicy Bypass -File ../scripts/build-pkhex.ps1"
+    "build:pkhex": "node ../scripts/build-pkhex.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
