@@ -79,9 +79,20 @@ export function R6StatsCharts({
       });
   }, [matches, player1Id, player2Id, player1Name, player2Name]);
 
-  // Calculate K/D data per match
+  // Calculate K/D data per match (only if there's actual K/D data)
   const kdData = useMemo(() => {
     if (!trackKills) return [];
+
+    // Check if any match has actual K/D data
+    const hasKdData = matches.some(
+      (m) =>
+        (m.player1Kills !== null && m.player1Kills > 0) ||
+        (m.player1Deaths !== null && m.player1Deaths > 0) ||
+        (m.player2Kills !== null && m.player2Kills > 0) ||
+        (m.player2Deaths !== null && m.player2Deaths > 0)
+    );
+
+    if (!hasKdData) return [];
 
     return matches
       .slice()
@@ -125,6 +136,9 @@ export function R6StatsCharts({
       p2Rounds += match.player2RoundsWon || 0;
     });
 
+    // Check if there's actual K/D data
+    const hasKdData = p1Kills > 0 || p1Deaths > 0 || p2Kills > 0 || p2Deaths > 0;
+
     return {
       p1Wins,
       p2Wins,
@@ -136,6 +150,7 @@ export function R6StatsCharts({
       p2Rounds,
       p1KD: p1Deaths > 0 ? (p1Kills / p1Deaths).toFixed(2) : p1Kills.toString(),
       p2KD: p2Deaths > 0 ? (p2Kills / p2Deaths).toFixed(2) : p2Kills.toString(),
+      hasKdData,
     };
   }, [matches, player1Id, player2Id]);
 
@@ -247,6 +262,8 @@ export function R6StatsCharts({
               <YAxis
                 stroke="hsl(var(--muted-foreground))"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                allowDecimals={false}
+                domain={[0, 'auto']}
               />
               <Tooltip
                 contentStyle={{
@@ -451,7 +468,7 @@ export function R6StatsCharts({
                 <th className="text-left py-3 px-4 text-muted-foreground font-medium">Player</th>
                 <th className="text-center py-3 px-4 text-muted-foreground font-medium">Wins</th>
                 <th className="text-center py-3 px-4 text-muted-foreground font-medium">Rounds</th>
-                {trackKills && (
+                {trackKills && totalStats.hasKdData && (
                   <>
                     <th className="text-center py-3 px-4 text-muted-foreground font-medium">Kills</th>
                     <th className="text-center py-3 px-4 text-muted-foreground font-medium">Deaths</th>
@@ -466,7 +483,7 @@ export function R6StatsCharts({
                 <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player1 }}>{player1Name}</td>
                 <td className="text-center py-3 px-4">{totalStats.p1Wins}</td>
                 <td className="text-center py-3 px-4">{totalStats.p1Rounds}</td>
-                {trackKills && (
+                {trackKills && totalStats.hasKdData && (
                   <>
                     <td className="text-center py-3 px-4 text-green-500">{totalStats.p1Kills}</td>
                     <td className="text-center py-3 px-4 text-red-500">{totalStats.p1Deaths}</td>
@@ -481,7 +498,7 @@ export function R6StatsCharts({
                 <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player2 }}>{player2Name}</td>
                 <td className="text-center py-3 px-4">{totalStats.p2Wins}</td>
                 <td className="text-center py-3 px-4">{totalStats.p2Rounds}</td>
-                {trackKills && (
+                {trackKills && totalStats.hasKdData && (
                   <>
                     <td className="text-center py-3 px-4 text-green-500">{totalStats.p2Kills}</td>
                     <td className="text-center py-3 px-4 text-red-500">{totalStats.p2Deaths}</td>

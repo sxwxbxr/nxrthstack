@@ -35,7 +35,7 @@ export function RecordMatchForm({
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(trackKills); // Show by default when K/D tracking enabled
   const [showScreenshot, setShowScreenshot] = useState(false);
   const [autoFilled, setAutoFilled] = useState(false);
 
