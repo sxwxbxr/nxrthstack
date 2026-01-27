@@ -1,0 +1,133 @@
+@using PKHeX.NxrthStack.Core.Services
+@inject SaveFileService SaveService
+
+@namespace PKHeX.NxrthStack.Components.Trainer
+
+<div class="trainer-editor">
+    <h4>Trainer Info</h4>
+
+    <div class="editor-grid">
+        <div class="editor-field">
+            <label>Trainer Name</label>
+            <input type="text"
+                   value="@SaveService.GetTrainerName()"
+                   @onchange="HandleNameChange"
+                   maxlength="7"
+                   class="input-field" />
+        </div>
+
+        <div class="editor-field">
+            <label>Trainer ID</label>
+            <input type="number"
+                   value="@SaveService.GetTrainerID()"
+                   @onchange="HandleTIDChange"
+                   min="0"
+                   max="65535"
+                   class="input-field" />
+        </div>
+
+        <div class="editor-field">
+            <label>Secret ID</label>
+            <input type="number"
+                   value="@SaveService.GetSecretID()"
+                   @onchange="HandleSIDChange"
+                   min="0"
+                   max="65535"
+                   class="input-field" />
+        </div>
+
+        <div class="editor-field">
+            <label>Gender</label>
+            <select value="@SaveService.GetTrainerGender()" @onchange="HandleGenderChange" class="input-field">
+                <option value="0">Male</option>
+                <option value="1">Female</option>
+            </select>
+        </div>
+    </div>
+
+    <h4>Money & Time</h4>
+
+    <div class="editor-grid">
+        <div class="editor-field wide">
+            <label>Money</label>
+            <div class="money-input">
+                <span class="currency">$</span>
+                <input type="number"
+                       value="@SaveService.GetMoney()"
+                       @onchange="HandleMoneyChange"
+                       min="0"
+                       max="@SaveService.GetMaxMoney()"
+                       class="input-field" />
+                <button class="btn btn-sm" @onclick="MaxMoney">Max</button>
+            </div>
+        </div>
+
+        <div class="editor-field">
+            <label>Play Time</label>
+            <div class="time-display">
+                @SaveService.GetPlayedHours()h @SaveService.GetPlayedMinutes()m @SaveService.GetPlayedSeconds()s
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <button class="btn btn-secondary" @onclick="MaxMoney">
+            Max Money
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private async Task HandleNameChange(ChangeEventArgs e)
+    {
+        var name = e.Value?.ToString() ?? "";
+        SaveService.SetTrainerName(name);
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task HandleTIDChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int tid))
+        {
+            SaveService.SetTrainerID(Math.Clamp(tid, 0, 65535));
+            await OnChanged.InvokeAsync();
+        }
+    }
+
+    private async Task HandleSIDChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int sid))
+        {
+            SaveService.SetSecretID(Math.Clamp(sid, 0, 65535));
+            await OnChanged.InvokeAsync();
+        }
+    }
+
+    private async Task HandleGenderChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int gender))
+        {
+            SaveService.SetTrainerGender(gender);
+            await OnChanged.InvokeAsync();
+        }
+    }
+
+    private async Task HandleMoneyChange(ChangeEventArgs e)
+    {
+        if (uint.TryParse(e.Value?.ToString(), out uint money))
+        {
+            SaveService.SetMoney(Math.Min(money, SaveService.GetMaxMoney()));
+            await OnChanged.InvokeAsync();
+        }
+    }
+
+    private async Task MaxMoney()
+    {
+        SaveService.SetMoney(SaveService.GetMaxMoney());
+        await OnChanged.InvokeAsync();
+        StateHasChanged();
+    }
+}

@@ -36,6 +36,19 @@
             <div class="editor-sidebar">
                 <SaveSummary OnRequestNewSave="HandleNewSave" OnExportSave="HandleExportSave" />
 
+                <div class="section-divider"></div>
+
+                <TrainerEditor OnChanged="HandleDataChanged" />
+
+                <div class="section-divider"></div>
+
+                <div class="section-header">
+                    <h3>Party Pokemon</h3>
+                </div>
+                <PartyViewer OnPokemonSelected="HandlePokemonSelected" />
+
+                <div class="section-divider"></div>
+
                 <div class="section-header">
                     <h3>PC Boxes</h3>
                 </div>
@@ -72,7 +85,7 @@
 
     private void HandleNewSave()
     {
-        // Reset state - the service handles clearing
+        SaveService.ClearSave();
         selectedPokemon = null;
         currentBox = 0;
         StateHasChanged();
@@ -80,7 +93,6 @@
 
     private async Task HandleExportSave(byte[] data)
     {
-        // Trigger download via JS interop
         var fileName = $"{SaveService.GetGameName()}_{DateTime.Now:yyyyMMdd_HHmmss}.sav";
         await DownloadFile(data, fileName);
     }
@@ -94,6 +106,11 @@
     private void HandlePokemonChanged()
     {
         SaveService.NotifyModified();
+        StateHasChanged();
+    }
+
+    private void HandleDataChanged()
+    {
         StateHasChanged();
     }
 

@@ -575,6 +575,219 @@
     margin-bottom: 1rem;
 }
 
+/* Section Divider */
+.section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1rem 0;
+}
+
+.section-header {
+    margin-bottom: 0.75rem;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Party Viewer */
+.party-viewer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.party-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.party-header h4 {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.party-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 0.25rem 0.5rem;
+    background: var(--background);
+    border-radius: 9999px;
+}
+
+.party-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.party-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    background: var(--background);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: 90px;
+}
+
+.party-slot:hover {
+    border-color: var(--border);
+}
+
+.party-slot.selected {
+    border-color: var(--primary);
+    background: rgba(168, 85, 247, 0.1);
+}
+
+.party-slot.occupied .pokemon-sprite {
+    position: relative;
+}
+
+.party-slot .pokemon-sprite img {
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
+}
+
+.party-slot .shiny-indicator {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 0.75rem;
+    color: #fbbf24;
+}
+
+.party-slot .pokemon-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 0.25rem;
+}
+
+.party-slot .species-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.party-slot .level {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+}
+
+.party-slot.empty .empty-slot {
+    color: var(--text-muted);
+}
+
+.party-slot .slot-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--border);
+}
+
+/* Trainer Editor */
+.trainer-editor {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.trainer-editor h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.editor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.editor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.editor-field.wide {
+    grid-column: 1 / -1;
+}
+
+.editor-field label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.editor-field .input-field {
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.875rem;
+}
+
+.editor-field .input-field:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.editor-field select.input-field {
+    cursor: pointer;
+}
+
+.money-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.money-input .currency {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.money-input .input-field {
+    flex: 1;
+}
+
+.money-input .btn {
+    flex-shrink: 0;
+}
+
+.time-display {
+    padding: 0.5rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .summary-grid {

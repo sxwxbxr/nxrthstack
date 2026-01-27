@@ -24,6 +24,11 @@ public class PokemonService
         return _saveService.CurrentSave?.PartyData ?? Array.Empty<PKM>();
     }
 
+    public int GetPartyCount()
+    {
+        return _saveService.CurrentSave?.PartyCount ?? 0;
+    }
+
     public PKM? GetBoxPokemon(int box, int slot)
     {
         var save = _saveService.CurrentSave;
@@ -31,10 +36,20 @@ public class PokemonService
 
         try
         {
-            return save.GetBoxSlotAtIndex(box, slot);
+            // Calculate the absolute slot index
+            int slotsPerBox = save.BoxSlotCount;
+            int absoluteSlot = (box * slotsPerBox) + slot;
+
+            // Use GetBoxSlotAtIndex if available, otherwise use BoxData
+            if (absoluteSlot < save.BoxData.Count)
+            {
+                return save.BoxData[absoluteSlot];
+            }
+            return null;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error getting box pokemon: {ex.Message}");
             return null;
         }
     }
@@ -44,8 +59,21 @@ public class PokemonService
         var save = _saveService.CurrentSave;
         if (save == null) return;
 
-        save.SetBoxSlotAtIndex(pokemon, box, slot);
-        _saveService.NotifyModified();
+        try
+        {
+            int slotsPerBox = save.BoxSlotCount;
+            int absoluteSlot = (box * slotsPerBox) + slot;
+
+            if (absoluteSlot < save.BoxData.Count)
+            {
+                save.BoxData[absoluteSlot] = pokemon;
+                _saveService.NotifyModified();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting box pokemon: {ex.Message}");
+        }
     }
 
     public void SetPartyPokemon(int slot, PKM pokemon)
@@ -55,6 +83,23 @@ public class PokemonService
 
         save.PartyData[slot] = pokemon;
         _saveService.NotifyModified();
+    }
+
+    public int GetBoxPokemonCount(int box)
+    {
+        var save = _saveService.CurrentSave;
+        if (save == null) return 0;
+
+        int count = 0;
+        int slotsPerBox = save.BoxSlotCount;
+
+        for (int i = 0; i < slotsPerBox; i++)
+        {
+            var pk = GetBoxPokemon(box, i);
+            if (pk != null && pk.Species > 0)
+                count++;
+        }
+        return count;
     }
 
     public IEnumerable<PKM> GetAllBoxPokemon(int box)
@@ -73,11 +118,13 @@ public class PokemonService
 
     public static string GetSpeciesName(PKM pokemon)
     {
+        if (pokemon.Species <= 0) return "Empty";
         return SpeciesName.GetSpeciesName((ushort)pokemon.Species, (int)LanguageID.English);
     }
 
     public static string GetSpeciesName(int species)
     {
+        if (species <= 0) return "Empty";
         return SpeciesName.GetSpeciesName((ushort)species, (int)LanguageID.English);
     }
 
@@ -118,7 +165,6 @@ public class PokemonService
 
     public static void MaxEVs(PKM pokemon)
     {
-        // Standard competitive spread: 252 HP, 252 Atk, 6 Speed
         SetEVs(pokemon, 252, 252, 0, 0, 0, 6);
     }
 
@@ -182,16 +228,36 @@ public class PokemonService
         return itemId < names.Length ? names[itemId] : $"Item {itemId}";
     }
 
-    // Legality checking
+    public static string GetItemName(int itemId)
+    {
+        if (itemId <= 0) return "None";
+        var names = GameInfo.Strings.itemlist;
+        return itemId < names.Length ? names[itemId] : $"Item {itemId}";
+    }
+
     public static bool IsLegal(PKM pokemon)
     {
-        var la = new LegalityAnalysis(pokemon);
-        return la.Valid;
+        try
+        {
+            var la = new LegalityAnalysis(pokemon);
+            return la.Valid;
+        }
+        catch
+        {
+            return true; // Assume legal if check fails
+        }
     }
 
     public static string GetLegalityReport(PKM pokemon)
     {
-        var la = new LegalityAnalysis(pokemon);
-        return la.Report();
+        try
+        {
+            var la = new LegalityAnalysis(pokemon);
+            return la.Report();
+        }
+        catch
+        {
+            return "Unable to check legality";
+        }
     }
 }

@@ -1,0 +1,75 @@
+@using PKHeX.Core
+@using PKHeX.NxrthStack.Core.Services
+@inject SaveFileService SaveService
+@inject PokemonService PokemonService
+
+@namespace PKHeX.NxrthStack.Components.Party
+
+<div class="party-viewer">
+    <div class="party-header">
+        <h4>Party Pokemon</h4>
+        <span class="party-count">@PokemonService.GetPartyCount() / 6</span>
+    </div>
+
+    <div class="party-grid">
+        @for (int i = 0; i < 6; i++)
+        {
+            var slot = i;
+            var pokemon = GetPartyPokemon(slot);
+            <div class="party-slot @(SelectedSlot == slot ? "selected" : "") @(pokemon != null && pokemon.Species > 0 ? "occupied" : "empty")"
+                 @onclick="() => HandleSlotClick(slot)">
+                @if (pokemon != null && pokemon.Species > 0)
+                {
+                    <div class="pokemon-sprite">
+                        <img src="@GetSpriteUrl(pokemon)" alt="@GetSpeciesName(pokemon)" loading="lazy" />
+                        @if (pokemon.IsShiny)
+                        {
+                            <span class="shiny-indicator">★</span>
+                        }
+                    </div>
+                    <div class="pokemon-info">
+                        <span class="species-name">@GetSpeciesName(pokemon)</span>
+                        <span class="level">Lv. @pokemon.CurrentLevel</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-slot">
+                        <span class="slot-number">@(slot + 1)</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? SelectedSlot { get; set; }
+
+    [Parameter]
+    public EventCallback<PKM?> OnPokemonSelected { get; set; }
+
+    private PKM? GetPartyPokemon(int slot)
+    {
+        return PokemonService.GetPartyPokemon(slot);
+    }
+
+    private string GetSpeciesName(PKM pokemon)
+    {
+        return PokemonService.GetSpeciesName(pokemon);
+    }
+
+    private string GetSpriteUrl(PKM pokemon)
+    {
+        if (pokemon.Species <= 0) return "";
+        var shiny = pokemon.IsShiny ? "shiny/" : "";
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{shiny}{pokemon.Species}.png";
+    }
+
+    private async Task HandleSlotClick(int slot)
+    {
+        var pokemon = GetPartyPokemon(slot);
+        await OnPokemonSelected.InvokeAsync(pokemon);
+    }
+}
