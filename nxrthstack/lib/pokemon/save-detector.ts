@@ -445,9 +445,11 @@ export function detectSave(data: Uint8Array): SaveInfo | null {
     if (gen2Result) return gen2Result;
   }
 
-  // Gen 3 save: 128KB or 64KB (some emulators)
-  if (size === 0x20000 || size === 0x10000) {
-    return detectGen3Save(data);
+  // Gen 3 save: 128KB or 64KB (some emulators add extra bytes)
+  // Accept sizes from 64KB to 256KB to handle various emulator formats
+  if (size >= 0x10000 && size <= 0x40000) {
+    const gen3Result = detectGen3Save(data);
+    if (gen3Result) return gen3Result;
   }
 
   return null;
