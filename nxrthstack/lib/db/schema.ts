@@ -224,7 +224,7 @@ export const r6Lobbies = pgTable("r6_lobbies", {
   }),
   inviteCode: varchar("invite_code", { length: 20 }).notNull().unique(),
   status: varchar("status", { length: 20 }).default("open").notNull(), // 'open' | 'active' | 'completed'
-  trackKills: boolean("track_kills").default(false).notNull(),
+  trackKills: boolean("track_kills").default(true).notNull(),
   deletionRequestedBy: uuid("deletion_requested_by").references(() => users.id, {
     onDelete: "set null",
   }), // User who requested deletion (other user must confirm)

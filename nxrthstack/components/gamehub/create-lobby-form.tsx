@@ -8,7 +8,7 @@ import { ShimmerButton } from "@/components/ui/shimmer-button";
 export function CreateLobbyForm() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [trackKills, setTrackKills] = useState(false);
+  const [trackKills, setTrackKills] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

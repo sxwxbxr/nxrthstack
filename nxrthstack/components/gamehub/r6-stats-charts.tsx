@@ -433,59 +433,69 @@ export function R6StatsCharts({
         </motion.div>
       </div>
 
-      {/* Detailed Stats Table */}
-      {trackKills && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-card rounded-xl border border-border p-6"
-        >
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Icons.FileText className="w-5 h-5 text-green-500" />
-            Detailed Statistics
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-4 text-muted-foreground font-medium">Player</th>
-                  <th className="text-center py-3 px-4 text-muted-foreground font-medium">Wins</th>
-                  <th className="text-center py-3 px-4 text-muted-foreground font-medium">Rounds</th>
-                  <th className="text-center py-3 px-4 text-muted-foreground font-medium">Kills</th>
-                  <th className="text-center py-3 px-4 text-muted-foreground font-medium">Deaths</th>
-                  <th className="text-center py-3 px-4 text-muted-foreground font-medium">K/D</th>
-                  <th className="text-center py-3 px-4 text-muted-foreground font-medium">Win Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-border/50">
-                  <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player1 }}>{player1Name}</td>
-                  <td className="text-center py-3 px-4">{totalStats.p1Wins}</td>
-                  <td className="text-center py-3 px-4">{totalStats.p1Rounds}</td>
-                  <td className="text-center py-3 px-4 text-green-500">{totalStats.p1Kills}</td>
-                  <td className="text-center py-3 px-4 text-red-500">{totalStats.p1Deaths}</td>
-                  <td className="text-center py-3 px-4 font-medium">{totalStats.p1KD}</td>
-                  <td className="text-center py-3 px-4">
-                    {matches.length > 0 ? ((totalStats.p1Wins / matches.length) * 100).toFixed(1) : 0}%
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player2 }}>{player2Name}</td>
-                  <td className="text-center py-3 px-4">{totalStats.p2Wins}</td>
-                  <td className="text-center py-3 px-4">{totalStats.p2Rounds}</td>
-                  <td className="text-center py-3 px-4 text-green-500">{totalStats.p2Kills}</td>
-                  <td className="text-center py-3 px-4 text-red-500">{totalStats.p2Deaths}</td>
-                  <td className="text-center py-3 px-4 font-medium">{totalStats.p2KD}</td>
-                  <td className="text-center py-3 px-4">
-                    {matches.length > 0 ? ((totalStats.p2Wins / matches.length) * 100).toFixed(1) : 0}%
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-      )}
+      {/* Detailed Stats Table - Always show, K/D columns only when trackKills */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="bg-card rounded-xl border border-border p-6"
+      >
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Icons.FileText className="w-5 h-5 text-green-500" />
+          Detailed Statistics
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium">Player</th>
+                <th className="text-center py-3 px-4 text-muted-foreground font-medium">Wins</th>
+                <th className="text-center py-3 px-4 text-muted-foreground font-medium">Rounds</th>
+                {trackKills && (
+                  <>
+                    <th className="text-center py-3 px-4 text-muted-foreground font-medium">Kills</th>
+                    <th className="text-center py-3 px-4 text-muted-foreground font-medium">Deaths</th>
+                    <th className="text-center py-3 px-4 text-muted-foreground font-medium">K/D</th>
+                  </>
+                )}
+                <th className="text-center py-3 px-4 text-muted-foreground font-medium">Win Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-border/50">
+                <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player1 }}>{player1Name}</td>
+                <td className="text-center py-3 px-4">{totalStats.p1Wins}</td>
+                <td className="text-center py-3 px-4">{totalStats.p1Rounds}</td>
+                {trackKills && (
+                  <>
+                    <td className="text-center py-3 px-4 text-green-500">{totalStats.p1Kills}</td>
+                    <td className="text-center py-3 px-4 text-red-500">{totalStats.p1Deaths}</td>
+                    <td className="text-center py-3 px-4 font-medium">{totalStats.p1KD}</td>
+                  </>
+                )}
+                <td className="text-center py-3 px-4">
+                  {matches.length > 0 ? ((totalStats.p1Wins / matches.length) * 100).toFixed(1) : 0}%
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player2 }}>{player2Name}</td>
+                <td className="text-center py-3 px-4">{totalStats.p2Wins}</td>
+                <td className="text-center py-3 px-4">{totalStats.p2Rounds}</td>
+                {trackKills && (
+                  <>
+                    <td className="text-center py-3 px-4 text-green-500">{totalStats.p2Kills}</td>
+                    <td className="text-center py-3 px-4 text-red-500">{totalStats.p2Deaths}</td>
+                    <td className="text-center py-3 px-4 font-medium">{totalStats.p2KD}</td>
+                  </>
+                )}
+                <td className="text-center py-3 px-4">
+                  {matches.length > 0 ? ((totalStats.p2Wins / matches.length) * 100).toFixed(1) : 0}%
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 }
