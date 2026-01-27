@@ -12,6 +12,14 @@ export const metadata = {
 
 const pokemonFeatures = [
   {
+    title: "PKHeX Editor",
+    description: "Full-featured save editor powered by PKHeX - supports all generations",
+    href: "/dashboard/gamehub/pokemon/pkhex",
+    icon: Icons.Sparkles,
+    features: ["All Generations", "Full PKHeX", "Browser WASM"],
+    featured: true,
+  },
+  {
     title: "ROM Editor",
     description: "Upload and edit Gen 1-3 Pokemon ROMs directly in your browser",
     href: "/dashboard/gamehub/pokemon/rom-editor",
@@ -19,8 +27,8 @@ const pokemonFeatures = [
     features: ["GB/GBC/GBA Support", "Auto Detection", "Safe Editing"],
   },
   {
-    title: "Save Editor",
-    description: "Edit your save files - trainer data, party, inventory, and more",
+    title: "Save Editor (Basic)",
+    description: "Simple save editor for quick edits - trainer data, party, inventory",
     href: "/dashboard/gamehub/pokemon/save-editor",
     icon: Icons.FileText,
     features: ["Trainer Editor", "Party Viewer", "Inventory"],
@@ -95,6 +103,13 @@ export default async function PokemonPage() {
       <FadeIn delay={0.1}>
         <div className="flex justify-center gap-4 flex-wrap">
           <Link
+            href="/dashboard/gamehub/pokemon/pkhex"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-8 py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            <Icons.Sparkles className="h-5 w-5" />
+            PKHeX Editor
+          </Link>
+          <Link
             href="/dashboard/gamehub/pokemon/rom-editor"
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
           >
@@ -106,7 +121,7 @@ export default async function PokemonPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary/10 px-8 py-4 text-lg font-semibold text-primary hover:bg-primary/20 transition-colors"
           >
             <Icons.FileText className="h-5 w-5" />
-            Save Editor
+            Basic Save Editor
           </Link>
           <Link
             href="/dashboard/gamehub/pokemon/shiny-counter"

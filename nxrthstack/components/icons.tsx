@@ -66,6 +66,9 @@ import {
   RotateCcw,
   Minus,
   Target,
+  Maximize,
+  Minimize,
+  Github,
 } from "lucide-react";
 
 export const Icons = {
@@ -137,6 +140,9 @@ export const Icons = {
   RotateCcw,
   Minus,
   Target,
+  Maximize,
+  Minimize,
+  Github,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,
