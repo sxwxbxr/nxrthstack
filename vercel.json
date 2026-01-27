@@ -1,7 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 9.0 --install-dir $HOME/.dotnet && export PATH=\"$HOME/.dotnet:$PATH\" && cd nxrthstack && npm run build",
-  "installCommand": "cd nxrthstack && npm install",
-  "framework": "nextjs",
-  "outputDirectory": "nxrthstack/.next"
-}
