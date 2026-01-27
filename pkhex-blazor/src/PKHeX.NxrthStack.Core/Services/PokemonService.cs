@@ -61,14 +61,10 @@ public class PokemonService
 
         try
         {
-            int slotsPerBox = save.BoxSlotCount;
-            int absoluteSlot = (box * slotsPerBox) + slot;
-
-            if (absoluteSlot < save.BoxData.Count)
-            {
-                save.BoxData[absoluteSlot] = pokemon;
-                _saveService.NotifyModified();
-            }
+            // Use PKHeX.Core's proper method to set box slot
+            // This ensures the data is written back to the save file's internal storage
+            save.SetBoxSlotAtIndex(pokemon, box, slot);
+            _saveService.NotifyModified();
         }
         catch (Exception ex)
         {
@@ -81,8 +77,16 @@ public class PokemonService
         var save = _saveService.CurrentSave;
         if (save == null || slot < 0 || slot >= 6) return;
 
-        save.PartyData[slot] = pokemon;
-        _saveService.NotifyModified();
+        try
+        {
+            // Use PKHeX.Core's proper method to set party slot
+            save.SetPartySlotAtIndex(pokemon, slot);
+            _saveService.NotifyModified();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting party pokemon: {ex.Message}");
+        }
     }
 
     public int GetBoxPokemonCount(int box)

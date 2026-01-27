@@ -36,7 +36,18 @@ public class SaveFileService
 
     public byte[]? ExportSave()
     {
-        return _currentSave?.Write();
+        if (_currentSave == null) return null;
+
+        try
+        {
+            // Write() handles checksums and finalization internally
+            return _currentSave.Write();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error exporting save: {ex.Message}");
+            return null;
+        }
     }
 
     public void NotifyModified()
