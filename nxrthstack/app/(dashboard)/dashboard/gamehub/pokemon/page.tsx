@@ -26,6 +26,13 @@ const pokemonFeatures = [
     features: ["Trainer Editor", "Party Viewer", "Inventory"],
   },
   {
+    title: "Shiny Counter",
+    description: "Track your shiny hunts with probability calculations and history",
+    href: "/dashboard/gamehub/pokemon/shiny-counter",
+    icon: Icons.Star,
+    features: ["Hunt Tracker", "Odds Calculator", "Statistics"],
+  },
+  {
     title: "Wild Randomizer",
     description: "Randomize wild Pokemon encounters with customizable options",
     href: "/dashboard/gamehub/pokemon/rom-editor",
@@ -100,6 +107,13 @@ export default async function PokemonPage() {
           >
             <Icons.FileText className="h-5 w-5" />
             Save Editor
+          </Link>
+          <Link
+            href="/dashboard/gamehub/pokemon/shiny-counter"
+            className="inline-flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-8 py-4 text-lg font-semibold text-yellow-500 hover:bg-yellow-500/20 transition-colors"
+          >
+            <Icons.Star className="h-5 w-5" />
+            Shiny Counter
           </Link>
           <Link
             href="/dashboard/gamehub/pokemon/guide"

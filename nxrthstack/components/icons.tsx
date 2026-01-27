@@ -60,6 +60,12 @@ import {
   HelpCircle,
   Cpu,
   RefreshCw,
+  Server,
+  Wifi,
+  WifiOff,
+  RotateCcw,
+  Minus,
+  Target,
 } from "lucide-react";
 
 export const Icons = {
@@ -125,6 +131,12 @@ export const Icons = {
   ChevronLeft,
   Gamepad2,
   RefreshCw,
+  Server,
+  Wifi,
+  WifiOff,
+  RotateCcw,
+  Minus,
+  Target,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,
