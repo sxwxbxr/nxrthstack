@@ -669,7 +669,20 @@ function detectGen3Save(data: Uint8Array): SaveInfo | null {
   const save1Index = readU32LE(data, 0x0FFC);
   const save2Index = readU32LE(data, 0xEFFC);
 
-  const activeSaveOffset = save2Index > save1Index ? 0xE000 : 0;
+  // 0xFFFFFFFF means uninitialized/invalid save slot
+  const save1Valid = save1Index !== 0xFFFFFFFF;
+  const save2Valid = save2Index !== 0xFFFFFFFF;
+
+  let activeSaveOffset: number;
+  if (!save1Valid && save2Valid) {
+    activeSaveOffset = 0xE000; // Only save 2 is valid
+  } else if (save1Valid && !save2Valid) {
+    activeSaveOffset = 0; // Only save 1 is valid
+  } else if (save2Index > save1Index) {
+    activeSaveOffset = 0xE000; // Save 2 has higher index
+  } else {
+    activeSaveOffset = 0; // Save 1 has higher or equal index
+  }
 
   // Build section map
   const sections: Record<number, number> = {};
@@ -1347,7 +1360,21 @@ function parseGen3Save(data: Uint8Array, info: SaveInfo): SaveData {
   // Find active save and sections
   const save1Index = readU32LE(data, 0x0FFC);
   const save2Index = readU32LE(data, 0xEFFC);
-  const activeSaveOffset = save2Index > save1Index ? 0xE000 : 0;
+
+  // 0xFFFFFFFF means uninitialized/invalid save slot
+  const save1Valid = save1Index !== 0xFFFFFFFF;
+  const save2Valid = save2Index !== 0xFFFFFFFF;
+
+  let activeSaveOffset: number;
+  if (!save1Valid && save2Valid) {
+    activeSaveOffset = 0xE000; // Only save 2 is valid
+  } else if (save1Valid && !save2Valid) {
+    activeSaveOffset = 0; // Only save 1 is valid
+  } else if (save2Index > save1Index) {
+    activeSaveOffset = 0xE000; // Save 2 has higher index
+  } else {
+    activeSaveOffset = 0; // Save 1 has higher or equal index
+  }
 
   // Build section map
   const sections: Record<number, number> = {};
@@ -1570,7 +1597,21 @@ export function setTrainerName(data: Uint8Array, name: string, generation: numbe
   if (generation === 3) {
     const save1Index = readU32LE(data, 0x0FFC);
     const save2Index = readU32LE(data, 0xEFFC);
-    const activeSaveOffset = save2Index > save1Index ? 0xE000 : 0;
+
+    // 0xFFFFFFFF means uninitialized/invalid save slot
+    const save1Valid = save1Index !== 0xFFFFFFFF;
+    const save2Valid = save2Index !== 0xFFFFFFFF;
+
+    let activeSaveOffset: number;
+    if (!save1Valid && save2Valid) {
+      activeSaveOffset = 0xE000; // Only save 2 is valid
+    } else if (save1Valid && !save2Valid) {
+      activeSaveOffset = 0; // Only save 1 is valid
+    } else if (save2Index > save1Index) {
+      activeSaveOffset = 0xE000; // Save 2 has higher index
+    } else {
+      activeSaveOffset = 0; // Save 1 has higher or equal index
+    }
 
     for (let i = 0; i < 14; i++) {
       const sectionOffset = activeSaveOffset + (i * 0x1000);
@@ -2144,7 +2185,21 @@ function getGen3SaveInfo(data: Uint8Array): {
 } {
   const save1Index = readU32LE(data, 0x0FFC);
   const save2Index = readU32LE(data, 0xEFFC);
-  const activeSaveOffset = save2Index > save1Index ? 0xE000 : 0;
+
+  // 0xFFFFFFFF means uninitialized/invalid save slot
+  const save1Valid = save1Index !== 0xFFFFFFFF;
+  const save2Valid = save2Index !== 0xFFFFFFFF;
+
+  let activeSaveOffset: number;
+  if (!save1Valid && save2Valid) {
+    activeSaveOffset = 0xE000; // Only save 2 is valid
+  } else if (save1Valid && !save2Valid) {
+    activeSaveOffset = 0; // Only save 1 is valid
+  } else if (save2Index > save1Index) {
+    activeSaveOffset = 0xE000; // Save 2 has higher index
+  } else {
+    activeSaveOffset = 0; // Save 1 has higher or equal index
+  }
 
   const sections: Record<number, number> = {};
   for (let i = 0; i < 14; i++) {
