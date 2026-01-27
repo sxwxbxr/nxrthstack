@@ -21,6 +21,14 @@ import {
 import { motion } from "motion/react";
 import { Icons } from "@/components/icons";
 
+// Bright colors for dark backgrounds
+const CHART_COLORS = {
+  player1: "#22d3ee", // cyan-400 - bright teal
+  player2: "#f97316", // orange-500 - bright orange
+  player1Light: "#22d3ee33", // cyan with 20% opacity
+  player2Light: "#f9731633", // orange with 20% opacity
+};
+
 interface Match {
   id: string;
   winnerId: string | null;
@@ -134,8 +142,8 @@ export function R6StatsCharts({
   // Pie chart data for win distribution
   const winDistribution = useMemo(() => {
     return [
-      { name: player1Name, value: totalStats.p1Wins, color: "hsl(var(--primary))" },
-      { name: player2Name, value: totalStats.p2Wins, color: "hsl(var(--destructive))" },
+      { name: player1Name, value: totalStats.p1Wins, color: CHART_COLORS.player1 },
+      { name: player2Name, value: totalStats.p2Wins, color: CHART_COLORS.player2 },
     ];
   }, [player1Name, player2Name, totalStats]);
 
@@ -190,7 +198,7 @@ export function R6StatsCharts({
               className="bg-card rounded-xl border border-border p-4"
             >
               <p className="text-xs text-muted-foreground uppercase tracking-wider">{player1Name} K/D</p>
-              <p className="text-3xl font-bold text-primary mt-1">{totalStats.p1KD}</p>
+              <p className="text-3xl font-bold mt-1" style={{ color: CHART_COLORS.player1 }}>{totalStats.p1KD}</p>
             </motion.div>
 
             <motion.div
@@ -200,7 +208,7 @@ export function R6StatsCharts({
               className="bg-card rounded-xl border border-border p-4"
             >
               <p className="text-xs text-muted-foreground uppercase tracking-wider">{player2Name} K/D</p>
-              <p className="text-3xl font-bold text-destructive mt-1">{totalStats.p2KD}</p>
+              <p className="text-3xl font-bold mt-1" style={{ color: CHART_COLORS.player2 }}>{totalStats.p2KD}</p>
             </motion.div>
           </>
         )}
@@ -222,12 +230,12 @@ export function R6StatsCharts({
             <AreaChart data={winTrendData}>
               <defs>
                 <linearGradient id="colorP1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  <stop offset="5%" stopColor={CHART_COLORS.player1} stopOpacity={0.4} />
+                  <stop offset="95%" stopColor={CHART_COLORS.player1} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="colorP2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                  <stop offset="5%" stopColor={CHART_COLORS.player2} stopOpacity={0.4} />
+                  <stop offset="95%" stopColor={CHART_COLORS.player2} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -252,14 +260,14 @@ export function R6StatsCharts({
               <Area
                 type="monotone"
                 dataKey={player1Name}
-                stroke="hsl(var(--primary))"
+                stroke={CHART_COLORS.player1}
                 fill="url(#colorP1)"
                 strokeWidth={2}
               />
               <Area
                 type="monotone"
                 dataKey={player2Name}
-                stroke="hsl(var(--destructive))"
+                stroke={CHART_COLORS.player2}
                 fill="url(#colorP2)"
                 strokeWidth={2}
               />
@@ -305,16 +313,16 @@ export function R6StatsCharts({
                 <Line
                   type="monotone"
                   dataKey={player1Name}
-                  stroke="hsl(var(--primary))"
+                  stroke={CHART_COLORS.player1}
                   strokeWidth={2}
-                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
+                  dot={{ fill: CHART_COLORS.player1, strokeWidth: 2 }}
                 />
                 <Line
                   type="monotone"
                   dataKey={player2Name}
-                  stroke="hsl(var(--destructive))"
+                  stroke={CHART_COLORS.player2}
                   strokeWidth={2}
-                  dot={{ fill: "hsl(var(--destructive))", strokeWidth: 2 }}
+                  dot={{ fill: CHART_COLORS.player2, strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -366,13 +374,13 @@ export function R6StatsCharts({
           </div>
           <div className="flex justify-center gap-8 mt-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-primary" />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS.player1 }} />
               <span className="text-sm text-muted-foreground">
                 {player1Name}: {totalStats.p1Wins} wins
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-destructive" />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS.player2 }} />
               <span className="text-sm text-muted-foreground">
                 {player2Name}: {totalStats.p2Wins} wins
               </span>
@@ -416,8 +424,8 @@ export function R6StatsCharts({
                   }}
                 />
                 <Bar dataKey="rounds" radius={[0, 4, 4, 0]}>
-                  <Cell fill="hsl(var(--primary))" />
-                  <Cell fill="hsl(var(--destructive))" />
+                  <Cell fill={CHART_COLORS.player1} />
+                  <Cell fill={CHART_COLORS.player2} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -452,7 +460,7 @@ export function R6StatsCharts({
               </thead>
               <tbody>
                 <tr className="border-b border-border/50">
-                  <td className="py-3 px-4 font-medium text-primary">{player1Name}</td>
+                  <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player1 }}>{player1Name}</td>
                   <td className="text-center py-3 px-4">{totalStats.p1Wins}</td>
                   <td className="text-center py-3 px-4">{totalStats.p1Rounds}</td>
                   <td className="text-center py-3 px-4 text-green-500">{totalStats.p1Kills}</td>
@@ -463,7 +471,7 @@ export function R6StatsCharts({
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4 font-medium text-destructive">{player2Name}</td>
+                  <td className="py-3 px-4 font-medium" style={{ color: CHART_COLORS.player2 }}>{player2Name}</td>
                   <td className="text-center py-3 px-4">{totalStats.p2Wins}</td>
                   <td className="text-center py-3 px-4">{totalStats.p2Rounds}</td>
                   <td className="text-center py-3 px-4 text-green-500">{totalStats.p2Kills}</td>
