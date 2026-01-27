@@ -8,7 +8,18 @@
 <div class="party-viewer">
     <div class="party-header">
         <h4>Party Pokemon</h4>
-        <span class="party-count">@PokemonService.GetPartyCount() / 6</span>
+        <div class="party-header-actions">
+            <span class="party-count">@PokemonService.GetPartyCount() / 6</span>
+            @if (PokemonService.GetPartyCount() < 6)
+            {
+                <button class="btn btn-sm btn-primary add-btn" @onclick="HandleAddClick" title="Add Pokemon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            }
+        </div>
     </div>
 
     <div class="party-grid">
@@ -53,6 +64,9 @@
     [Parameter]
     public EventCallback<int> OnSlotSelected { get; set; }
 
+    [Parameter]
+    public EventCallback OnAddRequested { get; set; }
+
     private PKM? GetPartyPokemon(int slot)
     {
         return PokemonService.GetPartyPokemon(slot);
@@ -82,5 +96,10 @@
             var pokemon = GetPartyPokemon(slot);
             await OnPokemonSelected.InvokeAsync(pokemon);
         }
+    }
+
+    private async Task HandleAddClick()
+    {
+        await OnAddRequested.InvokeAsync();
     }
 }

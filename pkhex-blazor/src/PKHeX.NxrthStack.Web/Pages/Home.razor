@@ -45,20 +45,22 @@
                 <div class="section-header">
                     <h3>Party Pokemon</h3>
                 </div>
-                <PartyViewer OnSlotSelected="HandlePartyPokemonSelected" SelectedSlot="@(isFromParty ? selectedPartySlot : null)" />
+                <PartyViewer OnSlotSelected="HandlePartyPokemonSelected" SelectedSlot="@(isFromParty ? selectedPartySlot : null)" OnAddRequested="() => OpenAddDialog(true)" />
 
                 <div class="section-divider"></div>
 
                 <div class="section-header">
                     <h3>PC Boxes</h3>
                 </div>
-                <BoxViewer @bind-CurrentBox="currentBox" OnSlotSelected="HandleBoxPokemonSelected" SelectedSlot="@(!isFromParty ? selectedBoxSlot : null)" />
+                <BoxViewer @bind-CurrentBox="currentBox" OnSlotSelected="HandleBoxPokemonSelected" SelectedSlot="@(!isFromParty ? selectedBoxSlot : null)" OnAddRequested="() => OpenAddDialog(false)" />
             </div>
 
             <div class="editor-main">
                 <PokemonEditor Pokemon="@selectedPokemon" OnPokemonChanged="HandlePokemonChanged" />
             </div>
         </div>
+
+        <AddPokemonDialog @bind-IsOpen="showAddDialog" OnPokemonSelected="HandleAddPokemon" />
     }
 </div>
 
@@ -70,6 +72,10 @@
     private bool isFromParty = false;
     private int selectedPartySlot = -1;
     private int selectedBoxSlot = -1;
+
+    // Add Pokemon dialog state
+    private bool showAddDialog = false;
+    private bool addToParty = true;
 
     protected override void OnInitialized()
     {
@@ -166,6 +172,43 @@
     private void HandleDataChanged()
     {
         StateHasChanged();
+    }
+
+    private void OpenAddDialog(bool toParty)
+    {
+        addToParty = toParty;
+        showAddDialog = true;
+    }
+
+    private void HandleAddPokemon((ushort Species, int Level) selection)
+    {
+        var pokemon = PokemonService.CreatePokemon(selection.Species, selection.Level);
+        if (pokemon == null) return;
+
+        bool success;
+        if (addToParty)
+        {
+            success = PokemonService.AddPokemonToParty(pokemon);
+        }
+        else
+        {
+            // Find first empty slot in current box
+            var emptySlot = PokemonService.FindFirstEmptyBoxSlot(currentBox);
+            if (emptySlot >= 0)
+            {
+                success = PokemonService.AddPokemonToBox(currentBox, emptySlot, pokemon);
+            }
+            else
+            {
+                success = false;
+            }
+        }
+
+        if (success)
+        {
+            SaveService.NotifyModified();
+            StateHasChanged();
+        }
     }
 
     private async Task NotifyParent(string type, object payload)

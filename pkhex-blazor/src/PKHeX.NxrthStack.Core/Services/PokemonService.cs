@@ -264,4 +264,153 @@ public class PokemonService
             return "Unable to check legality";
         }
     }
+
+    // Create a new Pokemon
+    public PKM? CreatePokemon(ushort species, int level = 5)
+    {
+        var save = _saveService.CurrentSave;
+        if (save == null || species <= 0) return null;
+
+        try
+        {
+            // Create a blank Pokemon for this save type
+            var pk = EntityBlank.GetBlank(save);
+
+            pk.Species = species;
+            pk.CurrentLevel = (byte)Math.Clamp(level, 1, 100);
+
+            // Set basic properties
+            pk.OriginalTrainerName = save.OT;
+            pk.TID16 = save.TID16;
+            pk.SID16 = save.SID16;
+            pk.OriginalTrainerGender = (byte)save.Gender;
+            pk.Language = save.Language;
+            pk.MetLevel = (byte)level;
+            pk.MetDate = DateOnly.FromDateTime(DateTime.Now);
+
+            // Set a valid met location (generic "from a link trade" works across games)
+            pk.MetLocation = GetDefaultMetLocation(save);
+
+            // Set experience for the level
+            pk.EXP = Experience.GetEXP(pk.CurrentLevel, pk.PersonalInfo.EXPGrowth);
+
+            // Give it a legal moveset
+            var moves = GetLegalMoves(pk);
+            if (moves.Length > 0) pk.Move1 = moves[0];
+            if (moves.Length > 1) pk.Move2 = moves[1];
+            if (moves.Length > 2) pk.Move3 = moves[2];
+            if (moves.Length > 3) pk.Move4 = moves[3];
+
+            // Heal to full
+            pk.HealPP();
+            pk.CurrentFriendship = pk.PersonalInfo.BaseFriendship;
+
+            // Set PID and encryption constant
+            pk.PID = Util.Rand32();
+            if (pk is IEncounterTemplate enc)
+            {
+                pk.EncryptionConstant = Util.Rand32();
+            }
+
+            // Refresh checksum
+            pk.RefreshChecksum();
+
+            return pk;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating pokemon: {ex.Message}");
+            return null;
+        }
+    }
+
+    private static ushort GetDefaultMetLocation(SaveFile save)
+    {
+        // Return a sensible default met location based on generation
+        return save.Generation switch
+        {
+            1 or 2 => 0,
+            3 => 254, // Fateful encounter
+            4 => 2001, // Link trade (met in another game)
+            5 => 30003, // Link trade
+            6 => 30002, // Link trade
+            7 => 30002, // Link trade
+            8 => 30002, // Link trade
+            9 => 30024, // Link trade
+            _ => 0
+        };
+    }
+
+    private static ushort[] GetLegalMoves(PKM pk)
+    {
+        // Give a basic moveset - Tackle (33) and Growl (45) are common starting moves
+        // Users can edit moves later if needed
+        return [(ushort)33, (ushort)45];
+    }
+
+    public bool AddPokemonToParty(PKM pokemon)
+    {
+        var save = _saveService.CurrentSave;
+        if (save == null || pokemon == null) return false;
+
+        try
+        {
+            // Find first empty party slot
+            var partyCount = save.PartyCount;
+            if (partyCount >= 6) return false; // Party is full
+
+            save.SetPartySlotAtIndex(pokemon, partyCount);
+            _saveService.NotifyModified();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding to party: {ex.Message}");
+            return false;
+        }
+    }
+
+    public bool AddPokemonToBox(int box, int slot, PKM pokemon)
+    {
+        var save = _saveService.CurrentSave;
+        if (save == null || pokemon == null) return false;
+
+        try
+        {
+            save.SetBoxSlotAtIndex(pokemon, box, slot);
+            _saveService.NotifyModified();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding to box: {ex.Message}");
+            return false;
+        }
+    }
+
+    public int FindFirstEmptyBoxSlot(int box)
+    {
+        var save = _saveService.CurrentSave;
+        if (save == null) return -1;
+
+        var slotsPerBox = save.BoxSlotCount;
+        for (int i = 0; i < slotsPerBox; i++)
+        {
+            var pk = GetBoxPokemon(box, i);
+            if (pk == null || pk.Species == 0)
+                return i;
+        }
+        return -1; // Box is full
+    }
+
+    // Get all species names for selection
+    public static IEnumerable<(ushort Id, string Name)> GetAllSpecies()
+    {
+        var names = GameInfo.Strings.specieslist;
+        for (ushort i = 1; i < names.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(names[i]))
+                yield return (i, names[i]);
+        }
+    }
 }

@@ -1,0 +1,140 @@
+@using PKHeX.Core
+@using PKHeX.NxrthStack.Core.Services
+@inject PokemonService PokemonService
+
+@namespace PKHeX.NxrthStack.Components.Pokemon
+
+@if (IsOpen)
+{
+    <div class="dialog-overlay" @onclick="Close">
+        <div class="dialog-content" @onclick:stopPropagation="true">
+            <div class="dialog-header">
+                <h3>Add Pokemon</h3>
+                <button class="close-btn" @onclick="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="dialog-body">
+                <div class="search-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text"
+                           placeholder="Search Pokemon..."
+                           @bind="searchTerm"
+                           @bind:event="oninput"
+                           class="search-input" />
+                </div>
+
+                <div class="level-selector">
+                    <label>Level:</label>
+                    <input type="number" min="1" max="100" @bind="level" class="level-input" />
+                </div>
+
+                <div class="species-list">
+                    @foreach (var species in FilteredSpecies.Take(50))
+                    {
+                        <div class="species-item @(selectedSpecies == species.Id ? "selected" : "")"
+                             @onclick="() => SelectSpecies(species.Id)">
+                            <img src="@GetSpriteUrl(species.Id)" alt="@species.Name" loading="lazy" />
+                            <span class="species-name">@species.Name</span>
+                            <span class="species-id">#@species.Id</span>
+                        </div>
+                    }
+                </div>
+
+                @if (selectedSpecies > 0)
+                {
+                    <div class="selected-preview">
+                        <img src="@GetSpriteUrl(selectedSpecies)" alt="Selected Pokemon" />
+                        <div class="preview-info">
+                            <span class="preview-name">@GetSpeciesName(selectedSpecies)</span>
+                            <span class="preview-level">Level @level</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="dialog-footer">
+                <button class="btn btn-secondary" @onclick="Close">Cancel</button>
+                <button class="btn btn-primary" @onclick="Confirm" disabled="@(selectedSpecies <= 0)">
+                    Add Pokemon
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(ushort Species, int Level)> OnPokemonSelected { get; set; }
+
+    private string searchTerm = "";
+    private int level = 5;
+    private ushort selectedSpecies = 0;
+
+    private IEnumerable<(ushort Id, string Name)> AllSpecies => PokemonService.GetAllSpecies();
+
+    private IEnumerable<(ushort Id, string Name)> FilteredSpecies
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return AllSpecies;
+
+            var term = searchTerm.ToLowerInvariant();
+            return AllSpecies.Where(s =>
+                s.Name.ToLowerInvariant().Contains(term) ||
+                s.Id.ToString().Contains(term));
+        }
+    }
+
+    private void SelectSpecies(ushort species)
+    {
+        selectedSpecies = species;
+    }
+
+    private string GetSpriteUrl(ushort species)
+    {
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{species}.png";
+    }
+
+    private string GetSpeciesName(ushort species)
+    {
+        return PokemonService.GetSpeciesName(species);
+    }
+
+    private async Task Close()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(false);
+        ResetState();
+    }
+
+    private void ResetState()
+    {
+        searchTerm = "";
+        selectedSpecies = 0;
+        level = 5;
+    }
+
+    private async Task Confirm()
+    {
+        if (selectedSpecies > 0)
+        {
+            await OnPokemonSelected.InvokeAsync((selectedSpecies, level));
+            await Close();
+        }
+    }
+}
