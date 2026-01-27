@@ -33,7 +33,6 @@ import {
   setGen3PokemonSpecies,
   setGen3PokemonMoves,
   toggleGen3Shiny,
-  addGen3Pokemon,
   EV_PRESETS,
   type EVPresetName,
 } from "@/lib/pokemon/save-detector";
@@ -50,46 +49,11 @@ export function PartyEditor({
   onDataChange,
 }: PartyEditorProps) {
   const [selectedPokemon, setSelectedPokemon] = useState<number | null>(null);
-  const [showAddPokemon, setShowAddPokemon] = useState(false);
-  const [addSpeciesSearch, setAddSpeciesSearch] = useState("");
-  const [addLevel, setAddLevel] = useState(5);
-  const [addShiny, setAddShiny] = useState(false);
 
   const party = parsedSave.party;
   const generation = parsedSave.info.generation;
-  const maxPokemon = generation === 1 ? 151 : generation === 2 ? 251 : 386;
 
-  const handleAddPokemon = useCallback((species: number) => {
-    if (generation !== 3) return; // Only Gen 3 supported for now
-
-    const newData = new Uint8Array(saveData);
-    const success = addGen3Pokemon(newData, species, addLevel, {
-      shiny: addShiny,
-    });
-
-    if (success) {
-      onDataChange(newData);
-      setShowAddPokemon(false);
-      setAddSpeciesSearch("");
-      setAddLevel(5);
-      setAddShiny(false);
-    }
-  }, [saveData, generation, addLevel, addShiny, onDataChange]);
-
-  // Filter Pokemon for add search
-  const filteredAddSpecies = addSpeciesSearch
-    ? Object.entries(POKEMON_NAMES)
-        .filter(([id, name]) => {
-          const pokemonId = parseInt(id);
-          return pokemonId <= maxPokemon && (
-            name.toLowerCase().includes(addSpeciesSearch.toLowerCase()) ||
-            id.includes(addSpeciesSearch)
-          );
-        })
-        .slice(0, 10)
-    : [];
-
-  if (party.length === 0 && generation !== 3) {
+  if (party.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-8 text-center">
         <Icons.Users className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -172,117 +136,7 @@ export function PartyEditor({
             </div>
           </motion.button>
         ))}
-
-        {/* Add Pokemon to PC Box Button (Gen 3 only) */}
-        {generation === 3 && (
-          <motion.button
-            onClick={() => setShowAddPokemon(!showAddPokemon)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`rounded-xl border-2 border-dashed p-4 transition-colors ${
-              showAddPokemon
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50 hover:bg-card"
-            }`}
-          >
-            <div className="flex flex-col items-center justify-center h-full min-h-[100px] gap-2">
-              <Icons.Plus className="h-8 w-8 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">
-                Add to PC Box
-              </span>
-            </div>
-          </motion.button>
-        )}
       </div>
-
-      {/* Add Pokemon Panel */}
-      <AnimatePresence>
-        {showAddPokemon && generation === 3 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="rounded-xl border border-primary/30 bg-primary/5 p-4 overflow-hidden"
-          >
-            <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Icons.Plus className="h-4 w-4 text-primary" />
-              Add Pokemon to PC Box
-            </h4>
-
-            <div className="space-y-4">
-              {/* Species Search */}
-              <div>
-                <label className="text-xs text-muted-foreground">Pokemon</label>
-                <div className="relative mt-1">
-                  <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={addSpeciesSearch}
-                    onChange={(e) => setAddSpeciesSearch(e.target.value)}
-                    placeholder="Search Pokemon by name or number..."
-                    className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-                  />
-                </div>
-                {filteredAddSpecies.length > 0 && (
-                  <div className="mt-2 grid gap-1 max-h-48 overflow-y-auto">
-                    {filteredAddSpecies.map(([id, name]) => (
-                      <button
-                        key={id}
-                        onClick={() => handleAddPokemon(parseInt(id))}
-                        className="flex items-center gap-3 rounded-lg bg-background px-3 py-2 text-left hover:bg-accent transition-colors"
-                      >
-                        <span className="flex h-8 w-8 items-center justify-center rounded bg-primary/10 text-xs font-bold text-primary">
-                          {id.padStart(3, "0")}
-                        </span>
-                        <span className="font-medium text-foreground">{name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Level and Options */}
-              <div className="flex flex-wrap gap-4">
-                <div>
-                  <label className="text-xs text-muted-foreground">Level</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={addLevel}
-                    onChange={(e) => setAddLevel(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
-                    className="mt-1 w-20 rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground block">Shiny</label>
-                  <button
-                    onClick={() => setAddShiny(!addShiny)}
-                    className={`mt-1 flex items-center gap-2 rounded-lg px-3 py-2 transition-colors ${
-                      addShiny
-                        ? "bg-yellow-500/20 text-yellow-500"
-                        : "bg-muted text-muted-foreground hover:bg-accent"
-                    }`}
-                  >
-                    <Icons.Sparkles className="h-4 w-4" />
-                    {addShiny ? "Yes" : "No"}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setShowAddPokemon(false);
-                  setAddSpeciesSearch("");
-                }}
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Cancel
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Selected Pokemon Details */}
       <AnimatePresence>
@@ -309,7 +163,7 @@ export function PartyEditor({
         <p className="text-sm text-muted-foreground">
           <Icons.Info className="inline h-4 w-4 mr-1" />
           Click on a Pokemon to view and edit its stats.
-          {generation === 3 && " Gen 3 saves support full editing including shiny toggle and move changes. New Pokemon are added to PC Box 1."}
+          {generation === 3 && " Gen 3 saves support full editing including shiny toggle and move changes."}
         </p>
       </div>
     </div>
