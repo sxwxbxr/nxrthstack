@@ -326,7 +326,7 @@ export const GEN2_ITEM_NAMES: Record<number, string> = {
   0xF6: "HM06", 0xF7: "HM07",
 };
 
-// Move names
+// Move names (Gen 3 complete list)
 export const MOVE_NAMES: Record<number, string> = {
   0: "—", 1: "Pound", 2: "Karate Chop", 3: "Double Slap", 4: "Comet Punch",
   5: "Mega Punch", 6: "Pay Day", 7: "Fire Punch", 8: "Ice Punch", 9: "Thunder Punch",
@@ -348,8 +348,105 @@ export const MOVE_NAMES: Record<number, string> = {
   85: "Thunderbolt", 86: "Thunder Wave", 87: "Thunder", 88: "Rock Throw", 89: "Earthquake",
   90: "Fissure", 91: "Dig", 92: "Toxic", 93: "Confusion", 94: "Psychic",
   95: "Hypnosis", 96: "Meditate", 97: "Agility", 98: "Quick Attack", 99: "Rage",
-  100: "Teleport",
-  // Continue with more moves as needed...
+  100: "Teleport", 101: "Night Shade", 102: "Mimic", 103: "Screech", 104: "Double Team",
+  105: "Recover", 106: "Harden", 107: "Minimize", 108: "Smokescreen", 109: "Confuse Ray",
+  110: "Withdraw", 111: "Defense Curl", 112: "Barrier", 113: "Light Screen", 114: "Haze",
+  115: "Reflect", 116: "Focus Energy", 117: "Bide", 118: "Metronome", 119: "Mirror Move",
+  120: "Self-Destruct", 121: "Egg Bomb", 122: "Lick", 123: "Smog", 124: "Sludge",
+  125: "Bone Club", 126: "Fire Blast", 127: "Waterfall", 128: "Clamp", 129: "Swift",
+  130: "Skull Bash", 131: "Spike Cannon", 132: "Constrict", 133: "Amnesia", 134: "Kinesis",
+  135: "Soft-Boiled", 136: "High Jump Kick", 137: "Glare", 138: "Dream Eater", 139: "Poison Gas",
+  140: "Barrage", 141: "Leech Life", 142: "Lovely Kiss", 143: "Sky Attack", 144: "Transform",
+  145: "Bubble", 146: "Dizzy Punch", 147: "Spore", 148: "Flash", 149: "Psywave",
+  150: "Splash", 151: "Acid Armor", 152: "Crabhammer", 153: "Explosion", 154: "Fury Swipes",
+  155: "Bonemerang", 156: "Rest", 157: "Rock Slide", 158: "Hyper Fang", 159: "Sharpen",
+  160: "Conversion", 161: "Tri Attack", 162: "Super Fang", 163: "Slash", 164: "Substitute",
+  165: "Struggle", 166: "Sketch", 167: "Triple Kick", 168: "Thief", 169: "Spider Web",
+  170: "Mind Reader", 171: "Nightmare", 172: "Flame Wheel", 173: "Snore", 174: "Curse",
+  175: "Flail", 176: "Conversion 2", 177: "Aeroblast", 178: "Cotton Spore", 179: "Reversal",
+  180: "Spite", 181: "Powder Snow", 182: "Protect", 183: "Mach Punch", 184: "Scary Face",
+  185: "Faint Attack", 186: "Sweet Kiss", 187: "Belly Drum", 188: "Sludge Bomb", 189: "Mud-Slap",
+  190: "Octazooka", 191: "Spikes", 192: "Zap Cannon", 193: "Foresight", 194: "Destiny Bond",
+  195: "Perish Song", 196: "Icy Wind", 197: "Detect", 198: "Bone Rush", 199: "Lock-On",
+  200: "Outrage", 201: "Sandstorm", 202: "Giga Drain", 203: "Endure", 204: "Charm",
+  205: "Rollout", 206: "False Swipe", 207: "Swagger", 208: "Milk Drink", 209: "Spark",
+  210: "Fury Cutter", 211: "Steel Wing", 212: "Mean Look", 213: "Attract", 214: "Sleep Talk",
+  215: "Heal Bell", 216: "Return", 217: "Present", 218: "Frustration", 219: "Safeguard",
+  220: "Pain Split", 221: "Sacred Fire", 222: "Magnitude", 223: "Dynamic Punch", 224: "Megahorn",
+  225: "Dragon Breath", 226: "Baton Pass", 227: "Encore", 228: "Pursuit", 229: "Rapid Spin",
+  230: "Sweet Scent", 231: "Iron Tail", 232: "Metal Claw", 233: "Vital Throw", 234: "Morning Sun",
+  235: "Synthesis", 236: "Moonlight", 237: "Hidden Power", 238: "Cross Chop", 239: "Twister",
+  240: "Rain Dance", 241: "Sunny Day", 242: "Crunch", 243: "Mirror Coat", 244: "Psych Up",
+  245: "Extreme Speed", 246: "Ancient Power", 247: "Shadow Ball", 248: "Future Sight",
+  249: "Rock Smash", 250: "Whirlpool", 251: "Beat Up", 252: "Fake Out", 253: "Uproar",
+  254: "Stockpile", 255: "Spit Up", 256: "Swallow", 257: "Heat Wave", 258: "Hail",
+  259: "Torment", 260: "Flatter", 261: "Will-O-Wisp", 262: "Memento", 263: "Facade",
+  264: "Focus Punch", 265: "Smelling Salts", 266: "Follow Me", 267: "Nature Power",
+  268: "Charge", 269: "Taunt", 270: "Helping Hand", 271: "Trick", 272: "Role Play",
+  273: "Wish", 274: "Assist", 275: "Ingrain", 276: "Superpower", 277: "Magic Coat",
+  278: "Recycle", 279: "Revenge", 280: "Brick Break", 281: "Yawn", 282: "Knock Off",
+  283: "Endeavor", 284: "Eruption", 285: "Skill Swap", 286: "Imprison", 287: "Refresh",
+  288: "Grudge", 289: "Snatch", 290: "Secret Power", 291: "Dive", 292: "Arm Thrust",
+  293: "Camouflage", 294: "Tail Glow", 295: "Luster Purge", 296: "Mist Ball", 297: "Feather Dance",
+  298: "Teeter Dance", 299: "Blaze Kick", 300: "Mud Sport", 301: "Ice Ball", 302: "Needle Arm",
+  303: "Slack Off", 304: "Hyper Voice", 305: "Poison Fang", 306: "Crush Claw", 307: "Blast Burn",
+  308: "Hydro Cannon", 309: "Meteor Mash", 310: "Astonish", 311: "Weather Ball", 312: "Aromatherapy",
+  313: "Fake Tears", 314: "Air Cutter", 315: "Overheat", 316: "Odor Sleuth", 317: "Rock Tomb",
+  318: "Silver Wind", 319: "Metal Sound", 320: "Grass Whistle", 321: "Tickle", 322: "Cosmic Power",
+  323: "Water Spout", 324: "Signal Beam", 325: "Shadow Punch", 326: "Extrasensory", 327: "Sky Uppercut",
+  328: "Sand Tomb", 329: "Sheer Cold", 330: "Muddy Water", 331: "Bullet Seed", 332: "Aerial Ace",
+  333: "Icicle Spear", 334: "Iron Defense", 335: "Block", 336: "Howl", 337: "Dragon Claw",
+  338: "Frenzy Plant", 339: "Bulk Up", 340: "Bounce", 341: "Mud Shot", 342: "Poison Tail",
+  343: "Covet", 344: "Volt Tackle", 345: "Magical Leaf", 346: "Water Sport", 347: "Calm Mind",
+  348: "Leaf Blade", 349: "Dragon Dance", 350: "Rock Blast", 351: "Shock Wave", 352: "Water Pulse",
+  353: "Doom Desire", 354: "Psycho Boost",
+};
+
+// Gen 3 Pokemon Learnsets (level-up + TM/HM moves)
+// Format: species ID -> array of move IDs that Pokemon can learn
+export const GEN3_LEARNSETS: Record<number, number[]> = {
+  // Bulbasaur line
+  1: [33,45,73,22,77,75,74,79,76,80,202,92,188,237,241,230,148,216,218,230,235,290,331,338],
+  2: [33,45,73,22,77,75,74,79,76,80,202,92,188,237,241,230,148,216,218,290,331,338],
+  3: [33,45,73,22,77,75,74,79,76,80,202,92,188,237,241,230,148,216,218,290,331,338,76,80],
+  // Charmander line
+  4: [10,45,52,43,82,53,163,83,126,200,337,15,92,104,157,201,218,241,216,290,332],
+  5: [10,45,52,43,82,53,163,83,126,200,337,15,92,104,157,201,218,241,216,290,332],
+  6: [10,45,52,43,17,82,53,163,83,126,200,337,19,15,92,104,157,201,89,218,241,216,290,332,257,315,307],
+  // Squirtle line
+  7: [33,39,55,110,61,44,56,182,229,127,57,196,15,92,104,157,201,218,58,59,216,290,291,352],
+  8: [33,39,55,110,61,44,56,182,229,127,57,196,15,92,104,157,201,218,58,59,216,290,291,352],
+  9: [33,39,55,110,61,44,56,182,229,127,57,196,15,92,104,157,201,218,58,59,216,290,291,352,63,308],
+  // Pikachu line
+  25: [84,45,39,86,98,104,9,97,85,87,344,113,129,182,216,218,237,290,351],
+  26: [84,45,39,86,98,104,9,97,85,87,113,129,182,216,218,237,290,351],
+  // Eevee line
+  133: [33,39,28,98,44,36,129,270,216,218,247,290],
+  134: [33,39,28,98,44,36,55,61,58,114,56,57,196,129,216,218,247,290,352], // Vaporeon
+  135: [33,39,28,98,44,36,84,86,85,87,42,97,129,216,218,247,290,351], // Jolteon
+  136: [33,39,28,98,44,36,52,83,53,126,129,216,218,247,290,261], // Flareon
+  196: [33,39,28,98,44,36,93,60,94,234,129,216,218,247,290,347], // Espeon
+  197: [33,39,28,98,44,36,109,185,212,236,129,216,218,247,290], // Umbreon
+  // Mewtwo
+  150: [93,50,129,94,105,112,133,156,248,347,63,92,104,182,201,216,218,237,241,240,247,290,244,285],
+  // Mew
+  151: [1,144,5,25,118,102,144,94,63,15,57,70,89,92,104,148,157,182,188,201,216,218,237,241,240,247,290,285,347],
+  // Treecko line
+  252: [1,43,71,98,202,348,129,206,280,15,92,201,216,218,237,241,290,331,338],
+  253: [1,43,71,98,202,348,163,129,206,280,15,92,201,216,218,237,241,290,331,338],
+  254: [1,43,71,98,202,348,163,129,206,280,15,92,201,216,218,237,241,290,331,338,338],
+  // Torchic line
+  255: [10,45,52,116,28,83,299,53,13,163,104,201,218,241,339,332,290],
+  256: [10,45,52,116,28,83,299,53,24,136,13,163,104,201,218,241,339,332,290,280],
+  257: [10,45,52,116,28,83,299,53,24,136,143,163,104,201,218,241,339,332,290,280,307],
+  // Mudkip line
+  258: [33,45,55,54,189,281,127,174,56,182,15,57,89,92,104,201,216,218,290,291,352],
+  259: [33,45,55,54,189,281,127,174,56,182,15,57,89,92,104,201,216,218,290,291,352,341],
+  260: [33,45,55,54,189,281,127,174,56,182,15,57,89,92,104,201,216,218,290,291,352,341,308],
+  // Rayquaza
+  384: [239,82,200,245,63,246,337,349,177,89,92,104,157,182,201,216,218,240,241,247,290,315,332,351],
+  // Common TM moves that many Pokemon can learn (for fallback)
+  0: [15,70,89,92,94,104,156,182,201,216,218,237,240,241,247,249,280,290,317,332,347,351,352],
 };
 
 // Nature names (Gen 3)

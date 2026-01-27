@@ -9,6 +9,7 @@ import {
   POKEMON_NAMES,
   MOVE_NAMES,
   NATURE_NAMES,
+  GEN3_LEARNSETS,
   addGen3Pokemon,
   removeGen3Pokemon,
   setGen3BoxPokemonIVs,
@@ -521,16 +522,22 @@ function BoxPokemonDetails({
         .slice(0, 10)
     : [];
 
-  // Filter moves for move search - show popular moves when search is empty
+  // Get legal moves for this Pokemon (from learnset or fallback to common TMs)
+  const legalMoveIds = GEN3_LEARNSETS[pokemon.species] || GEN3_LEARNSETS[0] || [];
+
+  // Filter moves - only show legal moves for this Pokemon
   const filteredMoves = Object.entries(MOVE_NAMES)
     .filter(([id, name]) => {
       const moveId = parseInt(id);
       if (moveId === 0 || moveId > 354) return false;
-      if (!moveSearch) return true; // Show all when no search
+      // Only show moves this Pokemon can learn
+      if (!legalMoveIds.includes(moveId)) return false;
+      if (!moveSearch) return true; // Show all legal moves when no search
       return name.toLowerCase().includes(moveSearch.toLowerCase()) ||
         id.includes(moveSearch);
     })
-    .slice(0, moveSearch ? 10 : 20); // Show more results when browsing
+    .sort((a, b) => a[1].localeCompare(b[1])) // Sort alphabetically
+    .slice(0, moveSearch ? 15 : 30); // Show more results when browsing
 
   const applyPreset = async (presetType: string, evPreset?: EVPresetName) => {
     if (generation !== 3) return;
@@ -939,18 +946,22 @@ function BoxPokemonDetails({
                           autoFocus
                         />
                       </div>
-                      {filteredMoves.length > 0 && (
-                        <div className="mt-1 max-h-32 overflow-y-auto">
+                      {filteredMoves.length > 0 ? (
+                        <div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-border bg-card">
                           {filteredMoves.map(([id, name]) => (
                             <button
                               key={id}
                               onClick={() => handleSetMove(index, parseInt(id))}
-                              className="w-full text-left rounded px-2 py-1 text-sm hover:bg-accent transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary transition-colors border-b border-border/50 last:border-b-0"
                             >
                               {name}
                             </button>
                           ))}
                         </div>
+                      ) : (
+                        <p className="mt-2 text-xs text-muted-foreground italic">
+                          {moveSearch ? "No matching moves found" : "No learnable moves available"}
+                        </p>
                       )}
                       <button
                         onClick={() => {
