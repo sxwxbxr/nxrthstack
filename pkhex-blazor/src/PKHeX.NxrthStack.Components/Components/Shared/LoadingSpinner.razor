@@ -1,0 +1,14 @@
+@namespace PKHeX.NxrthStack.Components.Shared
+
+<div class="loading-spinner">
+    <div class="spinner"></div>
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p class="message">@Message</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? Message { get; set; }
+}

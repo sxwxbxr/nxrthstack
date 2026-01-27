@@ -1,0 +1,123 @@
+@page "/"
+@inject SaveFileService SaveService
+@inject PokemonService PokemonService
+@inject IJSRuntime JS
+
+<PageTitle>PKHeX Save Editor</PageTitle>
+
+<div class="editor-container">
+    @if (SaveService.CurrentSave == null)
+    {
+        <div class="welcome-screen">
+            <div class="welcome-header">
+                <h1>PKHeX Save Editor</h1>
+                <p>Edit your Pokemon save files directly in the browser</p>
+            </div>
+            <SaveUploader OnSaveLoaded="HandleSaveLoaded" />
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon">🎮</span>
+                    <span>Supports Gen 1-9</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🔒</span>
+                    <span>100% Local Processing</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">⚡</span>
+                    <span>Powered by PKHeX.Core</span>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="editor-layout">
+            <div class="editor-sidebar">
+                <SaveSummary OnRequestNewSave="HandleNewSave" OnExportSave="HandleExportSave" />
+
+                <div class="section-header">
+                    <h3>PC Boxes</h3>
+                </div>
+                <BoxViewer @bind-CurrentBox="currentBox" OnPokemonSelected="HandlePokemonSelected" />
+            </div>
+
+            <div class="editor-main">
+                <PokemonEditor Pokemon="@selectedPokemon" OnPokemonChanged="HandlePokemonChanged" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private PKM? selectedPokemon;
+    private int currentBox = 0;
+
+    protected override void OnInitialized()
+    {
+        SaveService.OnSaveModified += StateHasChanged;
+    }
+
+    private async Task HandleSaveLoaded(SaveFile save)
+    {
+        // Notify parent frame that save was loaded
+        await NotifyParent("PKHEX_SAVE_LOADED", new
+        {
+            game = SaveService.GetGameName(),
+            generation = SaveService.GetGeneration(),
+            trainerName = SaveService.GetTrainerName()
+        });
+        StateHasChanged();
+    }
+
+    private void HandleNewSave()
+    {
+        // Reset state - the service handles clearing
+        selectedPokemon = null;
+        currentBox = 0;
+        StateHasChanged();
+    }
+
+    private async Task HandleExportSave(byte[] data)
+    {
+        // Trigger download via JS interop
+        var fileName = $"{SaveService.GetGameName()}_{DateTime.Now:yyyyMMdd_HHmmss}.sav";
+        await DownloadFile(data, fileName);
+    }
+
+    private void HandlePokemonSelected(PKM? pokemon)
+    {
+        selectedPokemon = pokemon;
+        StateHasChanged();
+    }
+
+    private void HandlePokemonChanged()
+    {
+        SaveService.NotifyModified();
+        StateHasChanged();
+    }
+
+    private async Task NotifyParent(string type, object payload)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("PKHeXInterop.notifyParent", type, payload);
+        }
+        catch
+        {
+            // Parent notification is optional
+        }
+    }
+
+    private async Task DownloadFile(byte[] data, string fileName)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("PKHeXInterop.downloadFile", data, fileName);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Download failed: {ex.Message}");
+        }
+    }
+}

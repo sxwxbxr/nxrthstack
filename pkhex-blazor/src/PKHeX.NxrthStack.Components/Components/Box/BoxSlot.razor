@@ -1,0 +1,62 @@
+@using PKHeX.Core
+@using PKHeX.NxrthStack.Core.Services
+
+@namespace PKHeX.NxrthStack.Components.Box
+
+<div class="box-slot @(IsSelected ? "selected" : "") @(Pokemon?.Species > 0 ? "occupied" : "empty")"
+     @onclick="HandleClick">
+    @if (Pokemon != null && Pokemon.Species > 0)
+    {
+        <div class="pokemon-sprite">
+            <img src="@GetSpriteUrl()" alt="@GetSpeciesName()" loading="lazy" />
+            @if (Pokemon.IsShiny)
+            {
+                <span class="shiny-indicator" title="Shiny">★</span>
+            }
+        </div>
+        <div class="pokemon-info">
+            <span class="species-name">@GetSpeciesName()</span>
+            <span class="level">Lv. @Pokemon.CurrentLevel</span>
+        </div>
+    }
+    else
+    {
+        <div class="empty-slot">
+            <span class="slot-number">@(SlotIndex + 1)</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public PKM? Pokemon { get; set; }
+
+    [Parameter]
+    public int SlotIndex { get; set; }
+
+    [Parameter]
+    public bool IsSelected { get; set; }
+
+    [Parameter]
+    public EventCallback OnSlotClicked { get; set; }
+
+    private string GetSpeciesName()
+    {
+        if (Pokemon == null || Pokemon.Species <= 0) return "Empty";
+        return PokemonService.GetSpeciesName(Pokemon);
+    }
+
+    private string GetSpriteUrl()
+    {
+        if (Pokemon == null || Pokemon.Species <= 0) return "";
+        // Use PokeAPI sprites or similar
+        var species = Pokemon.Species;
+        var shiny = Pokemon.IsShiny ? "shiny/" : "";
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{shiny}{species}.png";
+    }
+
+    private async Task HandleClick()
+    {
+        await OnSlotClicked.InvokeAsync();
+    }
+}

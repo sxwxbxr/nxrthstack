@@ -1,0 +1,94 @@
+@using PKHeX.Core
+@using PKHeX.NxrthStack.Core.Services
+@inject SaveFileService SaveService
+@inject PokemonService PokemonService
+
+@namespace PKHeX.NxrthStack.Components.Box
+
+<div class="box-viewer">
+    <div class="box-navigation">
+        <button class="nav-btn" @onclick="PreviousBox" disabled="@(CurrentBox <= 0)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </button>
+        <span class="box-name">@SaveService.GetBoxName(CurrentBox)</span>
+        <button class="nav-btn" @onclick="NextBox" disabled="@(CurrentBox >= SaveService.GetBoxCount() - 1)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="box-grid">
+        @for (int i = 0; i < SlotsPerBox; i++)
+        {
+            var slot = i;
+            var pokemon = GetPokemonAt(slot);
+            <BoxSlot Pokemon="@pokemon"
+                     SlotIndex="@slot"
+                     IsSelected="@(SelectedSlot == slot)"
+                     OnSlotClicked="@(() => HandleSlotClicked(slot))" />
+        }
+    </div>
+
+    <div class="box-info">
+        <span>@GetOccupiedCount() / @SlotsPerBox Pokemon</span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int CurrentBox { get; set; } = 0;
+
+    [Parameter]
+    public EventCallback<int> CurrentBoxChanged { get; set; }
+
+    [Parameter]
+    public int? SelectedSlot { get; set; }
+
+    [Parameter]
+    public EventCallback<PKM?> OnPokemonSelected { get; set; }
+
+    private int SlotsPerBox => SaveService.GetSlotsPerBox();
+
+    private PKM? GetPokemonAt(int slot)
+    {
+        return PokemonService.GetBoxPokemon(CurrentBox, slot);
+    }
+
+    private int GetOccupiedCount()
+    {
+        int count = 0;
+        for (int i = 0; i < SlotsPerBox; i++)
+        {
+            var pk = GetPokemonAt(i);
+            if (pk != null && pk.Species > 0) count++;
+        }
+        return count;
+    }
+
+    private async Task PreviousBox()
+    {
+        if (CurrentBox > 0)
+        {
+            CurrentBox--;
+            await CurrentBoxChanged.InvokeAsync(CurrentBox);
+        }
+    }
+
+    private async Task NextBox()
+    {
+        if (CurrentBox < SaveService.GetBoxCount() - 1)
+        {
+            CurrentBox++;
+            await CurrentBoxChanged.InvokeAsync(CurrentBox);
+        }
+    }
+
+    private async Task HandleSlotClicked(int slot)
+    {
+        var pokemon = GetPokemonAt(slot);
+        await OnPokemonSelected.InvokeAsync(pokemon);
+    }
+}

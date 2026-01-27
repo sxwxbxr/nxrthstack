@@ -1,0 +1,81 @@
+@using PKHeX.NxrthStack.Core.Services
+@inject SaveFileService SaveService
+
+@namespace PKHeX.NxrthStack.Components.SaveEditor
+
+<div class="save-summary">
+    <div class="summary-header">
+        <h3>Save File Loaded</h3>
+        <span class="game-badge gen-@SaveService.GetGeneration()">
+            Gen @SaveService.GetGeneration()
+        </span>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-item">
+            <span class="label">Game</span>
+            <span class="value">@SaveService.GetGameName()</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Trainer</span>
+            <span class="value">@SaveService.GetTrainerName()</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Trainer ID</span>
+            <span class="value">@SaveService.GetTrainerID()</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Party</span>
+            <span class="value">@SaveService.GetPartyCount() / 6</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Boxes</span>
+            <span class="value">@SaveService.GetBoxCount()</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Play Time</span>
+            <span class="value">@SaveService.GetPlayedHours()h</span>
+        </div>
+    </div>
+
+    <div class="summary-actions">
+        <button class="btn btn-secondary" @onclick="HandleNewSave">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Load Different Save
+        </button>
+        <button class="btn btn-primary" @onclick="HandleExport">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export Save
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnRequestNewSave { get; set; }
+
+    [Parameter]
+    public EventCallback<byte[]> OnExportSave { get; set; }
+
+    private async Task HandleNewSave()
+    {
+        await OnRequestNewSave.InvokeAsync();
+    }
+
+    private async Task HandleExport()
+    {
+        var data = SaveService.ExportSave();
+        if (data != null)
+        {
+            await OnExportSave.InvokeAsync(data);
+        }
+    }
+}

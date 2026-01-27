@@ -1,0 +1,33 @@
+@namespace PKHeX.NxrthStack.Components.Pokemon
+
+<div class="stat-input">
+    <label class="stat-label">@Label</label>
+    <input type="number"
+           min="0"
+           max="@Max"
+           value="@Value"
+           @onchange="HandleChange"
+           class="stat-field" />
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "";
+
+    [Parameter]
+    public int Value { get; set; }
+
+    [Parameter]
+    public int Max { get; set; } = 31;
+
+    [Parameter]
+    public EventCallback<int> OnChange { get; set; }
+
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            await OnChange.InvokeAsync(Math.Clamp(value, 0, Max));
+        }
+    }
+}

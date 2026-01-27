@@ -1,24 +1,91 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Icons } from "@/components/icons";
 
-// Use official PKHeX.Web hosted version - much faster than self-hosting WASM
-const PKHEX_URL = "https://pkhex-web.github.io";
+// Use local Blazor WASM app first, fallback to official PKHeX.Web
+const LOCAL_PKHEX_URL = "/pkhex/";
+const FALLBACK_PKHEX_URL = "https://pkhex-web.github.io";
+
+interface GameInfo {
+  game: string;
+  generation: number;
+  trainerName: string;
+}
 
 export function PKHeXEditorClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [useLocalWasm, setUseLocalWasm] = useState(true);
+  const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Listen for messages from the Blazor app
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type) {
+        switch (event.data.type) {
+          case "PKHEX_READY":
+            setIsLoading(false);
+            break;
+          case "PKHEX_SAVE_LOADED":
+            setGameInfo(event.data.payload);
+            break;
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const handleIframeLoad = () => {
+    // Give the Blazor app a moment to initialize
+    setTimeout(() => setIsLoading(false), 1000);
+  };
+
+  const handleIframeError = () => {
+    if (useLocalWasm) {
+      // Fallback to official PKHeX.Web
+      console.log("Local WASM failed, falling back to official PKHeX.Web");
+      setUseLocalWasm(false);
+      setIsLoading(true);
+    } else {
+      setLoadError(true);
+    }
+  };
+
+  const currentUrl = useLocalWasm ? LOCAL_PKHEX_URL : FALLBACK_PKHEX_URL;
 
   return (
     <div className="relative">
+      {/* Game Info Banner */}
+      {gameInfo && (
+        <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
+          <div className="flex items-center gap-3">
+            <Icons.Gamepad className="h-5 w-5 text-primary" />
+            <div>
+              <span className="font-medium">{gameInfo.game}</span>
+              <span className="text-muted-foreground">
+                {" "}
+                - {gameInfo.trainerName}
+              </span>
+              <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary">
+                Gen {gameInfo.generation}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Controls */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Icons.Info className="h-4 w-4" />
           <span>
-            PKHeX runs entirely in your browser - your save files never leave your device
+            {useLocalWasm ? "NxrthStack PKHeX" : "Official PKHeX.Web"} - All
+            processing happens locally
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -39,7 +106,7 @@ export function PKHeXEditorClient() {
             )}
           </button>
           <a
-            href={PKHEX_URL}
+            href={FALLBACK_PKHEX_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-muted hover:bg-muted/80 transition-colors"
@@ -58,9 +125,9 @@ export function PKHeXEditorClient() {
               <Icons.Loader2 className="h-8 w-8 text-primary" />
             </div>
             <div className="text-center">
-              <p className="font-medium">Loading PKHeX...</p>
+              <p className="font-medium">Loading PKHeX Save Editor...</p>
               <p className="text-sm text-muted-foreground">
-                First load may take a moment to download WASM files (~20MB)
+                First load may take a moment to download WASM files
               </p>
             </div>
           </div>
@@ -73,13 +140,13 @@ export function PKHeXEditorClient() {
           <div className="flex flex-col items-center gap-4 text-center p-8">
             <Icons.AlertCircle className="h-12 w-12 text-yellow-500" />
             <div>
-              <p className="font-medium text-lg">Unable to load embedded PKHeX</p>
+              <p className="font-medium text-lg">Unable to load PKHeX</p>
               <p className="text-sm text-muted-foreground mt-1">
                 This may be due to browser restrictions on cross-origin iframes.
               </p>
             </div>
             <a
-              href={PKHEX_URL}
+              href={FALLBACK_PKHEX_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
@@ -91,12 +158,10 @@ export function PKHeXEditorClient() {
         </div>
       )}
 
-      {/* PKHeX iframe - loads from official PKHeX.Web */}
+      {/* PKHeX iframe */}
       <div
         className={`relative rounded-xl overflow-hidden border border-border bg-background transition-all duration-300 ${
-          isFullscreen
-            ? "fixed inset-4 z-50"
-            : "w-full"
+          isFullscreen ? "fixed inset-4 z-50" : "w-full"
         }`}
         style={{ height: isFullscreen ? "calc(100vh - 32px)" : "800px" }}
       >
@@ -109,10 +174,11 @@ export function PKHeXEditorClient() {
           </button>
         )}
         <iframe
-          src={PKHEX_URL}
+          ref={iframeRef}
+          src={currentUrl}
           className="w-full h-full border-0"
-          onLoad={() => setIsLoading(false)}
-          onError={() => setLoadError(true)}
+          onLoad={handleIframeLoad}
+          onError={handleIframeError}
           allow="clipboard-read; clipboard-write"
           title="PKHeX Save Editor"
           sandbox="allow-scripts allow-same-origin allow-downloads allow-forms allow-modals allow-popups"
@@ -126,7 +192,8 @@ export function PKHeXEditorClient() {
           About PKHeX
         </h3>
         <p className="text-sm text-muted-foreground mb-3">
-          PKHeX is a powerful save editor for all main series Pokemon games. It supports:
+          PKHeX is a powerful save editor for all main series Pokemon games. It
+          supports:
         </p>
         <ul className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
           <li className="flex items-center gap-1.5">
@@ -147,7 +214,16 @@ export function PKHeXEditorClient() {
           </li>
         </ul>
         <p className="text-xs text-muted-foreground mt-3">
-          Powered by <a href="https://github.com/kwsch/PKHeX" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">PKHeX</a> by kwsch
+          Powered by{" "}
+          <a
+            href="https://github.com/kwsch/PKHeX"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            PKHeX.Core
+          </a>{" "}
+          by kwsch
         </p>
       </div>
     </div>

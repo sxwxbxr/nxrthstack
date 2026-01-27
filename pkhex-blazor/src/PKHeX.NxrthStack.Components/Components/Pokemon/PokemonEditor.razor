@@ -1,0 +1,263 @@
+@using PKHeX.Core
+@using PKHeX.NxrthStack.Core.Services
+@inject PokemonService PokemonService
+
+@namespace PKHeX.NxrthStack.Components.Pokemon
+
+<div class="pokemon-editor">
+    @if (Pokemon != null && Pokemon.Species > 0)
+    {
+        <div class="editor-header">
+            <div class="pokemon-sprite-large">
+                <img src="@GetSpriteUrl()" alt="@GetSpeciesName()" />
+                @if (Pokemon.IsShiny)
+                {
+                    <span class="shiny-badge">★ Shiny</span>
+                }
+            </div>
+            <div class="pokemon-basic-info">
+                <h2>@GetSpeciesName()</h2>
+                <div class="info-row">
+                    <span class="label">Level</span>
+                    <input type="number" min="1" max="100" value="@Pokemon.CurrentLevel"
+                           @onchange="HandleLevelChange" class="input-field" />
+                </div>
+                <div class="info-row">
+                    <span class="label">Nature</span>
+                    <span class="value">@PokemonService.GetNatureName(Pokemon)</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Ability</span>
+                    <span class="value">@PokemonService.GetAbilityName(Pokemon)</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Held Item</span>
+                    <span class="value">@PokemonService.GetItemName(Pokemon)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="editor-tabs">
+            <button class="tab @(activeTab == "stats" ? "active" : "")"
+                    @onclick='() => activeTab = "stats"'>Stats</button>
+            <button class="tab @(activeTab == "moves" ? "active" : "")"
+                    @onclick='() => activeTab = "moves"'>Moves</button>
+            <button class="tab @(activeTab == "info" ? "active" : "")"
+                    @onclick='() => activeTab = "info"'>Info</button>
+        </div>
+
+        <div class="editor-content">
+            @switch (activeTab)
+            {
+                case "stats":
+                    <div class="stats-editor">
+                        <div class="stats-section">
+                            <h4>IVs (Individual Values)</h4>
+                            <div class="stats-grid">
+                                <StatInput Label="HP" Value="@Pokemon.IV_HP" OnChange="@(v => SetIV("HP", v))" Max="31" />
+                                <StatInput Label="Atk" Value="@Pokemon.IV_ATK" OnChange="@(v => SetIV("ATK", v))" Max="31" />
+                                <StatInput Label="Def" Value="@Pokemon.IV_DEF" OnChange="@(v => SetIV("DEF", v))" Max="31" />
+                                <StatInput Label="SpA" Value="@Pokemon.IV_SPA" OnChange="@(v => SetIV("SPA", v))" Max="31" />
+                                <StatInput Label="SpD" Value="@Pokemon.IV_SPD" OnChange="@(v => SetIV("SPD", v))" Max="31" />
+                                <StatInput Label="Spe" Value="@Pokemon.IV_SPE" OnChange="@(v => SetIV("SPE", v))" Max="31" />
+                            </div>
+                            <button class="btn btn-sm" @onclick="MaxAllIVs">Max All IVs</button>
+                        </div>
+
+                        <div class="stats-section">
+                            <h4>EVs (Effort Values)</h4>
+                            <div class="stats-grid">
+                                <StatInput Label="HP" Value="@Pokemon.EV_HP" OnChange="@(v => SetEV("HP", v))" Max="252" />
+                                <StatInput Label="Atk" Value="@Pokemon.EV_ATK" OnChange="@(v => SetEV("ATK", v))" Max="252" />
+                                <StatInput Label="Def" Value="@Pokemon.EV_DEF" OnChange="@(v => SetEV("DEF", v))" Max="252" />
+                                <StatInput Label="SpA" Value="@Pokemon.EV_SPA" OnChange="@(v => SetEV("SPA", v))" Max="252" />
+                                <StatInput Label="SpD" Value="@Pokemon.EV_SPD" OnChange="@(v => SetEV("SPD", v))" Max="252" />
+                                <StatInput Label="Spe" Value="@Pokemon.EV_SPE" OnChange="@(v => SetEV("SPE", v))" Max="252" />
+                            </div>
+                            <span class="ev-total">Total: @GetEVTotal() / 510</span>
+                            <button class="btn btn-sm" @onclick="ClearAllEVs">Clear All EVs</button>
+                        </div>
+                    </div>
+                    break;
+
+                case "moves":
+                    <div class="moves-editor">
+                        <div class="moves-list">
+                            @for (int i = 0; i < 4; i++)
+                            {
+                                var moveIndex = i;
+                                var moveId = GetMoveAt(i);
+                                <div class="move-slot">
+                                    <span class="move-number">@(i + 1)</span>
+                                    <span class="move-name">@PokemonService.GetMoveName(moveId)</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    break;
+
+                case "info":
+                    <div class="info-editor">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="label">OT (Original Trainer)</span>
+                                <span class="value">@Pokemon.OriginalTrainerName</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">TID</span>
+                                <span class="value">@Pokemon.TID16</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">PID</span>
+                                <span class="value">@Pokemon.PID.ToString("X8")</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Friendship</span>
+                                <span class="value">@Pokemon.CurrentFriendship</span>
+                            </div>
+                        </div>
+                    </div>
+                    break;
+            }
+        </div>
+
+        <div class="editor-actions">
+            <button class="btn btn-secondary" @onclick="ToggleShiny">
+                @(Pokemon.IsShiny ? "Remove Shiny" : "Make Shiny")
+            </button>
+            <button class="btn btn-secondary" @onclick="MaxLevel">
+                Max Level
+            </button>
+            @if (!PokemonService.IsLegal(Pokemon))
+            {
+                <span class="legality-warning" title="This Pokemon has legality issues">
+                    ⚠️ Not Legal
+                </span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-pokemon-selected">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p>Select a Pokemon to edit</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public PKM? Pokemon { get; set; }
+
+    [Parameter]
+    public EventCallback OnPokemonChanged { get; set; }
+
+    private string activeTab = "stats";
+
+    private string GetSpeciesName()
+    {
+        if (Pokemon == null) return "Unknown";
+        return PokemonService.GetSpeciesName(Pokemon);
+    }
+
+    private string GetSpriteUrl()
+    {
+        if (Pokemon == null || Pokemon.Species <= 0) return "";
+        var species = Pokemon.Species;
+        var shiny = Pokemon.IsShiny ? "shiny/" : "";
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{shiny}{species}.png";
+    }
+
+    private int GetMoveAt(int index)
+    {
+        if (Pokemon == null) return 0;
+        return index switch
+        {
+            0 => Pokemon.Move1,
+            1 => Pokemon.Move2,
+            2 => Pokemon.Move3,
+            3 => Pokemon.Move4,
+            _ => 0
+        };
+    }
+
+    private int GetEVTotal()
+    {
+        if (Pokemon == null) return 0;
+        return Pokemon.EV_HP + Pokemon.EV_ATK + Pokemon.EV_DEF +
+               Pokemon.EV_SPA + Pokemon.EV_SPD + Pokemon.EV_SPE;
+    }
+
+    private async Task HandleLevelChange(ChangeEventArgs e)
+    {
+        if (Pokemon != null && int.TryParse(e.Value?.ToString(), out int level))
+        {
+            PokemonService.SetLevel(Pokemon, Math.Clamp(level, 1, 100));
+            await OnPokemonChanged.InvokeAsync();
+        }
+    }
+
+    private async Task SetIV(string stat, int value)
+    {
+        if (Pokemon == null) return;
+        value = Math.Clamp(value, 0, 31);
+        switch (stat)
+        {
+            case "HP": Pokemon.IV_HP = value; break;
+            case "ATK": Pokemon.IV_ATK = value; break;
+            case "DEF": Pokemon.IV_DEF = value; break;
+            case "SPA": Pokemon.IV_SPA = value; break;
+            case "SPD": Pokemon.IV_SPD = value; break;
+            case "SPE": Pokemon.IV_SPE = value; break;
+        }
+        await OnPokemonChanged.InvokeAsync();
+    }
+
+    private async Task SetEV(string stat, int value)
+    {
+        if (Pokemon == null) return;
+        value = Math.Clamp(value, 0, 252);
+        switch (stat)
+        {
+            case "HP": Pokemon.EV_HP = value; break;
+            case "ATK": Pokemon.EV_ATK = value; break;
+            case "DEF": Pokemon.EV_DEF = value; break;
+            case "SPA": Pokemon.EV_SPA = value; break;
+            case "SPD": Pokemon.EV_SPD = value; break;
+            case "SPE": Pokemon.EV_SPE = value; break;
+        }
+        await OnPokemonChanged.InvokeAsync();
+    }
+
+    private async Task MaxAllIVs()
+    {
+        if (Pokemon == null) return;
+        PokemonService.MaxIVs(Pokemon);
+        await OnPokemonChanged.InvokeAsync();
+    }
+
+    private async Task ClearAllEVs()
+    {
+        if (Pokemon == null) return;
+        PokemonService.ClearEVs(Pokemon);
+        await OnPokemonChanged.InvokeAsync();
+    }
+
+    private async Task ToggleShiny()
+    {
+        if (Pokemon == null) return;
+        PokemonService.ToggleShiny(Pokemon);
+        await OnPokemonChanged.InvokeAsync();
+    }
+
+    private async Task MaxLevel()
+    {
+        if (Pokemon == null) return;
+        PokemonService.MaxLevel(Pokemon);
+        await OnPokemonChanged.InvokeAsync();
+    }
+}
