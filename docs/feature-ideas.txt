@@ -5,15 +5,15 @@ Here are some ideas for GameHub improvements and additions:
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤                                                                                                          
   │ Match History Export     │ Export 1v1 stats to CSV/JSON for external analysis            │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Stats Visualization      │ Graphs showing K/D trends, win rates over time                │
+  │ Stats Visualization      │ Done                                                          │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
   │ Map Tracker              │ Track which maps you play, win rates per map                  │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
   │ Operator Usage Stats     │ See which operators you pick most often                       │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Strat Roulette           │ Random challenge generator ("Win a round using only pistols") │
+  │ Strat Roulette           │ Done                                                          │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Interactive Callout Maps │ Clickable maps with callout names for learning                │
+  │ Interactive Callout Maps │ Needs map layouts from the community                          │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
   │ Tournament Brackets      │ Support for 4/8 player mini-tournaments                       │
   └──────────────────────────┴───────────────────────────────────────────────────────────────┘
@@ -27,7 +27,7 @@ Here are some ideas for GameHub improvements and additions:
   ├────────────────────┼─────────────────────────────────────────────────────┤
   │ Nuzlocke Tracker   │ Track encounters, deaths, rules for Nuzlocke runs   │
   ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Shiny Counter      │ Track shiny hunting attempts with odds calculator   │
+  │ Shiny Counter      │ Done                                                │
   ├────────────────────┼─────────────────────────────────────────────────────┤
   │ Living Dex Tracker │ Track progress toward completing a living Pokedex   │
   ├────────────────────┼─────────────────────────────────────────────────────┤
@@ -37,7 +37,7 @@ Here are some ideas for GameHub improvements and additions:
   ┌───────────────────────┬──────────────────────────────────────────────────────┐
   │        Feature        │                     Description                      │
   ├───────────────────────┼──────────────────────────────────────────────────────┤
-  │ Server Status Checker │ Check if a Minecraft server is online + player count │
+  │ Server Status Checker │ Done                                                 │
   ├───────────────────────┼──────────────────────────────────────────────────────┤
   │ Crafting Calculator   │ Calculate materials needed for builds                │
   ├───────────────────────┼──────────────────────────────────────────────────────┤
@@ -76,9 +76,7 @@ Here are some ideas for GameHub improvements and additions:
   ---
   Quick wins (easy to implement):
   1. Match history export for R6
-  2. Strat Roulette for R6
-  3. Shiny counter for Pokemon
-  4. Server status checker for Minecraft
+
 
   High impact (more complex):
   1. Stats visualization with charts
