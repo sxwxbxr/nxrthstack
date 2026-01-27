@@ -1369,16 +1369,18 @@ function parseGen3Pokemon(data: Uint8Array, offset: number): Pokemon | null {
   }
 
   // Substructure order determines data layout
-  const substructOffsets = getSubstructOrder(substructOrder);
+  // order[i] tells us what TYPE is at position i
+  // order.indexOf(type) tells us what POSITION the type is at
+  const order = getSubstructOrder(substructOrder);
 
-  // Growth substructure
-  const growthOffset = substructOffsets[0] * 12;
+  // Growth substructure (type 0)
+  const growthOffset = order.indexOf(0) * 12;
   const species = readU16LE(encryptedData, growthOffset);
   const heldItem = readU16LE(encryptedData, growthOffset + 2);
   const exp = readU32LE(encryptedData, growthOffset + 4);
 
-  // Attacks substructure
-  const attacksOffset = substructOffsets[1] * 12;
+  // Attacks substructure (type 1)
+  const attacksOffset = order.indexOf(1) * 12;
   const moves = [
     readU16LE(encryptedData, attacksOffset),
     readU16LE(encryptedData, attacksOffset + 2),
@@ -1392,8 +1394,8 @@ function parseGen3Pokemon(data: Uint8Array, offset: number): Pokemon | null {
     readU8(encryptedData, attacksOffset + 11),
   ];
 
-  // EVs & Condition substructure
-  const evsOffset = substructOffsets[2] * 12;
+  // EVs & Condition substructure (type 2)
+  const evsOffset = order.indexOf(2) * 12;
   const evs = {
     hp: readU8(encryptedData, evsOffset),
     attack: readU8(encryptedData, evsOffset + 1),
@@ -1403,8 +1405,8 @@ function parseGen3Pokemon(data: Uint8Array, offset: number): Pokemon | null {
     spDefense: readU8(encryptedData, evsOffset + 5),
   };
 
-  // Misc substructure
-  const miscOffset = substructOffsets[3] * 12;
+  // Misc substructure (type 3)
+  const miscOffset = order.indexOf(3) * 12;
   const ivData = readU32LE(encryptedData, miscOffset + 4);
   const ivs = {
     hp: ivData & 0x1F,
@@ -2117,13 +2119,13 @@ export function setGen3PokemonIVs(
   const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
   // Decrypt substructure
   const substructure = cryptGen3Substructure(data, pokemonOffset, 'decrypt');
 
-  // Misc substructure contains IVs
-  const miscOffset = substructOffsets[3] * 12;
+  // Misc substructure contains IVs (type 3)
+  const miscOffset = order.indexOf(3) * 12;
 
   // Read existing misc data (to preserve other bits like egg flag, ability)
   const existingMiscData = readU32LE(substructure, miscOffset + 4);
@@ -2167,13 +2169,13 @@ export function setGen3PokemonEVs(
   const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
   // Decrypt substructure
   const substructure = cryptGen3Substructure(data, pokemonOffset, 'decrypt');
 
-  // EVs & Condition substructure
-  const evsOffset = substructOffsets[2] * 12;
+  // EVs & Condition substructure (type 2)
+  const evsOffset = order.indexOf(2) * 12;
 
   // Write EVs (clamp to 0-255 per stat)
   writeU8(substructure, evsOffset, Math.min(255, Math.max(0, evs.hp)));
@@ -2206,17 +2208,17 @@ export function setGen3PokemonLevel(data: Uint8Array, partyIndex: number, level:
   const personality = readU32LE(data, pokemonOffset);
   const nature = personality % 25;
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
   // Decrypt to read species, IVs, EVs
   const substructure = cryptGen3Substructure(data, pokemonOffset, 'decrypt');
 
-  // Read species from growth substructure
-  const growthOffset = substructOffsets[0] * 12;
+  // Read species from growth substructure (type 0)
+  const growthOffset = order.indexOf(0) * 12;
   const species = readU16LE(substructure, growthOffset);
 
-  // Read EVs
-  const evsOffset = substructOffsets[2] * 12;
+  // Read EVs (type 2)
+  const evsOffset = order.indexOf(2) * 12;
   const evs = {
     hp: readU8(substructure, evsOffset),
     attack: readU8(substructure, evsOffset + 1),
@@ -2226,8 +2228,8 @@ export function setGen3PokemonLevel(data: Uint8Array, partyIndex: number, level:
     spDefense: readU8(substructure, evsOffset + 5),
   };
 
-  // Read IVs
-  const miscOffset = substructOffsets[3] * 12;
+  // Read IVs (type 3)
+  const miscOffset = order.indexOf(3) * 12;
   const ivData = readU32LE(substructure, miscOffset + 4);
   const ivs = {
     hp: ivData & 0x1F,
@@ -2776,13 +2778,13 @@ export function setGen3PokemonSpecies(
   const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
   // Decrypt substructure
   const substructure = cryptGen3Substructure(data, pokemonOffset, 'decrypt');
 
-  // Species is in growth substructure at offset 0
-  const growthOffset = substructOffsets[0] * 12;
+  // Species is in growth substructure (type 0)
+  const growthOffset = order.indexOf(0) * 12;
   writeU16LE(substructure, growthOffset, species);
 
   // Write back encrypted
@@ -2817,13 +2819,13 @@ export function setGen3PokemonMoves(
   const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
   // Decrypt substructure
   const substructure = cryptGen3Substructure(data, pokemonOffset, 'decrypt');
 
-  // Attacks substructure contains moves
-  const attacksOffset = substructOffsets[1] * 12;
+  // Attacks substructure contains moves (type 1)
+  const attacksOffset = order.indexOf(1) * 12;
 
   // Write moves (2 bytes each, 4 moves)
   for (let i = 0; i < 4; i++) {
@@ -2983,8 +2985,9 @@ export function addGen3Pokemon(
   // - Offset 0-3: Current box index (in section 5)
   // - Offset 4+: Box Pokemon data (each Pokemon = 80 bytes, each box = 30 Pokemon)
   // - Box data spans sections 5-13
-  const pokemonOffset = getPCPokemonOffset(data, sections, targetBox, targetSlot);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, targetBox, targetSlot);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   // Generate personality value
   let personality = Math.floor(Math.random() * 0xFFFFFFFF) >>> 0;
@@ -3112,7 +3115,6 @@ export function addGen3Pokemon(
   // PC Pokemon don't have party data (bytes 80-99) - they're only 80 bytes
 
   // Update the section checksum for the section containing this Pokemon
-  const sectionOffset = pokemonOffset & ~0xFFF; // Round down to section boundary
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3143,18 +3145,19 @@ function findFirstEmptyPCSlot(
 }
 
 /**
- * Get the absolute offset for a Pokemon in PC storage
+ * Get the absolute offset for a Pokemon in PC storage along with the section info
  * PC data starts at section 5, offset 4 (after current box index)
  * Each Pokemon is 80 bytes, each box has 30 Pokemon
+ * Returns { pokemonOffset, sectionOffset, sectionId } or null if invalid
  */
-function getPCPokemonOffset(
+function getPCPokemonOffsetWithSection(
   data: Uint8Array,
   sections: Record<number, number>,
   boxIndex: number,
   slotIndex: number
-): number {
-  if (boxIndex < 0 || boxIndex > 13) return -1;
-  if (slotIndex < 0 || slotIndex > 29) return -1;
+): { pokemonOffset: number; sectionOffset: number; sectionId: number } | null {
+  if (boxIndex < 0 || boxIndex > 13) return null;
+  if (slotIndex < 0 || slotIndex > 29) return null;
 
   // Calculate the global byte offset within PC data
   // PC data layout: 4 bytes header + (box * 30 * 80) + (slot * 80)
@@ -3172,14 +3175,31 @@ function getPCPokemonOffset(
     const sectionSize = sectionSizes[sectionIdx - 5];
     if (remainingOffset < sectionSize) {
       // Pokemon is in this section
-      if (sections[sectionIdx] === undefined) return -1;
-      return sections[sectionIdx] + remainingOffset;
+      if (sections[sectionIdx] === undefined) return null;
+      return {
+        pokemonOffset: sections[sectionIdx] + remainingOffset,
+        sectionOffset: sections[sectionIdx],
+        sectionId: sectionIdx,
+      };
     }
     remainingOffset -= sectionSize;
     sectionIdx++;
   }
 
-  return -1; // Offset out of range
+  return null; // Offset out of range
+}
+
+/**
+ * Legacy function for backwards compatibility
+ */
+function getPCPokemonOffset(
+  data: Uint8Array,
+  sections: Record<number, number>,
+  boxIndex: number,
+  slotIndex: number
+): number {
+  const result = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  return result ? result.pokemonOffset : -1;
 }
 
 /**
@@ -3197,8 +3217,9 @@ export function removeGen3Pokemon(
   if (boxIndex < 0 || boxIndex > 13) return false;
   if (slotIndex < 0 || slotIndex > 29) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   // Check if slot has a Pokemon
   const personality = readU32LE(data, pokemonOffset);
@@ -3211,7 +3232,6 @@ export function removeGen3Pokemon(
   }
 
   // Update the section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3229,8 +3249,9 @@ export function setGen3BoxPokemonIVs(
   const { sections } = getGen3SaveInfo(data);
   if (sections[5] === undefined) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   const personality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
@@ -3280,7 +3301,6 @@ export function setGen3BoxPokemonIVs(
   }
 
   // Update section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3298,8 +3318,9 @@ export function setGen3BoxPokemonEVs(
   const { sections } = getGen3SaveInfo(data);
   if (sections[5] === undefined) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   const personality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
@@ -3342,7 +3363,6 @@ export function setGen3BoxPokemonEVs(
   }
 
   // Update section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3361,8 +3381,9 @@ export function setGen3BoxPokemonLevel(
   const { sections } = getGen3SaveInfo(data);
   if (sections[5] === undefined) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   const personality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
@@ -3400,7 +3421,6 @@ export function setGen3BoxPokemonLevel(
   }
 
   // Update section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3418,8 +3438,9 @@ export function setGen3BoxPokemonNickname(
   const { sections } = getGen3SaveInfo(data);
   if (sections[5] === undefined) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   const personality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
@@ -3432,7 +3453,6 @@ export function setGen3BoxPokemonNickname(
   }
 
   // Update section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3452,8 +3472,9 @@ export function setGen3BoxPokemonSpecies(
 
   if (species < 1 || species > 386) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   const personality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
@@ -3495,7 +3516,6 @@ export function setGen3BoxPokemonSpecies(
   }
 
   // Update section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3513,8 +3533,9 @@ export function setGen3BoxPokemonMoves(
   const { sections } = getGen3SaveInfo(data);
   if (sections[5] === undefined) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
   const personality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
@@ -3557,7 +3578,6 @@ export function setGen3BoxPokemonMoves(
   }
 
   // Update section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3565,6 +3585,7 @@ export function setGen3BoxPokemonMoves(
 
 /**
  * Toggle shiny status for a Pokemon in PC box (Gen 3)
+ * This is a complex operation because changing personality requires re-encryption
  */
 export function toggleGen3BoxShiny(
   data: Uint8Array,
@@ -3574,88 +3595,58 @@ export function toggleGen3BoxShiny(
   const { sections } = getGen3SaveInfo(data);
   if (sections[0] === undefined || sections[5] === undefined) return false;
 
-  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
-  if (pokemonOffset === -1) return false;
+  const offsetInfo = getPCPokemonOffsetWithSection(data, sections, boxIndex, slotIndex);
+  if (!offsetInfo) return false;
+  const { pokemonOffset, sectionOffset } = offsetInfo;
 
-  let personality = readU32LE(data, pokemonOffset);
+  // Read current personality and OT ID
+  const oldPersonality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
-  if (personality === 0 && otId === 0) return false;
+  if (oldPersonality === 0 && otId === 0) return false;
 
   const trainerId = otId & 0xFFFF;
   const secretId = (otId >> 16) & 0xFFFF;
 
+  // Calculate old encryption key BEFORE changing personality
+  const oldEncryptKey = oldPersonality ^ otId;
+
   // Check current shiny status
-  const p1 = personality & 0xFFFF;
-  const p2 = (personality >> 16) & 0xFFFF;
+  const p1 = oldPersonality & 0xFFFF;
+  const p2 = (oldPersonality >> 16) & 0xFFFF;
   const shinyValue = trainerId ^ secretId ^ p1 ^ p2;
   const isCurrentlyShiny = shinyValue < 8;
 
+  // Calculate new personality
+  let newPersonality: number;
   if (isCurrentlyShiny) {
-    // Make non-shiny by adjusting p2
+    // Make non-shiny by adjusting p2 to produce shinyValue >= 8
     const targetP2 = (trainerId ^ secretId ^ p1 ^ 8) & 0xFFFF;
-    personality = (targetP2 << 16) | p1;
+    newPersonality = (targetP2 << 16) | p1;
   } else {
-    // Make shiny by adjusting p2
+    // Make shiny by adjusting p2 to produce shinyValue = 0
     const targetP2 = (trainerId ^ secretId ^ p1) & 0xFFFF;
-    personality = (targetP2 << 16) | p1;
+    newPersonality = (targetP2 << 16) | p1;
   }
 
-  // Write new personality
-  writeU32LE(data, pokemonOffset, personality);
-
-  // Need to re-encrypt substructure with new encryption key
-  const oldEncryptKey = readU32LE(data, pokemonOffset) ^ otId; // This would be wrong, we need to decrypt first
-
-  // Actually, let's decrypt with old key, then re-encrypt with new key
-  const oldPersonality = readU32LE(data, pokemonOffset);
-  // Wait, we already changed the personality. Let me fix this logic.
-
-  // Read the encrypted substructure first before changing personality
-  // Actually the substructure encryption key is personality XOR otId
-  // Since we changed personality, we need to:
-  // 1. Decrypt with OLD key
-  // 2. Re-encrypt with NEW key
-
-  // But we already wrote the new personality... let me redo this
-
-  // Read what we wrote (new personality)
-  const newPersonality = readU32LE(data, pokemonOffset);
-
-  // We need the OLD personality to decrypt
-  // Let's recalculate the old personality
-  const newP1 = newPersonality & 0xFFFF;
-  const newP2 = (newPersonality >> 16) & 0xFFFF;
-
-  let oldP2: number;
-  if (!isCurrentlyShiny) {
-    // We made it shiny, so old was non-shiny
-    // Old p2 was different, we can't easily recover it
-    // Let's just use the fact that the old key was different
-    oldP2 = (trainerId ^ secretId ^ newP1 ^ 8) & 0xFFFF; // This was the old non-shiny p2
-  } else {
-    // We made it non-shiny, so old was shiny
-    oldP2 = (trainerId ^ secretId ^ newP1) & 0xFFFF; // This was the old shiny p2
-  }
-
-  const oldPersonalityCalc = (oldP2 << 16) | newP1;
-  const oldEncryptKeyCalc = oldPersonalityCalc ^ otId;
   const newEncryptKey = newPersonality ^ otId;
 
-  // Decrypt substructure with old key
+  // Decrypt substructure with OLD key
   const substructure = new Uint8Array(48);
   for (let i = 0; i < 48; i += 4) {
     const encrypted = readU32LE(data, pokemonOffset + 32 + i);
-    writeU32LE(substructure, i, encrypted ^ oldEncryptKeyCalc);
+    writeU32LE(substructure, i, encrypted ^ oldEncryptKey);
   }
 
-  // Re-encrypt with new key
+  // Write new personality
+  writeU32LE(data, pokemonOffset, newPersonality);
+
+  // Re-encrypt substructure with NEW key
   for (let i = 0; i < 48; i += 4) {
     const value = readU32LE(substructure, i);
     writeU32LE(data, pokemonOffset + 32 + i, value ^ newEncryptKey);
   }
 
   // Update section checksum
-  const sectionOffset = pokemonOffset & ~0xFFF;
   updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
@@ -3861,7 +3852,7 @@ function parseGen3BoxPokemon(data: Uint8Array, offset: number): Pokemon | null {
 
   // Decrypt substructure
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
   // Create a temporary 100-byte buffer with box data
   const tempData = new Uint8Array(100);
@@ -3869,16 +3860,18 @@ function parseGen3BoxPokemon(data: Uint8Array, offset: number): Pokemon | null {
 
   const substructure = cryptGen3Substructure(tempData, 0, 'decrypt');
 
-  // Read species from growth substructure
-  const growthOffset = substructOffsets[0] * 12;
+  // Find the POSITION of each substructure type (0=Growth, 1=Attacks, 2=EVs, 3=Misc)
+  // order[i] tells us what TYPE is at position i
+  // order.indexOf(type) tells us what POSITION the type is at
+  const growthOffset = order.indexOf(0) * 12;
   const species = readU16LE(substructure, growthOffset);
 
   if (species === 0 || species > 386) return null;
 
   // Read other data from substructures
-  const attacksOffset = substructOffsets[1] * 12;
-  const evsOffset = substructOffsets[2] * 12;
-  const miscOffset = substructOffsets[3] * 12;
+  const attacksOffset = order.indexOf(1) * 12;
+  const evsOffset = order.indexOf(2) * 12;
+  const miscOffset = order.indexOf(3) * 12;
 
   const exp = readU32LE(substructure, growthOffset + 4);
 
@@ -4488,19 +4481,21 @@ function addStarterToParty(
   const substructure = new Uint8Array(48);
 
   // Determine substructure order based on personality
+  // order[i] tells us what TYPE is at position i
+  // order.indexOf(type) tells us what POSITION the type is at
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
-  // Growth substructure (12 bytes)
-  const growthOffset = substructOffsets[0] * 12;
+  // Growth substructure (type 0, 12 bytes)
+  const growthOffset = order.indexOf(0) * 12;
   writeU16LE(substructure, growthOffset, species); // Species
   writeU16LE(substructure, growthOffset + 2, 0); // Held item (none)
   writeU32LE(substructure, growthOffset + 4, 125); // Experience (level 5 medium slow)
-  data[substructure[growthOffset + 8]] = 0; // PP bonuses
-  data[substructure[growthOffset + 9]] = 70; // Friendship
+  substructure[growthOffset + 8] = 0; // PP bonuses
+  substructure[growthOffset + 9] = 70; // Friendship
 
-  // Attacks substructure (12 bytes)
-  const attacksOffset = substructOffsets[1] * 12;
+  // Attacks substructure (type 1, 12 bytes)
+  const attacksOffset = order.indexOf(1) * 12;
   // Give starter moves based on species (simplified - just Tackle and Growl for now)
   writeU16LE(substructure, attacksOffset, 33); // Tackle
   writeU16LE(substructure, attacksOffset + 2, 45); // Growl
@@ -4511,12 +4506,12 @@ function addStarterToParty(
   substructure[attacksOffset + 10] = 0;
   substructure[attacksOffset + 11] = 0;
 
-  // EVs & Condition substructure (12 bytes)
-  const evsOffset = substructOffsets[2] * 12;
+  // EVs & Condition substructure (type 2, 12 bytes)
+  const evsOffset = order.indexOf(2) * 12;
   // All EVs start at 0, condition values at 0
 
-  // Misc substructure (12 bytes)
-  const miscOffset = substructOffsets[3] * 12;
+  // Misc substructure (type 3, 12 bytes)
+  const miscOffset = order.indexOf(3) * 12;
   // Pokerus (offset 0)
   substructure[miscOffset] = 0;
   // Met location (offset 1)

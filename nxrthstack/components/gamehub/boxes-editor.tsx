@@ -521,18 +521,16 @@ function BoxPokemonDetails({
         .slice(0, 10)
     : [];
 
-  // Filter moves for move search
-  const filteredMoves = moveSearch
-    ? Object.entries(MOVE_NAMES)
-        .filter(([id, name]) => {
-          const moveId = parseInt(id);
-          return moveId > 0 && moveId <= 354 && (
-            name.toLowerCase().includes(moveSearch.toLowerCase()) ||
-            id.includes(moveSearch)
-          );
-        })
-        .slice(0, 10)
-    : [];
+  // Filter moves for move search - show popular moves when search is empty
+  const filteredMoves = Object.entries(MOVE_NAMES)
+    .filter(([id, name]) => {
+      const moveId = parseInt(id);
+      if (moveId === 0 || moveId > 354) return false;
+      if (!moveSearch) return true; // Show all when no search
+      return name.toLowerCase().includes(moveSearch.toLowerCase()) ||
+        id.includes(moveSearch);
+    })
+    .slice(0, moveSearch ? 10 : 20); // Show more results when browsing
 
   const applyPreset = async (presetType: string, evPreset?: EVPresetName) => {
     if (generation !== 3) return;
