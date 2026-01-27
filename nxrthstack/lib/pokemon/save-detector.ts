@@ -2046,8 +2046,10 @@ export function setItemQuantity(
 }
 
 function updateGen3SectionChecksum(data: Uint8Array, sectionOffset: number): void {
+  // Gen 3 section checksum covers the first 0xF80 bytes (3968 bytes = 992 u32 values)
+  // Section structure: data (0x0000-0x0F7F), unused (0x0F80-0x0FF3), sectionId (0xFF4), checksum (0xFF6), signature (0xFF8), saveIndex (0xFFC)
   let checksum = 0;
-  for (let i = 0; i < 0xFF4; i += 4) {
+  for (let i = 0; i < 0xF80; i += 4) {
     checksum = (checksum + readU32LE(data, sectionOffset + i)) >>> 0;
   }
   checksum = ((checksum & 0xFFFF) + (checksum >>> 16)) & 0xFFFF;
@@ -3782,19 +3784,56 @@ export function toggleGen3BoxShiny(
 
   const newEncryptKey = newPersonality ^ otId;
 
+  // Get old and new substructure orders
+  const oldOrder = getSubstructOrder(oldPersonality % 24);
+  const newOrder = getSubstructOrder(newPersonality % 24);
+
   // Decrypt substructure with OLD key
-  const substructure = new Uint8Array(48);
+  const encryptedSubstructure = new Uint8Array(48);
   for (let i = 0; i < 48; i += 4) {
     const encrypted = readU32LE(data, pokemonOffset + 32 + i);
-    writeU32LE(substructure, i, encrypted ^ oldEncryptKey);
+    writeU32LE(encryptedSubstructure, i, encrypted ^ oldEncryptKey);
   }
+
+  // Extract each substructure type (0=Growth, 1=Attacks, 2=EVs, 3=Misc) based on OLD order
+  const substructures: Uint8Array[] = [
+    new Uint8Array(12), // Growth
+    new Uint8Array(12), // Attacks
+    new Uint8Array(12), // EVs
+    new Uint8Array(12), // Misc
+  ];
+
+  for (let type = 0; type < 4; type++) {
+    const oldPosition = oldOrder.indexOf(type);
+    const sourceOffset = oldPosition * 12;
+    for (let j = 0; j < 12; j++) {
+      substructures[type][j] = encryptedSubstructure[sourceOffset + j];
+    }
+  }
+
+  // Rebuild substructure with NEW order
+  const newSubstructure = new Uint8Array(48);
+  for (let type = 0; type < 4; type++) {
+    const newPosition = newOrder.indexOf(type);
+    const destOffset = newPosition * 12;
+    for (let j = 0; j < 12; j++) {
+      newSubstructure[destOffset + j] = substructures[type][j];
+    }
+  }
+
+  // Recalculate checksum on new decrypted data
+  let checksum = 0;
+  for (let i = 0; i < 48; i += 2) {
+    checksum = (checksum + readU16LE(newSubstructure, i)) & 0xFFFF;
+  }
+  writeU16LE(data, pokemonOffset + 28, checksum);
 
   // Write new personality
   writeU32LE(data, pokemonOffset, newPersonality);
 
   // Re-encrypt substructure with NEW key
   for (let i = 0; i < 48; i += 4) {
-    const value = readU32LE(substructure, i);
+    const value = readU32LE(newSubstructure, i);
     writeU32LE(data, pokemonOffset + 32 + i, value ^ newEncryptKey);
   }
 
