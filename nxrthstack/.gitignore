@@ -41,5 +41,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# PKHeX WASM build (generated)
-public/pkhex/
+# PKHeX WASM build - committed for Vercel deployment
+# public/pkhex/
