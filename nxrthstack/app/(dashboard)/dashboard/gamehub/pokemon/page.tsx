@@ -27,13 +27,6 @@ const pokemonFeatures = [
     features: ["GB/GBC/GBA Support", "Auto Detection", "Safe Editing"],
   },
   {
-    title: "Save Editor (Basic)",
-    description: "Simple save editor for quick edits - trainer data, party, inventory",
-    href: "/dashboard/gamehub/pokemon/save-editor",
-    icon: Icons.FileText,
-    features: ["Trainer Editor", "Party Viewer", "Inventory"],
-  },
-  {
     title: "Shiny Counter",
     description: "Track your shiny hunts with probability calculations and history",
     href: "/dashboard/gamehub/pokemon/shiny-counter",
@@ -115,13 +108,6 @@ export default async function PokemonPage() {
           >
             <Icons.HardDrive className="h-5 w-5" />
             ROM Editor
-          </Link>
-          <Link
-            href="/dashboard/gamehub/pokemon/save-editor"
-            className="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary/10 px-8 py-4 text-lg font-semibold text-primary hover:bg-primary/20 transition-colors"
-          >
-            <Icons.FileText className="h-5 w-5" />
-            Basic Save Editor
           </Link>
           <Link
             href="/dashboard/gamehub/pokemon/shiny-counter"
