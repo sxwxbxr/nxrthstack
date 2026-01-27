@@ -419,6 +419,155 @@ export const r6MatchesRelations = relations(r6Matches, ({ one }) => ({
 
 export const r6OperatorsRelations = relations(r6Operators, () => ({}));
 
+// R6 Tournaments
+export const r6Tournaments = pgTable("r6_tournaments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  hostId: uuid("host_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  inviteCode: varchar("invite_code", { length: 20 }).notNull().unique(),
+  format: varchar("format", { length: 20 }).default("single_elimination").notNull(), // 'single_elimination' | 'double_elimination'
+  size: integer("size").notNull(), // 4, 8, 16, 32
+  status: varchar("status", { length: 20 }).default("registration").notNull(), // 'registration' | 'in_progress' | 'completed'
+  trackKills: boolean("track_kills").default(true).notNull(),
+  bestOf: integer("best_of").default(1).notNull(), // 1, 3, 5
+  currentRound: integer("current_round").default(0).notNull(),
+  winnerId: uuid("winner_id").references(() => users.id, { onDelete: "set null" }),
+  startedAt: timestamp("started_at", { mode: "date" }),
+  completedAt: timestamp("completed_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// R6 Tournament Participants
+export const r6TournamentParticipants = pgTable("r6_tournament_participants", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tournamentId: uuid("tournament_id")
+    .notNull()
+    .references(() => r6Tournaments.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  seed: integer("seed"), // Seeding position (1 = top seed)
+  isEliminated: boolean("is_eliminated").default(false).notNull(),
+  eliminatedAt: integer("eliminated_at"), // Round number when eliminated
+  finalPlacement: integer("final_placement"), // Final ranking (1st, 2nd, 3rd, etc.)
+  totalKills: integer("total_kills").default(0).notNull(),
+  totalDeaths: integer("total_deaths").default(0).notNull(),
+  totalRoundsWon: integer("total_rounds_won").default(0).notNull(),
+  totalRoundsLost: integer("total_rounds_lost").default(0).notNull(),
+  matchesWon: integer("matches_won").default(0).notNull(),
+  matchesLost: integer("matches_lost").default(0).notNull(),
+  joinedAt: timestamp("joined_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// R6 Tournament Matches (Bracket matches)
+export const r6TournamentMatches = pgTable("r6_tournament_matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tournamentId: uuid("tournament_id")
+    .notNull()
+    .references(() => r6Tournaments.id, { onDelete: "cascade" }),
+  round: integer("round").notNull(), // 1 = first round, increasing to finals
+  matchNumber: integer("match_number").notNull(), // Position in the round (1, 2, 3, etc.)
+  bracketSide: varchar("bracket_side", { length: 20 }).default("winners"), // 'winners' | 'losers' (for double elim)
+  player1Id: uuid("player1_id").references(() => users.id, { onDelete: "set null" }),
+  player2Id: uuid("player2_id").references(() => users.id, { onDelete: "set null" }),
+  winnerId: uuid("winner_id").references(() => users.id, { onDelete: "set null" }),
+  loserId: uuid("loser_id").references(() => users.id, { onDelete: "set null" }),
+  player1Score: integer("player1_score").default(0).notNull(), // Games/maps won
+  player2Score: integer("player2_score").default(0).notNull(),
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending' | 'in_progress' | 'completed' | 'bye'
+  nextMatchId: uuid("next_match_id"), // Winner advances to this match
+  nextMatchSlot: integer("next_match_slot"), // 1 or 2 (which slot in next match)
+  loserNextMatchId: uuid("loser_next_match_id"), // For double elimination losers bracket
+  scheduledAt: timestamp("scheduled_at", { mode: "date" }),
+  completedAt: timestamp("completed_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// R6 Tournament Games (Individual games within a match, for best-of series)
+export const r6TournamentGames = pgTable("r6_tournament_games", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  matchId: uuid("match_id")
+    .notNull()
+    .references(() => r6TournamentMatches.id, { onDelete: "cascade" }),
+  gameNumber: integer("game_number").notNull(), // 1, 2, 3, etc.
+  winnerId: uuid("winner_id").references(() => users.id, { onDelete: "set null" }),
+  player1Kills: integer("player1_kills"),
+  player1Deaths: integer("player1_deaths"),
+  player2Kills: integer("player2_kills"),
+  player2Deaths: integer("player2_deaths"),
+  player1RoundsWon: integer("player1_rounds_won"),
+  player2RoundsWon: integer("player2_rounds_won"),
+  mapPlayed: varchar("map_played", { length: 100 }),
+  screenshotUrl: varchar("screenshot_url", { length: 500 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Tournament Relations
+export const r6TournamentsRelations = relations(r6Tournaments, ({ one, many }) => ({
+  host: one(users, {
+    fields: [r6Tournaments.hostId],
+    references: [users.id],
+    relationName: "tournamentHost",
+  }),
+  winner: one(users, {
+    fields: [r6Tournaments.winnerId],
+    references: [users.id],
+    relationName: "tournamentWinner",
+  }),
+  participants: many(r6TournamentParticipants),
+  matches: many(r6TournamentMatches),
+}));
+
+export const r6TournamentParticipantsRelations = relations(r6TournamentParticipants, ({ one }) => ({
+  tournament: one(r6Tournaments, {
+    fields: [r6TournamentParticipants.tournamentId],
+    references: [r6Tournaments.id],
+  }),
+  user: one(users, {
+    fields: [r6TournamentParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const r6TournamentMatchesRelations = relations(r6TournamentMatches, ({ one, many }) => ({
+  tournament: one(r6Tournaments, {
+    fields: [r6TournamentMatches.tournamentId],
+    references: [r6Tournaments.id],
+  }),
+  player1: one(users, {
+    fields: [r6TournamentMatches.player1Id],
+    references: [users.id],
+    relationName: "player1",
+  }),
+  player2: one(users, {
+    fields: [r6TournamentMatches.player2Id],
+    references: [users.id],
+    relationName: "player2",
+  }),
+  winner: one(users, {
+    fields: [r6TournamentMatches.winnerId],
+    references: [users.id],
+    relationName: "matchWinner",
+  }),
+  games: many(r6TournamentGames),
+}));
+
+export const r6TournamentGamesRelations = relations(r6TournamentGames, ({ one }) => ({
+  match: one(r6TournamentMatches, {
+    fields: [r6TournamentGames.matchId],
+    references: [r6TournamentMatches.id],
+  }),
+  winner: one(users, {
+    fields: [r6TournamentGames.winnerId],
+    references: [users.id],
+  }),
+}));
+
 // ============================================================================
 // Pokemon ROM Editor Tables
 // ============================================================================
@@ -591,3 +740,13 @@ export type FeatureRequest = typeof featureRequests.$inferSelect;
 export type NewFeatureRequest = typeof featureRequests.$inferInsert;
 export type FeatureVote = typeof featureVotes.$inferSelect;
 export type NewFeatureVote = typeof featureVotes.$inferInsert;
+
+// Tournament Types
+export type R6Tournament = typeof r6Tournaments.$inferSelect;
+export type NewR6Tournament = typeof r6Tournaments.$inferInsert;
+export type R6TournamentParticipant = typeof r6TournamentParticipants.$inferSelect;
+export type NewR6TournamentParticipant = typeof r6TournamentParticipants.$inferInsert;
+export type R6TournamentMatch = typeof r6TournamentMatches.$inferSelect;
+export type NewR6TournamentMatch = typeof r6TournamentMatches.$inferInsert;
+export type R6TournamentGame = typeof r6TournamentGames.$inferSelect;
+export type NewR6TournamentGame = typeof r6TournamentGames.$inferInsert;

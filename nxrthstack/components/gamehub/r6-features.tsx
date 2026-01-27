@@ -13,6 +13,13 @@ const features = [
     icon: <Icons.Users className="h-6 w-6" />,
   },
   {
+    title: "Tournaments",
+    description:
+      "Create bracket-style tournaments with full tracking. Single elimination, customizable formats, and detailed stats.",
+    link: "/dashboard/gamehub/r6/tournaments",
+    icon: <Icons.Swords className="h-6 w-6" />,
+  },
+  {
     title: "Operator Randomizer",
     description:
       "Randomize your operator and loadout for fun challenges. Perfect for custom games and variety.",

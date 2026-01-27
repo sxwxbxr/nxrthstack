@@ -107,6 +107,12 @@ export default async function R6HubPage() {
               Create 1v1 Lobby
             </ShimmerButton>
           </Link>
+          <Link href="/dashboard/gamehub/r6/tournaments/create">
+            <ShimmerButton>
+              <Icons.Swords className="h-4 w-4 mr-2" />
+              Create Tournament
+            </ShimmerButton>
+          </Link>
           <Link href="/dashboard/gamehub/r6/randomizer">
             <ShimmerButton className="bg-accent">
               <Icons.Zap className="h-4 w-4 mr-2" />
