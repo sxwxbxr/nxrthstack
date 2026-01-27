@@ -45,14 +45,14 @@
                 <div class="section-header">
                     <h3>Party Pokemon</h3>
                 </div>
-                <PartyViewer OnPokemonSelected="HandlePokemonSelected" />
+                <PartyViewer OnSlotSelected="HandlePartyPokemonSelected" SelectedSlot="@(isFromParty ? selectedPartySlot : null)" />
 
                 <div class="section-divider"></div>
 
                 <div class="section-header">
                     <h3>PC Boxes</h3>
                 </div>
-                <BoxViewer @bind-CurrentBox="currentBox" OnPokemonSelected="HandlePokemonSelected" />
+                <BoxViewer @bind-CurrentBox="currentBox" OnSlotSelected="HandleBoxPokemonSelected" SelectedSlot="@(!isFromParty ? selectedBoxSlot : null)" />
             </div>
 
             <div class="editor-main">
@@ -65,6 +65,11 @@
 @code {
     private PKM? selectedPokemon;
     private int currentBox = 0;
+
+    // Track where the selected Pokemon came from
+    private bool isFromParty = false;
+    private int selectedPartySlot = -1;
+    private int selectedBoxSlot = -1;
 
     protected override void OnInitialized()
     {
@@ -88,6 +93,9 @@
         SaveService.ClearSave();
         selectedPokemon = null;
         currentBox = 0;
+        isFromParty = false;
+        selectedPartySlot = -1;
+        selectedBoxSlot = -1;
         StateHasChanged();
     }
 
@@ -95,6 +103,40 @@
     {
         var fileName = $"{SaveService.GetGameName()}_{DateTime.Now:yyyyMMdd_HHmmss}.sav";
         await DownloadFile(data, fileName);
+    }
+
+    private void HandlePartyPokemonSelected(int slot)
+    {
+        var pokemon = PokemonService.GetPartyPokemon(slot);
+        if (pokemon != null && pokemon.Species > 0)
+        {
+            selectedPokemon = pokemon;
+            isFromParty = true;
+            selectedPartySlot = slot;
+            selectedBoxSlot = -1;
+        }
+        else
+        {
+            selectedPokemon = null;
+        }
+        StateHasChanged();
+    }
+
+    private void HandleBoxPokemonSelected(int slot)
+    {
+        var pokemon = PokemonService.GetBoxPokemon(currentBox, slot);
+        if (pokemon != null && pokemon.Species > 0)
+        {
+            selectedPokemon = pokemon;
+            isFromParty = false;
+            selectedPartySlot = -1;
+            selectedBoxSlot = slot;
+        }
+        else
+        {
+            selectedPokemon = null;
+        }
+        StateHasChanged();
     }
 
     private void HandlePokemonSelected(PKM? pokemon)
@@ -105,6 +147,18 @@
 
     private void HandlePokemonChanged()
     {
+        // Persist the changes back to the save file
+        if (selectedPokemon != null)
+        {
+            if (isFromParty && selectedPartySlot >= 0)
+            {
+                PokemonService.SetPartyPokemon(selectedPartySlot, selectedPokemon);
+            }
+            else if (!isFromParty && selectedBoxSlot >= 0)
+            {
+                PokemonService.SetBoxPokemon(currentBox, selectedBoxSlot, selectedPokemon);
+            }
+        }
         SaveService.NotifyModified();
         StateHasChanged();
     }

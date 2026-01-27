@@ -50,6 +50,9 @@
     [Parameter]
     public EventCallback<PKM?> OnPokemonSelected { get; set; }
 
+    [Parameter]
+    public EventCallback<int> OnSlotSelected { get; set; }
+
     private PKM? GetPartyPokemon(int slot)
     {
         return PokemonService.GetPartyPokemon(slot);
@@ -69,7 +72,15 @@
 
     private async Task HandleSlotClick(int slot)
     {
-        var pokemon = GetPartyPokemon(slot);
-        await OnPokemonSelected.InvokeAsync(pokemon);
+        // Use slot-based callback if available, otherwise fall back to pokemon-based
+        if (OnSlotSelected.HasDelegate)
+        {
+            await OnSlotSelected.InvokeAsync(slot);
+        }
+        else
+        {
+            var pokemon = GetPartyPokemon(slot);
+            await OnPokemonSelected.InvokeAsync(pokemon);
+        }
     }
 }
