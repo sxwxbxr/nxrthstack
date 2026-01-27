@@ -9,8 +9,9 @@ interface SaveUploaderProps {
   isProcessing: boolean;
 }
 
-const ACCEPTED_EXTENSIONS = [".sav", ".sa1", ".sa2", ".sgm", ".srm"];
-const MAX_FILE_SIZE = 256 * 1024; // 256KB max for save files
+// All common Pokemon save file extensions
+const ACCEPTED_EXTENSIONS = [".sav", ".sa1", ".sa2", ".sgm", ".srm", ".dsv", ".sps", ".fla", ".eep"];
+const MAX_FILE_SIZE = 512 * 1024; // 512KB max for save files (some saves include extra data)
 
 export function SaveUploader({ onSaveLoaded, isProcessing }: SaveUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -117,7 +118,7 @@ export function SaveUploader({ onSaveLoaded, isProcessing }: SaveUploaderProps) 
         <input
           ref={fileInputRef}
           type="file"
-          accept={ACCEPTED_EXTENSIONS.join(",")}
+          accept={`${ACCEPTED_EXTENSIONS.join(",")},application/octet-stream,*/*`}
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -142,7 +143,7 @@ export function SaveUploader({ onSaveLoaded, isProcessing }: SaveUploaderProps) 
                 or click to browse
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {ACCEPTED_EXTENSIONS.map((ext) => (
+                {[".sav", ".srm", ".sa1", ".sgm"].map((ext) => (
                   <span
                     key={ext}
                     className="rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground"
@@ -150,6 +151,9 @@ export function SaveUploader({ onSaveLoaded, isProcessing }: SaveUploaderProps) 
                     {ext}
                   </span>
                 ))}
+                <span className="rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                  + more
+                </span>
               </div>
             </>
           )}

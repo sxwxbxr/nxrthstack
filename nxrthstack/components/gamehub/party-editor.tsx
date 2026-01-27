@@ -34,7 +34,6 @@ import {
   setGen3PokemonMoves,
   toggleGen3Shiny,
   addGen3Pokemon,
-  removeGen3Pokemon,
   EV_PRESETS,
   type EVPresetName,
 } from "@/lib/pokemon/save-detector";
@@ -174,8 +173,8 @@ export function PartyEditor({
           </motion.button>
         ))}
 
-        {/* Add Pokemon Button (Gen 3 only, max 6) */}
-        {generation === 3 && party.length < 6 && (
+        {/* Add Pokemon to PC Box Button (Gen 3 only) */}
+        {generation === 3 && (
           <motion.button
             onClick={() => setShowAddPokemon(!showAddPokemon)}
             whileHover={{ scale: 1.02 }}
@@ -189,7 +188,7 @@ export function PartyEditor({
             <div className="flex flex-col items-center justify-center h-full min-h-[100px] gap-2">
               <Icons.Plus className="h-8 w-8 text-muted-foreground" />
               <span className="text-sm font-medium text-muted-foreground">
-                Add Pokemon
+                Add to PC Box
               </span>
             </div>
           </motion.button>
@@ -207,7 +206,7 @@ export function PartyEditor({
           >
             <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <Icons.Plus className="h-4 w-4 text-primary" />
-              Add New Pokemon
+              Add Pokemon to PC Box
             </h4>
 
             <div className="space-y-4">
@@ -298,18 +297,8 @@ export function PartyEditor({
               pokemon={party[selectedPokemon]}
               generation={parsedSave.info.generation}
               partyIndex={selectedPokemon}
-              partySize={party.length}
               saveData={saveData}
               onDataChange={onDataChange}
-              onRemove={() => {
-                if (generation === 3 && party.length > 1) {
-                  const newData = new Uint8Array(saveData);
-                  if (removeGen3Pokemon(newData, selectedPokemon)) {
-                    onDataChange(newData);
-                    setSelectedPokemon(null);
-                  }
-                }
-              }}
             />
           </motion.div>
         )}
@@ -320,7 +309,7 @@ export function PartyEditor({
         <p className="text-sm text-muted-foreground">
           <Icons.Info className="inline h-4 w-4 mr-1" />
           Click on a Pokemon to view and edit its stats.
-          {generation === 3 && " Gen 3 saves support full editing including adding/removing Pokemon, shiny toggle, and move changes."}
+          {generation === 3 && " Gen 3 saves support full editing including shiny toggle and move changes. New Pokemon are added to PC Box 1."}
         </p>
       </div>
     </div>
@@ -331,18 +320,14 @@ function PokemonDetails({
   pokemon,
   generation,
   partyIndex,
-  partySize,
   saveData,
   onDataChange,
-  onRemove,
 }: {
   pokemon: Pokemon;
   generation: number;
   partyIndex: number;
-  partySize: number;
   saveData: Uint8Array;
   onDataChange: (newData: Uint8Array) => void;
-  onRemove: () => void;
 }) {
   const [isApplying, setIsApplying] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
@@ -613,18 +598,6 @@ function PokemonDetails({
             >
               <Icons.Sparkles className="h-4 w-4" />
               {pokemon.isShiny ? "Shiny" : "Make Shiny"}
-            </button>
-          )}
-
-          {/* Remove Pokemon (Gen 3 only, if party > 1) */}
-          {generation === 3 && partySize > 1 && (
-            <button
-              onClick={onRemove}
-              className="flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/20 transition-colors"
-              title="Remove from party"
-            >
-              <Icons.Trash2 className="h-4 w-4" />
-              Remove
             </button>
           )}
         </div>

@@ -2940,7 +2940,9 @@ export function isGen3PokemonShiny(data: Uint8Array, partyIndex: number): boolea
 }
 
 /**
- * Add a new Pokemon to the party for Gen 3
+ * Add a new Pokemon to the PC Box for Gen 3
+ * PC Pokemon are 80 bytes (no party stats like the 100-byte party format)
+ * PC data spans sections 5-13
  */
 export function addGen3Pokemon(
   data: Uint8Array,
@@ -2952,13 +2954,12 @@ export function addGen3Pokemon(
     shiny?: boolean;
     ivs?: { hp: number; attack: number; defense: number; speed: number; spAttack: number; spDefense: number };
     evs?: { hp: number; attack: number; defense: number; speed: number; spAttack: number; spDefense: number };
+    boxIndex?: number; // Which box (0-13), defaults to 0
+    slotIndex?: number; // Which slot (0-29), defaults to first empty slot
   }
 ): boolean {
-  const { sections, offsets } = getGen3SaveInfo(data);
-  if (sections[1] === undefined || sections[0] === undefined) return false;
-
-  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
-  if (partyCount >= 6) return false; // Party is full
+  const { sections } = getGen3SaveInfo(data);
+  if (sections[0] === undefined || sections[5] === undefined) return false;
 
   if (species < 1 || species > 386) return false;
 
@@ -2966,6 +2967,22 @@ export function addGen3Pokemon(
   const trainerId = readU16LE(data, sections[0] + 0x0A);
   const secretId = readU16LE(data, sections[0] + 0x0C);
   const fullOtId = (secretId << 16) | trainerId;
+
+  // Determine box and slot
+  const targetBox = options?.boxIndex ?? 0;
+  const targetSlot = options?.slotIndex ?? findFirstEmptyPCSlot(data, sections, targetBox);
+
+  if (targetBox < 0 || targetBox > 13) return false;
+  if (targetSlot < 0 || targetSlot > 29) return false;
+  if (targetSlot === -1) return false; // Box is full
+
+  // Calculate the Pokemon offset in PC storage
+  // PC data structure:
+  // - Offset 0-3: Current box index (in section 5)
+  // - Offset 4+: Box Pokemon data (each Pokemon = 80 bytes, each box = 30 Pokemon)
+  // - Box data spans sections 5-13
+  const pokemonOffset = getPCPokemonOffset(data, sections, targetBox, targetSlot);
+  if (pokemonOffset === -1) return false;
 
   // Generate personality value
   let personality = Math.floor(Math.random() * 0xFFFFFFFF) >>> 0;
@@ -2977,10 +2994,7 @@ export function addGen3Pokemon(
     personality = (targetP2 << 16) | p1;
   }
 
-  // Calculate the new Pokemon offset
-  const pokemonOffset = sections[1] + offsets.partyData + (partyCount * 100);
-
-  // Write Pokemon structure
+  // Write Pokemon structure (80 bytes for PC)
   writeU32LE(data, pokemonOffset, personality); // Personality
   writeU32LE(data, pokemonOffset + 4, fullOtId); // OT ID
 
@@ -2991,8 +3005,11 @@ export function addGen3Pokemon(
     data[pokemonOffset + 8 + i] = encodedNickname[i];
   }
 
-  // Language (offset 18)
-  writeU16LE(data, pokemonOffset + 18, 0x0202); // English
+  // Language (offset 18, single byte: 1=JP, 2=EN, 3=FR, 4=IT, 5=DE, 7=ES)
+  data[pokemonOffset + 18] = 2; // English
+
+  // Flags byte (offset 19) - bit 7 = has species, other bits unused
+  data[pokemonOffset + 19] = 0;
 
   // OT Name (offset 20, 7 bytes)
   const trainerName = decodeGen3String(data, sections[0], 7);
@@ -3013,19 +3030,25 @@ export function addGen3Pokemon(
   // Create substructure data (48 bytes)
   const substructure = new Uint8Array(48);
   const substructOrder = personality % 24;
-  const substructOffsets = getSubstructOrder(substructOrder);
+  const order = getSubstructOrder(substructOrder);
 
-  // Growth substructure
-  const growthOffset = substructOffsets[0] * 12;
+  // Find the POSITION of each substructure type (0=Growth, 1=Attacks, 2=EVs, 3=Misc)
+  const growthOffset = order.indexOf(0) * 12;
+  const attacksOffset = order.indexOf(1) * 12;
+  const evsOffset = order.indexOf(2) * 12;
+  const miscOffset = order.indexOf(3) * 12;
+
+  // Growth substructure (type 0)
   writeU16LE(substructure, growthOffset, species); // Species
   writeU16LE(substructure, growthOffset + 2, 0); // Held item
   const exp = Math.pow(level, 3); // Simplified exp calculation
   writeU32LE(substructure, growthOffset + 4, exp); // Experience
-  data[substructure[growthOffset + 8]] = 0; // PP bonuses
-  data[substructure[growthOffset + 9]] = 70; // Friendship
+  substructure[growthOffset + 8] = 0; // PP bonuses
+  substructure[growthOffset + 9] = 70; // Friendship
+  substructure[growthOffset + 10] = 0; // Unused
+  substructure[growthOffset + 11] = 0; // Unused
 
-  // Attacks substructure
-  const attacksOffset = substructOffsets[1] * 12;
+  // Attacks substructure (type 1)
   const defaultMoves = options?.moves || [33, 0, 0, 0]; // Tackle as default
   for (let i = 0; i < 4; i++) {
     writeU16LE(substructure, attacksOffset + (i * 2), defaultMoves[i]);
@@ -3036,8 +3059,7 @@ export function addGen3Pokemon(
     substructure[attacksOffset + 8 + i] = ppValues[i];
   }
 
-  // EVs & Condition substructure
-  const evsOffset = substructOffsets[2] * 12;
+  // EVs & Condition substructure (type 2)
   const evs = options?.evs || { hp: 0, attack: 0, defense: 0, speed: 0, spAttack: 0, spDefense: 0 };
   substructure[evsOffset] = Math.min(255, evs.hp);
   substructure[evsOffset + 1] = Math.min(255, evs.attack);
@@ -3050,15 +3072,16 @@ export function addGen3Pokemon(
     substructure[evsOffset + i] = 0;
   }
 
-  // Misc substructure
-  const miscOffset = substructOffsets[3] * 12;
+  // Misc substructure (type 3)
   substructure[miscOffset] = 0; // Pokerus
-  substructure[miscOffset + 1] = 0; // Met location
-  // Origins info (offset 2-3)
-  const originsInfo = (level & 0x7F) | (0 << 7) | (0 << 11) | (3 << 14); // Level met, ball (Poke Ball = 4 but using 3 for index)
+  substructure[miscOffset + 1] = 88; // Met location (88 = Pallet Town for FRLG)
+  // Origins info (offset 2-3): bits 0-6 = level met, 7-10 = game of origin, 11-14 = ball, 15 = OT gender
+  const pokeBall = 4; // Poke Ball
+  const gameOfOrigin = 4; // FireRed
+  const originsInfo = (level & 0x7F) | ((gameOfOrigin & 0xF) << 7) | ((pokeBall & 0xF) << 11);
   writeU16LE(substructure, miscOffset + 2, originsInfo);
   // IVs, Egg, and Ability (offset 4-7)
-  const ivs = options?.ivs || { hp: 15, attack: 15, defense: 15, speed: 15, spAttack: 15, spDefense: 15 };
+  const ivs = options?.ivs || { hp: 31, attack: 31, defense: 31, speed: 31, spAttack: 31, spDefense: 31 };
   const ivData =
     (ivs.hp & 0x1F) |
     ((ivs.attack & 0x1F) << 5) |
@@ -3084,78 +3107,110 @@ export function addGen3Pokemon(
     writeU32LE(data, pokemonOffset + 32 + i, value ^ encryptKey);
   }
 
-  // Party data (offset 80-99)
-  // Status condition
-  writeU32LE(data, pokemonOffset + 80, 0);
-  // Level
-  data[pokemonOffset + 84] = Math.min(100, Math.max(1, level));
-  // Pokerus remaining
-  data[pokemonOffset + 85] = 0;
+  // PC Pokemon don't have party data (bytes 80-99) - they're only 80 bytes
 
-  // Calculate stats
-  const baseStats = BASE_STATS[species] || DEFAULT_BASE_STATS;
-  const nature = personality % 25;
-  const clampedLevel = Math.min(100, Math.max(1, level));
-
-  const maxHp = calculateGen3Stat(baseStats.hp, ivs.hp, evs.hp, clampedLevel, nature, 0);
-  const atk = calculateGen3Stat(baseStats.attack, ivs.attack, evs.attack, clampedLevel, nature, 1);
-  const def = calculateGen3Stat(baseStats.defense, ivs.defense, evs.defense, clampedLevel, nature, 2);
-  const spd = calculateGen3Stat(baseStats.speed, ivs.speed, evs.speed, clampedLevel, nature, 3);
-  const spA = calculateGen3Stat(baseStats.spAttack, ivs.spAttack, evs.spAttack, clampedLevel, nature, 4);
-  const spD = calculateGen3Stat(baseStats.spDefense, ivs.spDefense, evs.spDefense, clampedLevel, nature, 5);
-
-  writeU16LE(data, pokemonOffset + 86, maxHp); // Current HP
-  writeU16LE(data, pokemonOffset + 88, maxHp); // Max HP
-  writeU16LE(data, pokemonOffset + 90, atk); // Attack
-  writeU16LE(data, pokemonOffset + 92, def); // Defense
-  writeU16LE(data, pokemonOffset + 94, spd); // Speed
-  writeU16LE(data, pokemonOffset + 96, spA); // Sp. Attack
-  writeU16LE(data, pokemonOffset + 98, spD); // Sp. Defense
-
-  // Update party count
-  writeU32LE(data, sections[1] + offsets.partyCount, partyCount + 1);
-
-  // Update section checksum
-  updateGen3SectionChecksum(data, sections[1]);
+  // Update the section checksum for the section containing this Pokemon
+  const sectionOffset = pokemonOffset & ~0xFFF; // Round down to section boundary
+  updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
 }
 
 /**
- * Remove a Pokemon from the party for Gen 3
+ * Find the first empty slot in a PC box
+ * Returns slot index (0-29) or -1 if box is full
  */
-export function removeGen3Pokemon(data: Uint8Array, partyIndex: number): boolean {
-  const { sections, offsets } = getGen3SaveInfo(data);
-  if (sections[1] === undefined) return false;
+function findFirstEmptyPCSlot(
+  data: Uint8Array,
+  sections: Record<number, number>,
+  boxIndex: number
+): number {
+  for (let slot = 0; slot < 30; slot++) {
+    const offset = getPCPokemonOffset(data, sections, boxIndex, slot);
+    if (offset === -1) continue;
 
-  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
-  if (partyIndex >= partyCount || partyIndex < 0) return false;
-  if (partyCount <= 1) return false; // Cannot remove last Pokemon
+    const personality = readU32LE(data, offset);
+    const otId = readU32LE(data, offset + 4);
 
-  const partyDataStart = sections[1] + offsets.partyData;
-
-  // Shift all Pokemon after the removed one
-  for (let i = partyIndex; i < partyCount - 1; i++) {
-    const sourceOffset = partyDataStart + ((i + 1) * 100);
-    const destOffset = partyDataStart + (i * 100);
-
-    // Copy 100 bytes
-    for (let j = 0; j < 100; j++) {
-      data[destOffset + j] = data[sourceOffset + j];
+    // Empty slot if both PID and OT ID are 0
+    if (personality === 0 && otId === 0) {
+      return slot;
     }
   }
+  return -1; // Box is full
+}
 
-  // Clear the last slot
-  const lastSlotOffset = partyDataStart + ((partyCount - 1) * 100);
-  for (let i = 0; i < 100; i++) {
-    data[lastSlotOffset + i] = 0;
+/**
+ * Get the absolute offset for a Pokemon in PC storage
+ * PC data starts at section 5, offset 4 (after current box index)
+ * Each Pokemon is 80 bytes, each box has 30 Pokemon
+ */
+function getPCPokemonOffset(
+  data: Uint8Array,
+  sections: Record<number, number>,
+  boxIndex: number,
+  slotIndex: number
+): number {
+  if (boxIndex < 0 || boxIndex > 13) return -1;
+  if (slotIndex < 0 || slotIndex > 29) return -1;
+
+  // Calculate the global byte offset within PC data
+  // PC data layout: 4 bytes header + (box * 30 * 80) + (slot * 80)
+  const pcDataOffset = 4 + (boxIndex * 30 * 80) + (slotIndex * 80);
+
+  // PC data spans sections 5-13
+  // Each section has 0x0F80 (3968) bytes of usable data for sections 5-12
+  // Section 13 has 0x07D0 (2000) bytes
+  const sectionSizes = [3968, 3968, 3968, 3968, 3968, 3968, 3968, 3968, 2000]; // Sections 5-13
+
+  let remainingOffset = pcDataOffset;
+  let sectionIdx = 5;
+
+  while (sectionIdx <= 13) {
+    const sectionSize = sectionSizes[sectionIdx - 5];
+    if (remainingOffset < sectionSize) {
+      // Pokemon is in this section
+      if (sections[sectionIdx] === undefined) return -1;
+      return sections[sectionIdx] + remainingOffset;
+    }
+    remainingOffset -= sectionSize;
+    sectionIdx++;
   }
 
-  // Update party count
-  writeU32LE(data, sections[1] + offsets.partyCount, partyCount - 1);
+  return -1; // Offset out of range
+}
 
-  // Update section checksum
-  updateGen3SectionChecksum(data, sections[1]);
+/**
+ * Remove a Pokemon from a PC box for Gen 3
+ * Clears the 80-byte slot (sets all bytes to 0)
+ */
+export function removeGen3Pokemon(
+  data: Uint8Array,
+  boxIndex: number,
+  slotIndex: number
+): boolean {
+  const { sections } = getGen3SaveInfo(data);
+  if (sections[5] === undefined) return false;
+
+  if (boxIndex < 0 || boxIndex > 13) return false;
+  if (slotIndex < 0 || slotIndex > 29) return false;
+
+  const pokemonOffset = getPCPokemonOffset(data, sections, boxIndex, slotIndex);
+  if (pokemonOffset === -1) return false;
+
+  // Check if slot has a Pokemon
+  const personality = readU32LE(data, pokemonOffset);
+  const otId = readU32LE(data, pokemonOffset + 4);
+  if (personality === 0 && otId === 0) return false; // Slot already empty
+
+  // Clear the 80-byte Pokemon data
+  for (let i = 0; i < 80; i++) {
+    data[pokemonOffset + i] = 0;
+  }
+
+  // Update the section checksum
+  const sectionOffset = pokemonOffset & ~0xFFF;
+  updateGen3SectionChecksum(data, sectionOffset);
 
   return true;
 }
