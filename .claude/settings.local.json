@@ -24,7 +24,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:theglobalgaming.com)",
       "Bash(find:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(dir \"D:\\\\Projects\\\\nxrthstack\\\\nxrthstack\\\\docs\\\\save-file-TMPL\" /B)",
+      "Bash(xxd:*)"
     ]
   }
 }

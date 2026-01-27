@@ -516,6 +516,51 @@ function detectGen2Save(data: Uint8Array): SaveInfo | null {
   };
 }
 
+/**
+ * Detect Gen 3 game type from save data
+ * Returns: 'FRLG' for FireRed/LeafGreen, 'E' for Emerald, 'RS' for Ruby/Sapphire
+ */
+function detectGen3GameType(data: Uint8Array, section0Offset: number, section1Offset: number): 'FRLG' | 'E' | 'RS' {
+  // FireRed/LeafGreen has security key at section 0, offset 0xAF8
+  // and money at section 1, offset 0x290
+  // Check if the security key location for FRLG has a plausible value
+  const frlgSecurityKey = readU32LE(data, section0Offset + 0xAF8);
+  const frlgMoney = readU32LE(data, section1Offset + 0x290);
+  const frlgDecryptedMoney = frlgMoney ^ frlgSecurityKey;
+
+  // Emerald has security key at section 0, offset 0xAC
+  // and money at section 1, offset 0x490
+  const emeraldSecurityKey = readU32LE(data, section0Offset + 0xAC);
+  const rseMoney = readU32LE(data, section1Offset + 0x490);
+  const emeraldDecryptedMoney = rseMoney ^ emeraldSecurityKey;
+
+  // Ruby/Sapphire has money at section 1, offset 0x490 (no encryption)
+  // The money value should be reasonable (0 to 999999)
+  const maxMoney = 999999;
+
+  // Check FRLG first - if decrypted money is reasonable, it's likely FRLG
+  if (frlgDecryptedMoney >= 0 && frlgDecryptedMoney <= maxMoney) {
+    // Additional check: FRLG security key should be non-zero for used saves
+    // or the raw money value at 0x290 should look encrypted (large value)
+    if (frlgSecurityKey !== 0 || frlgMoney <= maxMoney) {
+      return 'FRLG';
+    }
+  }
+
+  // Check Emerald - if decrypted money is reasonable and security key is non-zero
+  if (emeraldSecurityKey !== 0 && emeraldDecryptedMoney >= 0 && emeraldDecryptedMoney <= maxMoney) {
+    return 'E';
+  }
+
+  // Check Ruby/Sapphire - money at 0x490 without encryption
+  if (rseMoney >= 0 && rseMoney <= maxMoney) {
+    return 'RS';
+  }
+
+  // Default to FRLG if we can't determine (most common case)
+  return 'FRLG';
+}
+
 function detectGen3Save(data: Uint8Array): SaveInfo | null {
   // Gen 3 saves have two save slots, each 57344 bytes (0xE000)
   // The active save is determined by the save index
@@ -527,18 +572,20 @@ function detectGen3Save(data: Uint8Array): SaveInfo | null {
 
   const activeSaveOffset = save2Index > save1Index ? 0xE000 : 0;
 
-  // Read section order to find trainer data (section ID 0)
-  let trainerSectionOffset = -1;
+  // Build section map
+  const sections: Record<number, number> = {};
   for (let i = 0; i < 14; i++) {
     const sectionOffset = activeSaveOffset + (i * 0x1000);
     const sectionId = readU16LE(data, sectionOffset + 0xFF4);
-    if (sectionId === 0) {
-      trainerSectionOffset = sectionOffset;
-      break;
+    // Validate section signature
+    const signature = readU32LE(data, sectionOffset + 0xFF8);
+    if (signature === 0x08012025) {
+      sections[sectionId] = sectionOffset;
     }
   }
 
-  if (trainerSectionOffset === -1) return null;
+  const trainerSectionOffset = sections[0];
+  if (trainerSectionOffset === undefined) return null;
 
   const trainerName = decodeGen3String(data, trainerSectionOffset, 7);
   if (!trainerName || trainerName.length === 0) return null;
@@ -549,22 +596,42 @@ function detectGen3Save(data: Uint8Array): SaveInfo | null {
   const minutes = readU8(data, trainerSectionOffset + 0x10);
   const seconds = readU8(data, trainerSectionOffset + 0x11);
 
-  // Game code at offset 0xAC
-  const gameCode = readU32LE(data, trainerSectionOffset + 0xAC);
+  // Get section 1 offset for money
+  const section1Offset = sections[1];
+  if (section1Offset === undefined) return null;
 
-  // Determine game from code
+  // Detect game type
+  const gameType = detectGen3GameType(data, trainerSectionOffset, section1Offset);
+
+  // Read money based on game type
+  let money = 0;
   let game = "Pokemon Ruby/Sapphire";
   let gameCodeStr = "AXVE";
 
-  // Money is in section 1
-  let money = 0;
-  for (let i = 0; i < 14; i++) {
-    const sectionOffset = activeSaveOffset + (i * 0x1000);
-    const sectionId = readU16LE(data, sectionOffset + 0xFF4);
-    if (sectionId === 1) {
-      money = readU32LE(data, sectionOffset + 0x490);
-      break;
-    }
+  if (gameType === 'FRLG') {
+    // FireRed/LeafGreen: money at 0x290, XOR with security key at section 0, offset 0xAF8
+    const securityKey = readU32LE(data, trainerSectionOffset + 0xAF8);
+    const encryptedMoney = readU32LE(data, section1Offset + 0x290);
+    money = (encryptedMoney ^ securityKey) >>> 0; // Ensure unsigned
+    game = "Pokemon FireRed/LeafGreen";
+    gameCodeStr = "BPRE"; // FireRed code
+  } else if (gameType === 'E') {
+    // Emerald: money at 0x490, XOR with security key at section 0, offset 0xAC
+    const securityKey = readU32LE(data, trainerSectionOffset + 0xAC);
+    const encryptedMoney = readU32LE(data, section1Offset + 0x490);
+    money = (encryptedMoney ^ securityKey) >>> 0;
+    game = "Pokemon Emerald";
+    gameCodeStr = "BPEE";
+  } else {
+    // Ruby/Sapphire: money at 0x490, no encryption
+    money = readU32LE(data, section1Offset + 0x490);
+    game = "Pokemon Ruby/Sapphire";
+    gameCodeStr = "AXVE";
+  }
+
+  // Clamp money to valid range
+  if (money > 999999) {
+    money = 0; // Invalid, default to 0
   }
 
   return {
@@ -1385,20 +1452,34 @@ export function setTrainerName(data: Uint8Array, name: string, generation: numbe
 
 export function setMoney(data: Uint8Array, amount: number, generation: number): void {
   if (generation === 3) {
-    const save1Index = readU32LE(data, 0x0FFC);
-    const save2Index = readU32LE(data, 0xEFFC);
-    const activeSaveOffset = save2Index > save1Index ? 0xE000 : 0;
+    const { sections } = getGen3SaveInfo(data);
+    const section0Offset = sections[0];
+    const section1Offset = sections[1];
 
-    for (let i = 0; i < 14; i++) {
-      const sectionOffset = activeSaveOffset + (i * 0x1000);
-      const sectionId = readU16LE(data, sectionOffset + 0xFF4);
-      if (sectionId === 1) {
-        // Money is XOR encrypted with security key
-        const securityKey = readU32LE(data, sectionOffset + 0xF20);
-        writeU32LE(data, sectionOffset + 0x490, amount ^ securityKey);
-        updateGen3SectionChecksum(data, sectionOffset);
-        break;
-      }
+    if (section0Offset === undefined || section1Offset === undefined) return;
+
+    // Clamp amount to valid range
+    const clampedAmount = Math.min(Math.max(0, amount), 999999);
+
+    // Detect game type to determine offsets and encryption
+    const gameType = detectGen3GameType(data, section0Offset, section1Offset);
+
+    if (gameType === 'FRLG') {
+      // FireRed/LeafGreen: money at 0x290, XOR with security key at section 0, offset 0xAF8
+      const securityKey = readU32LE(data, section0Offset + 0xAF8);
+      const encryptedMoney = (clampedAmount ^ securityKey) >>> 0;
+      writeU32LE(data, section1Offset + 0x290, encryptedMoney);
+      updateGen3SectionChecksum(data, section1Offset);
+    } else if (gameType === 'E') {
+      // Emerald: money at 0x490, XOR with security key at section 0, offset 0xAC
+      const securityKey = readU32LE(data, section0Offset + 0xAC);
+      const encryptedMoney = (clampedAmount ^ securityKey) >>> 0;
+      writeU32LE(data, section1Offset + 0x490, encryptedMoney);
+      updateGen3SectionChecksum(data, section1Offset);
+    } else {
+      // Ruby/Sapphire: money at 0x490, no encryption
+      writeU32LE(data, section1Offset + 0x490, clampedAmount);
+      updateGen3SectionChecksum(data, section1Offset);
     }
   } else if (generation === 1) {
     // Gen 1: Money at 0x25F3 in BCD format (3 bytes)
