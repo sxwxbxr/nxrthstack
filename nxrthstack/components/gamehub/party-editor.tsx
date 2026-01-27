@@ -31,6 +31,10 @@ import {
   setGen1PokemonSpecies,
   setGen2PokemonSpecies,
   setGen3PokemonSpecies,
+  setGen3PokemonMoves,
+  toggleGen3Shiny,
+  addGen3Pokemon,
+  removeGen3Pokemon,
   EV_PRESETS,
   type EVPresetName,
 } from "@/lib/pokemon/save-detector";
@@ -47,10 +51,46 @@ export function PartyEditor({
   onDataChange,
 }: PartyEditorProps) {
   const [selectedPokemon, setSelectedPokemon] = useState<number | null>(null);
+  const [showAddPokemon, setShowAddPokemon] = useState(false);
+  const [addSpeciesSearch, setAddSpeciesSearch] = useState("");
+  const [addLevel, setAddLevel] = useState(5);
+  const [addShiny, setAddShiny] = useState(false);
 
   const party = parsedSave.party;
+  const generation = parsedSave.info.generation;
+  const maxPokemon = generation === 1 ? 151 : generation === 2 ? 251 : 386;
 
-  if (party.length === 0) {
+  const handleAddPokemon = useCallback((species: number) => {
+    if (generation !== 3) return; // Only Gen 3 supported for now
+
+    const newData = new Uint8Array(saveData);
+    const success = addGen3Pokemon(newData, species, addLevel, {
+      shiny: addShiny,
+    });
+
+    if (success) {
+      onDataChange(newData);
+      setShowAddPokemon(false);
+      setAddSpeciesSearch("");
+      setAddLevel(5);
+      setAddShiny(false);
+    }
+  }, [saveData, generation, addLevel, addShiny, onDataChange]);
+
+  // Filter Pokemon for add search
+  const filteredAddSpecies = addSpeciesSearch
+    ? Object.entries(POKEMON_NAMES)
+        .filter(([id, name]) => {
+          const pokemonId = parseInt(id);
+          return pokemonId <= maxPokemon && (
+            name.toLowerCase().includes(addSpeciesSearch.toLowerCase()) ||
+            id.includes(addSpeciesSearch)
+          );
+        })
+        .slice(0, 10)
+    : [];
+
+  if (party.length === 0 && generation !== 3) {
     return (
       <div className="rounded-xl border border-border bg-card p-8 text-center">
         <Icons.Users className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -133,7 +173,117 @@ export function PartyEditor({
             </div>
           </motion.button>
         ))}
+
+        {/* Add Pokemon Button (Gen 3 only, max 6) */}
+        {generation === 3 && party.length < 6 && (
+          <motion.button
+            onClick={() => setShowAddPokemon(!showAddPokemon)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`rounded-xl border-2 border-dashed p-4 transition-colors ${
+              showAddPokemon
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50 hover:bg-card"
+            }`}
+          >
+            <div className="flex flex-col items-center justify-center h-full min-h-[100px] gap-2">
+              <Icons.Plus className="h-8 w-8 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">
+                Add Pokemon
+              </span>
+            </div>
+          </motion.button>
+        )}
       </div>
+
+      {/* Add Pokemon Panel */}
+      <AnimatePresence>
+        {showAddPokemon && generation === 3 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="rounded-xl border border-primary/30 bg-primary/5 p-4 overflow-hidden"
+          >
+            <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Icons.Plus className="h-4 w-4 text-primary" />
+              Add New Pokemon
+            </h4>
+
+            <div className="space-y-4">
+              {/* Species Search */}
+              <div>
+                <label className="text-xs text-muted-foreground">Pokemon</label>
+                <div className="relative mt-1">
+                  <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={addSpeciesSearch}
+                    onChange={(e) => setAddSpeciesSearch(e.target.value)}
+                    placeholder="Search Pokemon by name or number..."
+                    className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                  />
+                </div>
+                {filteredAddSpecies.length > 0 && (
+                  <div className="mt-2 grid gap-1 max-h-48 overflow-y-auto">
+                    {filteredAddSpecies.map(([id, name]) => (
+                      <button
+                        key={id}
+                        onClick={() => handleAddPokemon(parseInt(id))}
+                        className="flex items-center gap-3 rounded-lg bg-background px-3 py-2 text-left hover:bg-accent transition-colors"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded bg-primary/10 text-xs font-bold text-primary">
+                          {id.padStart(3, "0")}
+                        </span>
+                        <span className="font-medium text-foreground">{name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Level and Options */}
+              <div className="flex flex-wrap gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground">Level</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={addLevel}
+                    onChange={(e) => setAddLevel(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                    className="mt-1 w-20 rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block">Shiny</label>
+                  <button
+                    onClick={() => setAddShiny(!addShiny)}
+                    className={`mt-1 flex items-center gap-2 rounded-lg px-3 py-2 transition-colors ${
+                      addShiny
+                        ? "bg-yellow-500/20 text-yellow-500"
+                        : "bg-muted text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <Icons.Sparkles className="h-4 w-4" />
+                    {addShiny ? "Yes" : "No"}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowAddPokemon(false);
+                  setAddSpeciesSearch("");
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Selected Pokemon Details */}
       <AnimatePresence>
@@ -148,8 +298,18 @@ export function PartyEditor({
               pokemon={party[selectedPokemon]}
               generation={parsedSave.info.generation}
               partyIndex={selectedPokemon}
+              partySize={party.length}
               saveData={saveData}
               onDataChange={onDataChange}
+              onRemove={() => {
+                if (generation === 3 && party.length > 1) {
+                  const newData = new Uint8Array(saveData);
+                  if (removeGen3Pokemon(newData, selectedPokemon)) {
+                    onDataChange(newData);
+                    setSelectedPokemon(null);
+                  }
+                }
+              }}
             />
           </motion.div>
         )}
@@ -159,7 +319,8 @@ export function PartyEditor({
       <div className="rounded-lg border border-border bg-muted/50 p-4">
         <p className="text-sm text-muted-foreground">
           <Icons.Info className="inline h-4 w-4 mr-1" />
-          Click on a Pokemon to view detailed information. Pokemon editing features coming soon.
+          Click on a Pokemon to view and edit its stats.
+          {generation === 3 && " Gen 3 saves support full editing including adding/removing Pokemon, shiny toggle, and move changes."}
         </p>
       </div>
     </div>
@@ -170,20 +331,27 @@ function PokemonDetails({
   pokemon,
   generation,
   partyIndex,
+  partySize,
   saveData,
   onDataChange,
+  onRemove,
 }: {
   pokemon: Pokemon;
   generation: number;
   partyIndex: number;
+  partySize: number;
   saveData: Uint8Array;
   onDataChange: (newData: Uint8Array) => void;
+  onRemove: () => void;
 }) {
   const [isApplying, setIsApplying] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [editNickname, setEditNickname] = useState(pokemon.nickname);
   const [isEditingSpecies, setIsEditingSpecies] = useState(false);
   const [speciesSearch, setSpeciesSearch] = useState("");
+  const [isEditingMoves, setIsEditingMoves] = useState(false);
+  const [moveSearch, setMoveSearch] = useState("");
+  const [editingMoveSlot, setEditingMoveSlot] = useState<number | null>(null);
 
   const maxPokemon = generation === 1 ? 151 : generation === 2 ? 251 : 386;
 
@@ -238,6 +406,39 @@ function PokemonDetails({
         })
         .slice(0, 10)
     : [];
+
+  // Filter moves for move search
+  const filteredMoves = moveSearch
+    ? Object.entries(MOVE_NAMES)
+        .filter(([id, name]) => {
+          const moveId = parseInt(id);
+          return moveId > 0 && moveId <= 354 && (
+            name.toLowerCase().includes(moveSearch.toLowerCase()) ||
+            id.includes(moveSearch)
+          );
+        })
+        .slice(0, 10)
+    : [];
+
+  const handleToggleShiny = useCallback(() => {
+    if (generation !== 3) return;
+    const newData = new Uint8Array(saveData);
+    if (toggleGen3Shiny(newData, partyIndex)) {
+      onDataChange(newData);
+    }
+  }, [saveData, generation, partyIndex, onDataChange]);
+
+  const handleSetMove = useCallback((slot: number, moveId: number) => {
+    if (generation !== 3) return;
+    const newData = new Uint8Array(saveData);
+    const moves: [number, number, number, number] = [...pokemon.moves] as [number, number, number, number];
+    moves[slot] = moveId;
+    if (setGen3PokemonMoves(newData, partyIndex, moves)) {
+      onDataChange(newData);
+      setEditingMoveSlot(null);
+      setMoveSearch("");
+    }
+  }, [saveData, generation, partyIndex, pokemon.moves, onDataChange]);
 
   const applyPreset = async (presetType: string, evPreset?: EVPresetName) => {
     setIsApplying(true);
@@ -395,6 +596,37 @@ function PokemonDetails({
               </p>
             )}
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          {/* Shiny Toggle (Gen 3 only) */}
+          {generation === 3 && (
+            <button
+              onClick={handleToggleShiny}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                pokemon.isShiny
+                  ? "bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30"
+                  : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+              title={pokemon.isShiny ? "Remove shiny" : "Make shiny"}
+            >
+              <Icons.Sparkles className="h-4 w-4" />
+              {pokemon.isShiny ? "Shiny" : "Make Shiny"}
+            </button>
+          )}
+
+          {/* Remove Pokemon (Gen 3 only, if party > 1) */}
+          {generation === 3 && partySize > 1 && (
+            <button
+              onClick={onRemove}
+              className="flex items-center gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/20 transition-colors"
+              title="Remove from party"
+            >
+              <Icons.Trash2 className="h-4 w-4" />
+              Remove
+            </button>
+          )}
         </div>
       </div>
 
@@ -614,19 +846,78 @@ function PokemonDetails({
 
       {/* Moves */}
       <div>
-        <h4 className="text-sm font-semibold text-foreground mb-3">Moves</h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-foreground">Moves</h4>
+          {generation === 3 && (
+            <button
+              onClick={() => setIsEditingMoves(!isEditingMoves)}
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+            >
+              <Icons.Pencil className="h-3 w-3" />
+              {isEditingMoves ? "Done" : "Edit Moves"}
+            </button>
+          )}
+        </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {pokemon.moves.map((moveId, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2"
-            >
-              <span className="font-medium text-foreground">
-                {MOVE_NAMES[moveId] || `Move ${moveId}`}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                PP: {pokemon.movePP[index]}
-              </span>
+            <div key={index}>
+              {isEditingMoves && generation === 3 && editingMoveSlot === index ? (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-2">
+                  <div className="relative">
+                    <Icons.Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={moveSearch}
+                      onChange={(e) => setMoveSearch(e.target.value)}
+                      placeholder="Search move..."
+                      className="w-full rounded border border-border bg-background pl-7 pr-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                      autoFocus
+                    />
+                  </div>
+                  {filteredMoves.length > 0 && (
+                    <div className="mt-1 max-h-32 overflow-y-auto">
+                      {filteredMoves.map(([id, name]) => (
+                        <button
+                          key={id}
+                          onClick={() => handleSetMove(index, parseInt(id))}
+                          className="w-full text-left rounded px-2 py-1 text-sm hover:bg-accent transition-colors"
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      setEditingMoveSlot(null);
+                      setMoveSearch("");
+                    }}
+                    className="mt-1 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (isEditingMoves && generation === 3) {
+                      setEditingMoveSlot(index);
+                      setMoveSearch("");
+                    }
+                  }}
+                  disabled={!isEditingMoves || generation !== 3}
+                  className={`flex w-full items-center justify-between rounded-lg bg-muted/50 px-4 py-2 transition-colors ${
+                    isEditingMoves && generation === 3 ? "hover:bg-primary/10 cursor-pointer" : ""
+                  }`}
+                >
+                  <span className="font-medium text-foreground">
+                    {MOVE_NAMES[moveId] || `Move ${moveId}` || "(Empty)"}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    PP: {pokemon.movePP[index]}
+                  </span>
+                </button>
+              )}
             </div>
           ))}
         </div>

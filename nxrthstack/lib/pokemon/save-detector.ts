@@ -470,8 +470,8 @@ function detectGen1Save(data: Uint8Array): SaveInfo | null {
   const seconds = readU8(data, 0x2CEF);
 
   // Try to determine specific game
-  let game = "Pokemon Red/Blue";
-  let gameCode = "POKEMON RED";
+  const game = "Pokemon Red/Blue";
+  const gameCode = "POKEMON RED";
 
   return {
     generation: 1,
@@ -591,7 +591,7 @@ function detectGen3Save(data: Uint8Array): SaveInfo | null {
   if (!trainerName || trainerName.length === 0) return null;
 
   const trainerId = readU16LE(data, trainerSectionOffset + 0xA);
-  const secretId = readU16LE(data, trainerSectionOffset + 0xC);
+  const _secretId = readU16LE(data, trainerSectionOffset + 0xC); // Reserved for future use
   const hours = readU16LE(data, trainerSectionOffset + 0xE);
   const minutes = readU8(data, trainerSectionOffset + 0x10);
   const seconds = readU8(data, trainerSectionOffset + 0x11);
@@ -846,7 +846,7 @@ function parseGen1Pokemon(data: Uint8Array, partyOffset: number, index: number):
 
   const currentHp = readU16BE(data, pokemonDataOffset + 1);
   const level = data[pokemonDataOffset + 33]; // Party level at offset 0x21
-  const status = data[pokemonDataOffset + 4];
+  const _status = data[pokemonDataOffset + 4]; // Status condition (reserved)
 
   const move1 = data[pokemonDataOffset + 8];
   const move2 = data[pokemonDataOffset + 9];
@@ -1201,6 +1201,49 @@ function parseGen2Save(data: Uint8Array, info: SaveInfo): SaveData {
   };
 }
 
+/**
+ * Get Gen 3 game-specific offsets
+ * FireRed/LeafGreen uses different offsets than Ruby/Sapphire/Emerald
+ */
+function getGen3Offsets(data: Uint8Array, section0Offset: number, section1Offset: number): {
+  partyCount: number;
+  partyData: number;
+  money: number;
+  securityKey: number;
+  items: number;
+  keyItems: number;
+  pokeballs: number;
+  gameType: 'FRLG' | 'E' | 'RS';
+} {
+  const gameType = detectGen3GameType(data, section0Offset, section1Offset);
+
+  if (gameType === 'FRLG') {
+    // FireRed/LeafGreen offsets
+    return {
+      partyCount: 0x034,
+      partyData: 0x038,
+      money: 0x290,
+      securityKey: 0xAF8, // In section 0
+      items: 0x310,
+      keyItems: 0x3B8,
+      pokeballs: 0x430,
+      gameType,
+    };
+  } else {
+    // Ruby/Sapphire/Emerald offsets
+    return {
+      partyCount: 0x234,
+      partyData: 0x238,
+      money: 0x490,
+      securityKey: 0xAC, // In section 0 (Emerald only)
+      items: 0x560,
+      keyItems: 0x5D8,
+      pokeballs: 0x650,
+      gameType,
+    };
+  }
+}
+
 function parseGen3Save(data: Uint8Array, info: SaveInfo): SaveData {
   // Find active save and sections
   const save1Index = readU32LE(data, 0x0FFC);
@@ -1212,15 +1255,23 @@ function parseGen3Save(data: Uint8Array, info: SaveInfo): SaveData {
   for (let i = 0; i < 14; i++) {
     const sectionOffset = activeSaveOffset + (i * 0x1000);
     const sectionId = readU16LE(data, sectionOffset + 0xFF4);
-    sections[sectionId] = sectionOffset;
+    const signature = readU32LE(data, sectionOffset + 0xFF8);
+    if (signature === 0x08012025) {
+      sections[sectionId] = sectionOffset;
+    }
   }
+
+  // Get game-specific offsets
+  const offsets = sections[0] !== undefined && sections[1] !== undefined
+    ? getGen3Offsets(data, sections[0], sections[1])
+    : { partyCount: 0x234, partyData: 0x238, items: 0x560, keyItems: 0x5D8, pokeballs: 0x650, gameType: 'RS' as const, money: 0x490, securityKey: 0xAC };
 
   // Parse party Pokemon (section 1)
   const party: Pokemon[] = [];
   if (sections[1] !== undefined) {
-    const partyCount = readU32LE(data, sections[1] + 0x234);
+    const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
     for (let i = 0; i < Math.min(partyCount, 6); i++) {
-      const pokemon = parseGen3Pokemon(data, sections[1] + 0x238 + (i * 100));
+      const pokemon = parseGen3Pokemon(data, sections[1] + offsets.partyData + (i * 100));
       if (pokemon) party.push(pokemon);
     }
   }
@@ -1239,8 +1290,8 @@ function parseGen3Save(data: Uint8Array, info: SaveInfo): SaveData {
   if (sections[1] !== undefined) {
     // Items pocket
     for (let i = 0; i < 30; i++) {
-      const itemId = readU16LE(data, sections[1] + 0x560 + (i * 4));
-      const quantity = readU16LE(data, sections[1] + 0x562 + (i * 4));
+      const itemId = readU16LE(data, sections[1] + offsets.items + (i * 4));
+      const quantity = readU16LE(data, sections[1] + offsets.items + 2 + (i * 4));
       if (itemId > 0) {
         inventory.items.push({
           itemId,
@@ -1252,8 +1303,8 @@ function parseGen3Save(data: Uint8Array, info: SaveInfo): SaveData {
 
     // Key items
     for (let i = 0; i < 30; i++) {
-      const itemId = readU16LE(data, sections[1] + 0x5D8 + (i * 4));
-      const quantity = readU16LE(data, sections[1] + 0x5DA + (i * 4));
+      const itemId = readU16LE(data, sections[1] + offsets.keyItems + (i * 4));
+      const quantity = readU16LE(data, sections[1] + offsets.keyItems + 2 + (i * 4));
       if (itemId > 0) {
         inventory.keyItems.push({
           itemId,
@@ -1265,8 +1316,8 @@ function parseGen3Save(data: Uint8Array, info: SaveInfo): SaveData {
 
     // Poke Balls
     for (let i = 0; i < 16; i++) {
-      const itemId = readU16LE(data, sections[1] + 0x650 + (i * 4));
-      const quantity = readU16LE(data, sections[1] + 0x652 + (i * 4));
+      const itemId = readU16LE(data, sections[1] + offsets.pokeballs + (i * 4));
+      const quantity = readU16LE(data, sections[1] + offsets.pokeballs + 2 + (i * 4));
       if (itemId > 0) {
         inventory.pokeballs.push({
           itemId,
@@ -1974,9 +2025,22 @@ function calculateGen3Stat(
 }
 
 /**
- * Get active save offset and section map for Gen 3 save
+ * Get active save offset, section map, and game-specific offsets for Gen 3 save
  */
-function getGen3SaveInfo(data: Uint8Array): { activeSaveOffset: number; sections: Record<number, number> } {
+function getGen3SaveInfo(data: Uint8Array): {
+  activeSaveOffset: number;
+  sections: Record<number, number>;
+  offsets: {
+    partyCount: number;
+    partyData: number;
+    money: number;
+    securityKey: number;
+    items: number;
+    keyItems: number;
+    pokeballs: number;
+    gameType: 'FRLG' | 'E' | 'RS';
+  };
+} {
   const save1Index = readU32LE(data, 0x0FFC);
   const save2Index = readU32LE(data, 0xEFFC);
   const activeSaveOffset = save2Index > save1Index ? 0xE000 : 0;
@@ -1988,13 +2052,18 @@ function getGen3SaveInfo(data: Uint8Array): { activeSaveOffset: number; sections
     sections[sectionId] = sectionOffset;
   }
 
-  return { activeSaveOffset, sections };
+  // Get game-specific offsets
+  const offsets = sections[0] !== undefined && sections[1] !== undefined
+    ? getGen3Offsets(data, sections[0], sections[1])
+    : { partyCount: 0x234, partyData: 0x238, items: 0x560, keyItems: 0x5D8, pokeballs: 0x650, gameType: 'RS' as const, money: 0x490, securityKey: 0xAC };
+
+  return { activeSaveOffset, sections, offsets };
 }
 
 /**
  * Encrypt/decrypt Gen 3 Pokemon substructure data
  */
-function cryptGen3Substructure(data: Uint8Array, pokemonOffset: number, action: 'encrypt' | 'decrypt'): Uint8Array {
+function cryptGen3Substructure(data: Uint8Array, pokemonOffset: number, _action: 'encrypt' | 'decrypt'): Uint8Array {
   const personality = readU32LE(data, pokemonOffset);
   const otId = readU32LE(data, pokemonOffset + 4);
   const key = personality ^ otId;
@@ -2037,13 +2106,13 @@ export function setGen3PokemonIVs(
   partyIndex: number,
   ivs: { hp: number; attack: number; defense: number; speed: number; spAttack: number; spDefense: number }
 ): boolean {
-  const { sections } = getGen3SaveInfo(data);
+  const { sections, offsets } = getGen3SaveInfo(data);
   if (sections[1] === undefined) return false;
 
-  const partyCount = readU32LE(data, sections[1] + 0x234);
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
   if (partyIndex >= partyCount || partyIndex < 0) return false;
 
-  const pokemonOffset = sections[1] + 0x238 + (partyIndex * 100);
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const substructOrder = personality % 24;
   const substructOffsets = getSubstructOrder(substructOrder);
@@ -2087,13 +2156,13 @@ export function setGen3PokemonEVs(
   partyIndex: number,
   evs: { hp: number; attack: number; defense: number; speed: number; spAttack: number; spDefense: number }
 ): boolean {
-  const { sections } = getGen3SaveInfo(data);
+  const { sections, offsets } = getGen3SaveInfo(data);
   if (sections[1] === undefined) return false;
 
-  const partyCount = readU32LE(data, sections[1] + 0x234);
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
   if (partyIndex >= partyCount || partyIndex < 0) return false;
 
-  const pokemonOffset = sections[1] + 0x238 + (partyIndex * 100);
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const substructOrder = personality % 24;
   const substructOffsets = getSubstructOrder(substructOrder);
@@ -2125,13 +2194,13 @@ export function setGen3PokemonEVs(
  * Set Pokemon level and recalculate stats for Gen 3
  */
 export function setGen3PokemonLevel(data: Uint8Array, partyIndex: number, level: number): boolean {
-  const { sections } = getGen3SaveInfo(data);
+  const { sections, offsets } = getGen3SaveInfo(data);
   if (sections[1] === undefined) return false;
 
-  const partyCount = readU32LE(data, sections[1] + 0x234);
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
   if (partyIndex >= partyCount || partyIndex < 0) return false;
 
-  const pokemonOffset = sections[1] + 0x238 + (partyIndex * 100);
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const nature = personality % 25;
   const substructOrder = personality % 24;
@@ -2210,13 +2279,13 @@ export function setGen3PokemonLevel(data: Uint8Array, partyIndex: number, level:
  * Recalculate Pokemon stats based on current IVs, EVs, and level
  */
 export function recalculateGen3Stats(data: Uint8Array, partyIndex: number): boolean {
-  const { sections } = getGen3SaveInfo(data);
+  const { sections, offsets } = getGen3SaveInfo(data);
   if (sections[1] === undefined) return false;
 
-  const partyCount = readU32LE(data, sections[1] + 0x234);
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
   if (partyIndex >= partyCount || partyIndex < 0) return false;
 
-  const pokemonOffset = sections[1] + 0x238 + (partyIndex * 100);
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const level = readU8(data, pokemonOffset + 84);
 
   return setGen3PokemonLevel(data, partyIndex, level);
@@ -2270,13 +2339,13 @@ export function setPerfectPokemon(
  * Heal Pokemon to full HP
  */
 export function healGen3Pokemon(data: Uint8Array, partyIndex: number): boolean {
-  const { sections } = getGen3SaveInfo(data);
+  const { sections, offsets } = getGen3SaveInfo(data);
   if (sections[1] === undefined) return false;
 
-  const partyCount = readU32LE(data, sections[1] + 0x234);
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
   if (partyIndex >= partyCount || partyIndex < 0) return false;
 
-  const pokemonOffset = sections[1] + 0x238 + (partyIndex * 100);
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const maxHp = readU16LE(data, pokemonOffset + 88);
   writeU16LE(data, pokemonOffset + 86, maxHp);
 
@@ -2601,13 +2670,13 @@ export function setGen3PokemonNickname(
   partyIndex: number,
   nickname: string
 ): boolean {
-  const { sections } = getGen3SaveInfo(data);
+  const { sections, offsets } = getGen3SaveInfo(data);
   if (sections[1] === undefined) return false;
 
-  const partyCount = readU32LE(data, sections[1] + 0x234);
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
   if (partyIndex >= partyCount || partyIndex < 0) return false;
 
-  const pokemonOffset = sections[1] + 0x238 + (partyIndex * 100);
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   // Nickname is at offset 8 in the Pokemon structure (10 bytes)
   const encoded = encodeGen3String(nickname, 10);
   data.set(encoded, pokemonOffset + 8);
@@ -2694,15 +2763,15 @@ export function setGen3PokemonSpecies(
   partyIndex: number,
   species: number
 ): boolean {
-  const { sections } = getGen3SaveInfo(data);
+  const { sections, offsets } = getGen3SaveInfo(data);
   if (sections[1] === undefined) return false;
 
-  const partyCount = readU32LE(data, sections[1] + 0x234);
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
   if (partyIndex >= partyCount || partyIndex < 0) return false;
 
   if (species < 1 || species > 386) return false; // Gen 3 has 386 Pokemon
 
-  const pokemonOffset = sections[1] + 0x238 + (partyIndex * 100);
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
   const personality = readU32LE(data, pokemonOffset);
   const substructOrder = personality % 24;
   const substructOffsets = getSubstructOrder(substructOrder);
@@ -2725,6 +2794,369 @@ export function setGen3PokemonSpecies(
   setGen3PokemonNickname(data, partyIndex, speciesName);
 
   updateGen3SectionChecksum(data, sections[1]);
+  return true;
+}
+
+/**
+ * Set Pokemon moves for Gen 3
+ */
+export function setGen3PokemonMoves(
+  data: Uint8Array,
+  partyIndex: number,
+  moves: [number, number, number, number],
+  pp?: [number, number, number, number]
+): boolean {
+  const { sections, offsets } = getGen3SaveInfo(data);
+  if (sections[1] === undefined) return false;
+
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
+  if (partyIndex >= partyCount || partyIndex < 0) return false;
+
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
+  const personality = readU32LE(data, pokemonOffset);
+  const substructOrder = personality % 24;
+  const substructOffsets = getSubstructOrder(substructOrder);
+
+  // Decrypt substructure
+  const substructure = cryptGen3Substructure(data, pokemonOffset, 'decrypt');
+
+  // Attacks substructure contains moves
+  const attacksOffset = substructOffsets[1] * 12;
+
+  // Write moves (2 bytes each, 4 moves)
+  for (let i = 0; i < 4; i++) {
+    writeU16LE(substructure, attacksOffset + (i * 2), moves[i] || 0);
+  }
+
+  // Write PP (1 byte each, 4 PP values)
+  const defaultPP = [35, 35, 35, 35]; // Default PP if not specified
+  const ppValues = pp || defaultPP;
+  for (let i = 0; i < 4; i++) {
+    writeU8(substructure, attacksOffset + 8 + i, ppValues[i] || 0);
+  }
+
+  // Write back encrypted
+  writeGen3Substructure(data, pokemonOffset, substructure);
+
+  updateGen3SectionChecksum(data, sections[1]);
+  return true;
+}
+
+/**
+ * Toggle shiny status for Gen 3 Pokemon
+ * Shiny is determined by: (trainerId XOR secretId XOR (personality upper 16 bits) XOR (personality lower 16 bits)) < 8
+ * To make shiny, we modify the personality to achieve this
+ */
+export function toggleGen3Shiny(data: Uint8Array, partyIndex: number): boolean {
+  const { sections, offsets } = getGen3SaveInfo(data);
+  if (sections[1] === undefined) return false;
+
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
+  if (partyIndex >= partyCount || partyIndex < 0) return false;
+
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
+
+  // Read current values
+  const personality = readU32LE(data, pokemonOffset);
+  const otId = readU32LE(data, pokemonOffset + 4);
+  const trainerId = otId & 0xFFFF;
+  const secretId = (otId >> 16) & 0xFFFF;
+
+  const p1 = personality & 0xFFFF;
+  const p2 = (personality >> 16) & 0xFFFF;
+
+  // Check if currently shiny
+  const shinyValue = trainerId ^ secretId ^ p1 ^ p2;
+  const isShiny = shinyValue < 8;
+
+  if (isShiny) {
+    // Make non-shiny: Set p2 to make shinyValue >= 8
+    // We modify the upper 16 bits of personality while preserving nature/ability
+    const newP2 = (trainerId ^ secretId ^ p1 ^ 8) & 0xFFFF;
+    const newPersonality = (newP2 << 16) | p1;
+    writeU32LE(data, pokemonOffset, newPersonality);
+  } else {
+    // Make shiny: Set p2 to make shinyValue < 8 (we'll use 0)
+    const newP2 = (trainerId ^ secretId ^ p1) & 0xFFFF;
+    const newPersonality = (newP2 << 16) | p1;
+    writeU32LE(data, pokemonOffset, newPersonality);
+  }
+
+  // Re-encrypt the substructure with new personality
+  // Decrypt with old key, encrypt with new key
+  const oldKey = personality ^ otId;
+  const newPersonality = readU32LE(data, pokemonOffset);
+  const newKey = newPersonality ^ otId;
+
+  // Read encrypted data
+  const encryptedData = new Uint8Array(48);
+  for (let i = 0; i < 48; i++) {
+    encryptedData[i] = data[pokemonOffset + 32 + i];
+  }
+
+  // Decrypt with old key
+  for (let i = 0; i < 48; i += 4) {
+    const value = readU32LE(encryptedData, i);
+    writeU32LE(encryptedData, i, value ^ oldKey);
+  }
+
+  // Encrypt with new key
+  for (let i = 0; i < 48; i += 4) {
+    const value = readU32LE(encryptedData, i);
+    writeU32LE(encryptedData, i, value ^ newKey);
+  }
+
+  // Write back
+  for (let i = 0; i < 48; i++) {
+    data[pokemonOffset + 32 + i] = encryptedData[i];
+  }
+
+  updateGen3SectionChecksum(data, sections[1]);
+  return true;
+}
+
+/**
+ * Check if a Gen 3 Pokemon is shiny
+ */
+export function isGen3PokemonShiny(data: Uint8Array, partyIndex: number): boolean {
+  const { sections, offsets } = getGen3SaveInfo(data);
+  if (sections[1] === undefined) return false;
+
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
+  if (partyIndex >= partyCount || partyIndex < 0) return false;
+
+  const pokemonOffset = sections[1] + offsets.partyData + (partyIndex * 100);
+
+  const personality = readU32LE(data, pokemonOffset);
+  const otId = readU32LE(data, pokemonOffset + 4);
+  const trainerId = otId & 0xFFFF;
+  const secretId = (otId >> 16) & 0xFFFF;
+
+  const p1 = personality & 0xFFFF;
+  const p2 = (personality >> 16) & 0xFFFF;
+
+  const shinyValue = trainerId ^ secretId ^ p1 ^ p2;
+  return shinyValue < 8;
+}
+
+/**
+ * Add a new Pokemon to the party for Gen 3
+ */
+export function addGen3Pokemon(
+  data: Uint8Array,
+  species: number,
+  level: number,
+  options?: {
+    nickname?: string;
+    moves?: [number, number, number, number];
+    shiny?: boolean;
+    ivs?: { hp: number; attack: number; defense: number; speed: number; spAttack: number; spDefense: number };
+    evs?: { hp: number; attack: number; defense: number; speed: number; spAttack: number; spDefense: number };
+  }
+): boolean {
+  const { sections, offsets } = getGen3SaveInfo(data);
+  if (sections[1] === undefined || sections[0] === undefined) return false;
+
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
+  if (partyCount >= 6) return false; // Party is full
+
+  if (species < 1 || species > 386) return false;
+
+  // Read trainer info from section 0
+  const trainerId = readU16LE(data, sections[0] + 0x0A);
+  const secretId = readU16LE(data, sections[0] + 0x0C);
+  const fullOtId = (secretId << 16) | trainerId;
+
+  // Generate personality value
+  let personality = Math.floor(Math.random() * 0xFFFFFFFF) >>> 0;
+
+  // If shiny is requested, adjust personality
+  if (options?.shiny) {
+    const p1 = personality & 0xFFFF;
+    const targetP2 = (trainerId ^ secretId ^ p1) & 0xFFFF;
+    personality = (targetP2 << 16) | p1;
+  }
+
+  // Calculate the new Pokemon offset
+  const pokemonOffset = sections[1] + offsets.partyData + (partyCount * 100);
+
+  // Write Pokemon structure
+  writeU32LE(data, pokemonOffset, personality); // Personality
+  writeU32LE(data, pokemonOffset + 4, fullOtId); // OT ID
+
+  // Nickname (offset 8, 10 bytes)
+  const pokemonName = options?.nickname || POKEMON_NAMES[species] || "POKEMON";
+  const encodedNickname = encodeGen3String(pokemonName.toUpperCase(), 10);
+  for (let i = 0; i < 10; i++) {
+    data[pokemonOffset + 8 + i] = encodedNickname[i];
+  }
+
+  // Language (offset 18)
+  writeU16LE(data, pokemonOffset + 18, 0x0202); // English
+
+  // OT Name (offset 20, 7 bytes)
+  const trainerName = decodeGen3String(data, sections[0], 7);
+  const encodedOtName = encodeGen3String(trainerName, 7);
+  for (let i = 0; i < 7; i++) {
+    data[pokemonOffset + 20 + i] = encodedOtName[i];
+  }
+
+  // Markings (offset 27)
+  data[pokemonOffset + 27] = 0;
+
+  // Checksum placeholder (offset 28)
+  writeU16LE(data, pokemonOffset + 28, 0);
+
+  // Padding (offset 30)
+  writeU16LE(data, pokemonOffset + 30, 0);
+
+  // Create substructure data (48 bytes)
+  const substructure = new Uint8Array(48);
+  const substructOrder = personality % 24;
+  const substructOffsets = getSubstructOrder(substructOrder);
+
+  // Growth substructure
+  const growthOffset = substructOffsets[0] * 12;
+  writeU16LE(substructure, growthOffset, species); // Species
+  writeU16LE(substructure, growthOffset + 2, 0); // Held item
+  const exp = Math.pow(level, 3); // Simplified exp calculation
+  writeU32LE(substructure, growthOffset + 4, exp); // Experience
+  data[substructure[growthOffset + 8]] = 0; // PP bonuses
+  data[substructure[growthOffset + 9]] = 70; // Friendship
+
+  // Attacks substructure
+  const attacksOffset = substructOffsets[1] * 12;
+  const defaultMoves = options?.moves || [33, 0, 0, 0]; // Tackle as default
+  for (let i = 0; i < 4; i++) {
+    writeU16LE(substructure, attacksOffset + (i * 2), defaultMoves[i]);
+  }
+  // PP values
+  const ppValues = [35, 0, 0, 0];
+  for (let i = 0; i < 4; i++) {
+    substructure[attacksOffset + 8 + i] = ppValues[i];
+  }
+
+  // EVs & Condition substructure
+  const evsOffset = substructOffsets[2] * 12;
+  const evs = options?.evs || { hp: 0, attack: 0, defense: 0, speed: 0, spAttack: 0, spDefense: 0 };
+  substructure[evsOffset] = Math.min(255, evs.hp);
+  substructure[evsOffset + 1] = Math.min(255, evs.attack);
+  substructure[evsOffset + 2] = Math.min(255, evs.defense);
+  substructure[evsOffset + 3] = Math.min(255, evs.speed);
+  substructure[evsOffset + 4] = Math.min(255, evs.spAttack);
+  substructure[evsOffset + 5] = Math.min(255, evs.spDefense);
+  // Contest conditions (offset 6-11)
+  for (let i = 6; i < 12; i++) {
+    substructure[evsOffset + i] = 0;
+  }
+
+  // Misc substructure
+  const miscOffset = substructOffsets[3] * 12;
+  substructure[miscOffset] = 0; // Pokerus
+  substructure[miscOffset + 1] = 0; // Met location
+  // Origins info (offset 2-3)
+  const originsInfo = (level & 0x7F) | (0 << 7) | (0 << 11) | (3 << 14); // Level met, ball (Poke Ball = 4 but using 3 for index)
+  writeU16LE(substructure, miscOffset + 2, originsInfo);
+  // IVs, Egg, and Ability (offset 4-7)
+  const ivs = options?.ivs || { hp: 15, attack: 15, defense: 15, speed: 15, spAttack: 15, spDefense: 15 };
+  const ivData =
+    (ivs.hp & 0x1F) |
+    ((ivs.attack & 0x1F) << 5) |
+    ((ivs.defense & 0x1F) << 10) |
+    ((ivs.speed & 0x1F) << 15) |
+    ((ivs.spAttack & 0x1F) << 20) |
+    ((ivs.spDefense & 0x1F) << 25);
+  writeU32LE(substructure, miscOffset + 4, ivData);
+  // Ribbons (offset 8-11)
+  writeU32LE(substructure, miscOffset + 8, 0);
+
+  // Calculate substructure checksum
+  let checksum = 0;
+  for (let i = 0; i < 48; i += 2) {
+    checksum = (checksum + readU16LE(substructure, i)) & 0xFFFF;
+  }
+  writeU16LE(data, pokemonOffset + 28, checksum);
+
+  // Encrypt and write substructure
+  const encryptKey = personality ^ fullOtId;
+  for (let i = 0; i < 48; i += 4) {
+    const value = readU32LE(substructure, i);
+    writeU32LE(data, pokemonOffset + 32 + i, value ^ encryptKey);
+  }
+
+  // Party data (offset 80-99)
+  // Status condition
+  writeU32LE(data, pokemonOffset + 80, 0);
+  // Level
+  data[pokemonOffset + 84] = Math.min(100, Math.max(1, level));
+  // Pokerus remaining
+  data[pokemonOffset + 85] = 0;
+
+  // Calculate stats
+  const baseStats = BASE_STATS[species] || DEFAULT_BASE_STATS;
+  const nature = personality % 25;
+  const clampedLevel = Math.min(100, Math.max(1, level));
+
+  const maxHp = calculateGen3Stat(baseStats.hp, ivs.hp, evs.hp, clampedLevel, nature, 0);
+  const atk = calculateGen3Stat(baseStats.attack, ivs.attack, evs.attack, clampedLevel, nature, 1);
+  const def = calculateGen3Stat(baseStats.defense, ivs.defense, evs.defense, clampedLevel, nature, 2);
+  const spd = calculateGen3Stat(baseStats.speed, ivs.speed, evs.speed, clampedLevel, nature, 3);
+  const spA = calculateGen3Stat(baseStats.spAttack, ivs.spAttack, evs.spAttack, clampedLevel, nature, 4);
+  const spD = calculateGen3Stat(baseStats.spDefense, ivs.spDefense, evs.spDefense, clampedLevel, nature, 5);
+
+  writeU16LE(data, pokemonOffset + 86, maxHp); // Current HP
+  writeU16LE(data, pokemonOffset + 88, maxHp); // Max HP
+  writeU16LE(data, pokemonOffset + 90, atk); // Attack
+  writeU16LE(data, pokemonOffset + 92, def); // Defense
+  writeU16LE(data, pokemonOffset + 94, spd); // Speed
+  writeU16LE(data, pokemonOffset + 96, spA); // Sp. Attack
+  writeU16LE(data, pokemonOffset + 98, spD); // Sp. Defense
+
+  // Update party count
+  writeU32LE(data, sections[1] + offsets.partyCount, partyCount + 1);
+
+  // Update section checksum
+  updateGen3SectionChecksum(data, sections[1]);
+
+  return true;
+}
+
+/**
+ * Remove a Pokemon from the party for Gen 3
+ */
+export function removeGen3Pokemon(data: Uint8Array, partyIndex: number): boolean {
+  const { sections, offsets } = getGen3SaveInfo(data);
+  if (sections[1] === undefined) return false;
+
+  const partyCount = readU32LE(data, sections[1] + offsets.partyCount);
+  if (partyIndex >= partyCount || partyIndex < 0) return false;
+  if (partyCount <= 1) return false; // Cannot remove last Pokemon
+
+  const partyDataStart = sections[1] + offsets.partyData;
+
+  // Shift all Pokemon after the removed one
+  for (let i = partyIndex; i < partyCount - 1; i++) {
+    const sourceOffset = partyDataStart + ((i + 1) * 100);
+    const destOffset = partyDataStart + (i * 100);
+
+    // Copy 100 bytes
+    for (let j = 0; j < 100; j++) {
+      data[destOffset + j] = data[sourceOffset + j];
+    }
+  }
+
+  // Clear the last slot
+  const lastSlotOffset = partyDataStart + ((partyCount - 1) * 100);
+  for (let i = 0; i < 100; i++) {
+    data[lastSlotOffset + i] = 0;
+  }
+
+  // Update party count
+  writeU32LE(data, sections[1] + offsets.partyCount, partyCount - 1);
+
+  // Update section checksum
+  updateGen3SectionChecksum(data, sections[1]);
+
   return true;
 }
 
