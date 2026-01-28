@@ -180,7 +180,7 @@ export function OverlayConfigurator() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <IconComponent className="h-5 w-5 text-primary" />
-                    <span className="font-medium">{type.name}</span>
+                    <span className="font-medium text-foreground">{type.name}</span>
                   </div>
                   <p className="text-sm text-foreground/60">{type.description}</p>
                 </button>
@@ -202,7 +202,7 @@ export function OverlayConfigurator() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-foreground">
                 Overlay Name
               </label>
               <input
@@ -210,7 +210,7 @@ export function OverlayConfigurator() {
                 value={newOverlayName}
                 onChange={(e) => setNewOverlayName(e.target.value)}
                 placeholder="My Stream Overlay"
-                className="w-full px-3 py-2 rounded-lg bg-muted border-0"
+                className="w-full px-3 py-2 rounded-lg bg-muted border-0 text-foreground placeholder:text-foreground/40"
               />
             </div>
 
@@ -262,7 +262,7 @@ export function OverlayConfigurator() {
                     <div className="flex items-center gap-3">
                       <IconComponent className="h-5 w-5 text-primary" />
                       <div>
-                        <h4 className="font-medium">{overlay.name}</h4>
+                        <h4 className="font-medium text-foreground">{overlay.name}</h4>
                         <p className="text-sm text-foreground/60">
                           {type?.name || overlay.type}
                         </p>

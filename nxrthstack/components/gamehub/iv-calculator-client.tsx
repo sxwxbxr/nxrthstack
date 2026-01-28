@@ -235,7 +235,7 @@ export function IVCalculatorClient() {
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
               <div className="flex items-center gap-4">
                 <span className="text-lg font-bold text-foreground/60">#{pokemon.pokedexId}</span>
-                <span className="text-xl font-semibold capitalize">{pokemon.name}</span>
+                <span className="text-xl font-semibold capitalize text-foreground">{pokemon.name}</span>
                 <div className="flex gap-1">
                   {pokemon.types.map((type) => (
                     <span
@@ -276,7 +276,7 @@ export function IVCalculatorClient() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search Pokemon..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border-0 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
                   autoFocus
                 />
               </div>
@@ -293,7 +293,7 @@ export function IVCalculatorClient() {
                       className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
                     >
                       <span className="text-xs text-foreground/60 w-8">#{p.pokedexId}</span>
-                      <span className="font-medium capitalize flex-1">{p.name}</span>
+                      <span className="font-medium capitalize flex-1 text-foreground">{p.name}</span>
                       <div className="flex gap-1">
                         {p.types.map((type) => (
                           <span
@@ -338,7 +338,7 @@ export function IVCalculatorClient() {
             max={100}
             value={level}
             onChange={(e) => setLevel(parseInt(e.target.value) || 1)}
-            className="w-full mt-2 px-4 py-3 rounded-lg bg-muted border-0 text-lg font-semibold"
+            className="w-full mt-2 px-4 py-3 rounded-lg bg-muted border-0 text-lg font-semibold text-foreground"
           />
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
@@ -346,7 +346,7 @@ export function IVCalculatorClient() {
           <select
             value={nature}
             onChange={(e) => setNature(e.target.value)}
-            className="w-full mt-2 px-4 py-3 rounded-lg bg-muted border-0 text-lg"
+            className="w-full mt-2 px-4 py-3 rounded-lg bg-muted border-0 text-lg text-foreground"
           >
             {Object.entries(NATURES).map(([key, { display }]) => (
               <option key={key} value={key}>
@@ -365,7 +365,7 @@ export function IVCalculatorClient() {
             {Object.entries(statLabels).map(([key, label]) => (
               <div key={key} className="space-y-2">
                 <div className="flex justify-between">
-                  <label className="text-sm font-medium">{label}</label>
+                  <label className="text-sm font-medium text-foreground">{label}</label>
                   <span className="text-xs text-foreground/60">
                     Base: {baseStats[key]}
                   </span>
@@ -381,7 +381,7 @@ export function IVCalculatorClient() {
                     })
                   }
                   placeholder="Stat value"
-                  className="w-full px-3 py-2 rounded-lg bg-muted border-0 text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground placeholder:text-foreground/40"
                 />
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-foreground/60">EVs:</span>
@@ -397,7 +397,7 @@ export function IVCalculatorClient() {
                       })
                     }
                     placeholder="0"
-                    className="flex-1 px-2 py-1 rounded bg-muted/50 border-0 text-xs"
+                    className="flex-1 px-2 py-1 rounded bg-muted/50 border-0 text-xs text-foreground placeholder:text-foreground/40"
                   />
                 </div>
               </div>

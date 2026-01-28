@@ -284,7 +284,7 @@ export function DamageCalculatorClient() {
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
             <div className="flex items-center gap-3">
               <span className="text-sm text-foreground/60">#{state.pokemon.pokedexId}</span>
-              <span className="font-medium capitalize">{state.pokemon.name}</span>
+              <span className="font-medium capitalize text-foreground">{state.pokemon.name}</span>
               <div className="flex gap-1">
                 {state.pokemon.types.map((type) => (
                   <span
@@ -324,7 +324,7 @@ export function DamageCalculatorClient() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search Pokemon..."
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border-0 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
                 autoFocus
               />
             </div>
@@ -341,7 +341,7 @@ export function DamageCalculatorClient() {
                     className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
                   >
                     <span className="text-xs text-foreground/60 w-8">#{pokemon.pokedexId}</span>
-                    <span className="font-medium capitalize flex-1">{pokemon.name}</span>
+                    <span className="font-medium capitalize flex-1 text-foreground">{pokemon.name}</span>
                   </button>
                 ))
               ) : searchQuery ? (
@@ -367,7 +367,7 @@ export function DamageCalculatorClient() {
               const setter = target === "attacker" ? setAttacker : setDefender;
               setter({ ...state, level: parseInt(e.target.value) || 1 });
             }}
-            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm"
+            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm text-foreground"
           />
         </div>
         <div>
@@ -380,7 +380,7 @@ export function DamageCalculatorClient() {
               const setter = target === "attacker" ? setAttacker : setDefender;
               setter({ ...state, hp: parseInt(e.target.value) || 1 });
             }}
-            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm"
+            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm text-foreground"
           />
         </div>
         <div>
@@ -393,7 +393,7 @@ export function DamageCalculatorClient() {
               const setter = target === "attacker" ? setAttacker : setDefender;
               setter({ ...state, attack: parseInt(e.target.value) || 1 });
             }}
-            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm"
+            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm text-foreground"
           />
         </div>
         <div>
@@ -406,7 +406,7 @@ export function DamageCalculatorClient() {
               const setter = target === "attacker" ? setAttacker : setDefender;
               setter({ ...state, defense: parseInt(e.target.value) || 1 });
             }}
-            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm"
+            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm text-foreground"
           />
         </div>
         <div>
@@ -419,7 +419,7 @@ export function DamageCalculatorClient() {
               const setter = target === "attacker" ? setAttacker : setDefender;
               setter({ ...state, spAtk: parseInt(e.target.value) || 1 });
             }}
-            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm"
+            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm text-foreground"
           />
         </div>
         <div>
@@ -432,7 +432,7 @@ export function DamageCalculatorClient() {
               const setter = target === "attacker" ? setAttacker : setDefender;
               setter({ ...state, spDef: parseInt(e.target.value) || 1 });
             }}
-            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm"
+            className="w-full mt-1 px-3 py-1.5 rounded-lg bg-muted border-0 text-sm text-foreground"
           />
         </div>
       </div>
@@ -461,7 +461,7 @@ export function DamageCalculatorClient() {
                   setIsStab(attacker.pokemon.types.map(t => t.toLowerCase()).includes(e.target.value));
                 }
               }}
-              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm"
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground"
             >
               {ALL_TYPES.map((type) => (
                 <option key={type} value={type} className="capitalize">
@@ -478,7 +478,7 @@ export function DamageCalculatorClient() {
               max={300}
               value={movePower}
               onChange={(e) => setMovePower(parseInt(e.target.value) || 0)}
-              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm"
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground"
             />
           </div>
           <div>
@@ -486,7 +486,7 @@ export function DamageCalculatorClient() {
             <select
               value={moveCategory}
               onChange={(e) => setMoveCategory(e.target.value as "physical" | "special")}
-              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm"
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground"
             >
               <option value="physical">Physical</option>
               <option value="special">Special</option>
@@ -497,7 +497,7 @@ export function DamageCalculatorClient() {
             <select
               value={weather}
               onChange={(e) => setWeather(e.target.value as any)}
-              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm"
+              className="w-full mt-1 px-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground"
             >
               <option value="none">None</option>
               <option value="sun">Harsh Sunlight</option>
@@ -517,7 +517,7 @@ export function DamageCalculatorClient() {
               onChange={(e) => setIsStab(e.target.checked)}
               className="rounded"
             />
-            <span className="text-sm">STAB (1.5x)</span>
+            <span className="text-sm text-foreground">STAB (1.5x)</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -526,7 +526,7 @@ export function DamageCalculatorClient() {
               onChange={(e) => setIsCrit(e.target.checked)}
               className="rounded"
             />
-            <span className="text-sm">Critical Hit (1.5x)</span>
+            <span className="text-sm text-foreground">Critical Hit (1.5x)</span>
           </label>
         </div>
       </div>

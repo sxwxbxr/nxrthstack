@@ -215,7 +215,7 @@ export function TeamBuilderClient() {
           type="text"
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
-          className="text-xl font-bold bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none px-1"
+          className="text-xl font-bold bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none px-1 text-foreground"
         />
         <div className="flex gap-2 ml-auto">
           <button
@@ -394,7 +394,7 @@ export function TeamBuilderClient() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search Pokemon..."
-                      className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border-0 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border-0 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary"
                       autoFocus
                     />
                   </div>
@@ -413,7 +413,7 @@ export function TeamBuilderClient() {
                           <span className="text-xs text-foreground/60 w-8">
                             #{pokemon.pokedexId}
                           </span>
-                          <span className="font-medium capitalize flex-1">
+                          <span className="font-medium capitalize flex-1 text-foreground">
                             {pokemon.name}
                           </span>
                           <div className="flex gap-1">

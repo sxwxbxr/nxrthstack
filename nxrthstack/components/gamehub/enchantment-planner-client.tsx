@@ -138,7 +138,7 @@ export function EnchantmentPlannerClient() {
           type="text"
           value={planName}
           onChange={(e) => setPlanName(e.target.value)}
-          className="text-lg font-bold bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none px-1"
+          className="text-lg font-bold bg-transparent border-b border-transparent hover:border-border focus:border-primary outline-none px-1 text-foreground"
         />
         <div className="flex gap-2 ml-auto">
           <button
@@ -220,7 +220,7 @@ export function EnchantmentPlannerClient() {
                   : "bg-muted hover:bg-muted/80"
               }`}
             >
-              <span className="text-xs font-medium">{item.name}</span>
+              <span className="text-xs font-medium text-inherit">{item.name}</span>
             </button>
           ))}
         </div>
@@ -257,7 +257,7 @@ export function EnchantmentPlannerClient() {
                       disabled={conflicts && !selected}
                       className="rounded"
                     />
-                    <span className="font-medium">{enchantment.name}</span>
+                    <span className="font-medium text-foreground">{enchantment.name}</span>
                   </div>
                   <div className="flex gap-1">
                     {enchantment.isTreasure && (
@@ -284,7 +284,7 @@ export function EnchantmentPlannerClient() {
                       onChange={(e) =>
                         setEnchantmentLevel(enchantment.id, parseInt(e.target.value))
                       }
-                      className="px-2 py-1 text-xs rounded bg-muted border-0"
+                      className="px-2 py-1 text-xs rounded bg-muted border-0 text-foreground"
                     >
                       {Array.from({ length: enchantment.maxLevel }, (_, i) => i + 1).map(
                         (level) => (
@@ -336,7 +336,7 @@ export function EnchantmentPlannerClient() {
                       key={selected.id}
                       className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
                     >
-                      <span className="text-sm">
+                      <span className="text-sm text-foreground">
                         {enchantment.name}
                         {levelDisplay}
                       </span>
@@ -362,7 +362,7 @@ export function EnchantmentPlannerClient() {
                   <select
                     value={priorWorkPenalty}
                     onChange={(e) => setPriorWorkPenalty(parseInt(e.target.value))}
-                    className="px-2 py-1 text-sm rounded bg-muted border-0"
+                    className="px-2 py-1 text-sm rounded bg-muted border-0 text-foreground"
                   >
                     <option value={0}>0 (New item)</option>
                     <option value={1}>1 (1 prior operation)</option>
