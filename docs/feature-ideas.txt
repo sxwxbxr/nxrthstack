@@ -7,23 +7,23 @@ Here are some ideas for GameHub improvements and additions:
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
   │ Stats Visualization      │ Done                                                          │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Map Tracker              │ Track which maps you play, win rates per map                  │
+  │ Map Tracker              │ Skip this one, it's not that useful                           │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Operator Usage Stats     │ See which operators you pick most often                       │
+  │ Operator Usage Stats     │ Skip this one, it's not that useful                           │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
   │ Strat Roulette           │ Done                                                          │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
   │ Interactive Callout Maps │ Needs map layouts from the community                          │
   ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Tournament Brackets      │ Support for 4/8 player mini-tournaments                       │
+  │ Tournament Brackets      │ Done                                                          │
   └──────────────────────────┴───────────────────────────────────────────────────────────────┘
   Pokemon Additions
   ┌────────────────────┬─────────────────────────────────────────────────────┐
   │      Feature       │                     Description                     │
   ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Team Builder       │ Build competitive teams with type coverage analysis │
+  │ Team Builder       │ Done                                                │
   ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Damage Calculator  │ Calculate move damage with stats/items/abilities    │
+  │ Damage Calculator  │ Done                                                │
   ├────────────────────┼─────────────────────────────────────────────────────┤
   │ Nuzlocke Tracker   │ Track encounters, deaths, rules for Nuzlocke runs   │
   ├────────────────────┼─────────────────────────────────────────────────────┤
@@ -31,7 +31,7 @@ Here are some ideas for GameHub improvements and additions:
   ├────────────────────┼─────────────────────────────────────────────────────┤
   │ Living Dex Tracker │ Track progress toward completing a living Pokedex   │
   ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ IV Calculator      │ Calculate IVs from Pokemon stats                    │
+  │ IV Calculator      │ Done                                                │
   └────────────────────┴─────────────────────────────────────────────────────┘
   Minecraft Tools
   ┌───────────────────────┬──────────────────────────────────────────────────────┐
@@ -45,7 +45,7 @@ Here are some ideas for GameHub improvements and additions:
   ├───────────────────────┼──────────────────────────────────────────────────────┤
   │ Seed Library          │ Share/browse interesting world seeds                 │
   ├───────────────────────┼──────────────────────────────────────────────────────┤
-  │ Enchantment Planner   │ Plan optimal enchantment combinations                │
+  │ Enchantment Planner   │ Done                                                 │
   └───────────────────────┴──────────────────────────────────────────────────────┘
   New Game Support
   ┌───────────────┬───────────────────────────────────────────────┐
@@ -65,20 +65,11 @@ Here are some ideas for GameHub improvements and additions:
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
   │ Gaming Stats Dashboard │ Overview of all your GameHub activity                       │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Achievement System     │ Badges for milestones (100 matches, first bug report, etc.) │
+  │ Achievement System     │ Done                                                        │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
   │ Session Scheduler      │ Plan gaming sessions with friends                           │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Discord Integration    │ Bot commands to access GameHub features                     │
+  │ Discord Integration    │ Done (OAuth account linking)                                │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Stream Overlays        │ Generate OBS overlays for 1v1 scores                        │
+  │ Stream Overlays        │ Done                                                        │
   └────────────────────────┴─────────────────────────────────────────────────────────────┘
-  ---
-  Quick wins (easy to implement):
-  1. Match history export for R6
-
-
-  High impact (more complex):
-  1. Stats visualization with charts
-  2. Team builder for Pokemon
-  3. Achievement system

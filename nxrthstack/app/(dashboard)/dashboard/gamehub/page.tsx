@@ -37,11 +37,10 @@ const gameCategories = [
   },
   {
     title: "Minecraft",
-    description: "Coming soon - Tools and utilities for Minecraft",
+    description: "Server tools and utilities for Minecraft",
     href: "/dashboard/gamehub/minecraft",
     icon: Icons.Package,
-    features: ["Coming Soon"],
-    disabled: true,
+    features: ["Server Checker", "Enchantment Planner"],
   },
 ];
 
@@ -107,19 +106,67 @@ export default async function GameHubPage() {
         </FadeIn>
       )}
 
+      {/* Cross-Game Features */}
+      <FadeIn delay={0.15}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link
+            href="/dashboard/gamehub/achievements"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-500/10">
+                <Icons.Trophy className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Achievements
+                </h3>
+                <p className="text-xs text-muted-foreground">Track your progress</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/dashboard/gamehub/overlays"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
+                <Icons.Tv className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Stream Overlays
+                </h3>
+                <p className="text-xs text-muted-foreground">For OBS/streaming</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/dashboard/settings"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                <Icons.Link className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Connect Discord
+                </h3>
+                <p className="text-xs text-muted-foreground">Link your account</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </FadeIn>
+
       {/* Game Categories */}
       <FadeIn delay={0.2}>
         <h2 className="text-2xl font-bold text-foreground mb-4">Games</h2>
         <BentoGrid>
-          {gameCategories.map((game, index) => (
-            <BentoGridItem
-              key={game.title}
-              className={game.disabled ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              <Link
-                href={game.disabled ? "#" : game.href}
-                className={`block h-full ${game.disabled ? "pointer-events-none" : ""}`}
-              >
+          {gameCategories.map((game) => (
+            <BentoGridItem key={game.title}>
+              <Link href={game.href} className="block h-full">
                 <div className="flex h-full flex-col p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">

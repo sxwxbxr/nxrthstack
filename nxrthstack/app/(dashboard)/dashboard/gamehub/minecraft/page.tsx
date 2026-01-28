@@ -46,8 +46,33 @@ export default async function MinecraftPage() {
         </div>
       </FadeIn>
 
-      {/* Coming Soon Features */}
+      {/* Available Tools */}
       <FadeIn delay={0.2}>
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            Tools
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <Link
+              href="/dashboard/gamehub/minecraft/enchantment-planner"
+              className="group rounded-xl border border-border bg-card p-6 hover:border-primary/50 hover:bg-card/80 transition-all"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <Icons.Sparkles className="h-5 w-5 text-primary" />
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Enchantment Planner
+                </h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Plan optimal enchantment combinations and calculate anvil costs
+              </p>
+            </Link>
+          </div>
+        </div>
+      </FadeIn>
+
+      {/* Coming Soon Features */}
+      <FadeIn delay={0.3}>
         <div className="max-w-3xl mx-auto">
           <h2 className="text-xl font-semibold text-foreground mb-4">
             Coming Soon

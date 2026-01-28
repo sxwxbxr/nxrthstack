@@ -20,6 +20,27 @@ const pokemonFeatures = [
     featured: true,
   },
   {
+    title: "Team Builder",
+    description: "Build and analyze Pokemon teams with type coverage analysis",
+    href: "/dashboard/gamehub/pokemon/team-builder",
+    icon: Icons.Users,
+    features: ["6 Pokemon Slots", "Type Coverage", "Save Teams"],
+  },
+  {
+    title: "Damage Calculator",
+    description: "Calculate move damage with stats, types, and modifiers",
+    href: "/dashboard/gamehub/pokemon/damage-calculator",
+    icon: Icons.Calculator,
+    features: ["STAB & Types", "Min/Max Damage", "OHKO Calc"],
+  },
+  {
+    title: "IV Calculator",
+    description: "Calculate IVs from your Pokemon's observed stats",
+    href: "/dashboard/gamehub/pokemon/iv-calculator",
+    icon: Icons.Target,
+    features: ["All Stats", "Nature Support", "IV Ranges"],
+  },
+  {
     title: "ROM Editor",
     description: "Upload and edit Gen 1-3 Pokemon ROMs directly in your browser",
     href: "/dashboard/gamehub/pokemon/rom-editor",
@@ -32,20 +53,6 @@ const pokemonFeatures = [
     href: "/dashboard/gamehub/pokemon/shiny-counter",
     icon: Icons.Star,
     features: ["Hunt Tracker", "Odds Calculator", "Statistics"],
-  },
-  {
-    title: "Wild Randomizer",
-    description: "Randomize wild Pokemon encounters with customizable options",
-    href: "/dashboard/gamehub/pokemon/rom-editor",
-    icon: Icons.Shuffle,
-    features: ["BST Matching", "Area Themed", "Legendary Toggle"],
-  },
-  {
-    title: "Starter Picker",
-    description: "Choose or randomize your starter Pokemon",
-    href: "/dashboard/gamehub/pokemon/rom-editor",
-    icon: Icons.Sparkles,
-    features: ["Custom Selection", "Random Option", "Stats Preview"],
   },
 ];
 
@@ -83,45 +90,45 @@ export default async function PokemonPage() {
         </Link>
         <div className="text-center">
           <h1 className="text-4xl font-bold">
-            <GradientText>Pokemon ROM Editor</GradientText>
+            <GradientText>Pokemon Tools</GradientText>
           </h1>
           <p className="mt-2 text-muted-foreground max-w-2xl mx-auto">
-            Edit and randomize your Gen 1-3 Pokemon ROMs directly in your browser.
-            All processing happens locally - your ROM data never leaves your device.
+            Save editors, team builders, calculators, and more.
+            All processing happens locally in your browser.
           </p>
         </div>
       </FadeIn>
 
       {/* Quick Start */}
       <FadeIn delay={0.1}>
-        <div className="flex justify-center gap-4 flex-wrap">
+        <div className="flex justify-center gap-3 flex-wrap">
           <Link
             href="/dashboard/gamehub/pokemon/save-editor"
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-8 py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-6 py-3 font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
           >
             <Icons.Sparkles className="h-5 w-5" />
             Save Editor
           </Link>
           <Link
-            href="/dashboard/gamehub/pokemon/rom-editor"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            href="/dashboard/gamehub/pokemon/team-builder"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            <Icons.HardDrive className="h-5 w-5" />
-            ROM Editor
+            <Icons.Users className="h-5 w-5" />
+            Team Builder
+          </Link>
+          <Link
+            href="/dashboard/gamehub/pokemon/damage-calculator"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/10 px-6 py-3 font-semibold text-primary hover:bg-primary/20 transition-colors"
+          >
+            <Icons.Calculator className="h-5 w-5" />
+            Damage Calc
           </Link>
           <Link
             href="/dashboard/gamehub/pokemon/shiny-counter"
-            className="inline-flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-8 py-4 text-lg font-semibold text-yellow-500 hover:bg-yellow-500/20 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-6 py-3 font-semibold text-yellow-500 hover:bg-yellow-500/20 transition-colors"
           >
             <Icons.Star className="h-5 w-5" />
             Shiny Counter
-          </Link>
-          <Link
-            href="/dashboard/gamehub/pokemon/guide"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-8 py-4 text-lg font-semibold text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-          >
-            <Icons.HelpCircle className="h-5 w-5" />
-            Guide & Wiki
           </Link>
         </div>
       </FadeIn>

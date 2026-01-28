@@ -24,6 +24,11 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
+  // Discord Integration
+  discordId: varchar("discord_id", { length: 50 }).unique(),
+  discordUsername: varchar("discord_username", { length: 100 }),
+  discordAvatar: varchar("discord_avatar", { length: 255 }),
+  discordConnectedAt: timestamp("discord_connected_at", { mode: "date" }),
 });
 
 // Products table
@@ -693,6 +698,79 @@ export const featureVotesRelations = relations(featureVotes, ({ one }) => ({
   }),
 }));
 
+// ============================================================================
+// Achievement System
+// ============================================================================
+
+// Achievement Definitions
+export const gamehubAchievements = pgTable("gamehub_achievements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  key: varchar("key", { length: 50 }).notNull().unique(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  icon: varchar("icon", { length: 50 }), // Icon name from Icons component
+  category: varchar("category", { length: 50 }).notNull(), // 'pokemon' | 'minecraft' | 'r6' | 'general'
+  points: integer("points").default(10).notNull(),
+  rarity: varchar("rarity", { length: 20 }).default("common"), // 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+  isSecret: boolean("is_secret").default(false).notNull(), // Hidden until unlocked
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// User Achievement Unlocks
+export const userAchievements = pgTable("user_achievements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  achievementId: uuid("achievement_id")
+    .notNull()
+    .references(() => gamehubAchievements.id, { onDelete: "cascade" }),
+  unlockedAt: timestamp("unlocked_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Achievement Relations
+export const gamehubAchievementsRelations = relations(gamehubAchievements, ({ many }) => ({
+  userAchievements: many(userAchievements),
+}));
+
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id],
+  }),
+  achievement: one(gamehubAchievements, {
+    fields: [userAchievements.achievementId],
+    references: [gamehubAchievements.id],
+  }),
+}));
+
+// ============================================================================
+// Stream Overlays
+// ============================================================================
+
+// Stream Overlay Configurations
+export const streamOverlays = pgTable("stream_overlays", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 50 }).notNull(), // 'shiny_counter' | 'r6_stats' | 'pokemon_team'
+  name: varchar("name", { length: 100 }).notNull(),
+  config: jsonb("config").default({}).notNull(), // Type-specific configuration
+  accessToken: varchar("access_token", { length: 50 }).notNull().unique(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Stream Overlay Relations
+export const streamOverlaysRelations = relations(streamOverlays, ({ one }) => ({
+  user: one(users, {
+    fields: [streamOverlays.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -750,3 +828,13 @@ export type R6TournamentMatch = typeof r6TournamentMatches.$inferSelect;
 export type NewR6TournamentMatch = typeof r6TournamentMatches.$inferInsert;
 export type R6TournamentGame = typeof r6TournamentGames.$inferSelect;
 export type NewR6TournamentGame = typeof r6TournamentGames.$inferInsert;
+
+// Achievement Types
+export type GamehubAchievement = typeof gamehubAchievements.$inferSelect;
+export type NewGamehubAchievement = typeof gamehubAchievements.$inferInsert;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type NewUserAchievement = typeof userAchievements.$inferInsert;
+
+// Stream Overlay Types
+export type StreamOverlay = typeof streamOverlays.$inferSelect;
+export type NewStreamOverlay = typeof streamOverlays.$inferInsert;
