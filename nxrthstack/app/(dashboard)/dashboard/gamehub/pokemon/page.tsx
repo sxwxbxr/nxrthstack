@@ -12,9 +12,9 @@ export const metadata = {
 
 const pokemonFeatures = [
   {
-    title: "PKHeX Editor",
+    title: "Save Editor",
     description: "Full-featured save editor powered by PKHeX - supports all generations",
-    href: "/dashboard/gamehub/pokemon/pkhex",
+    href: "/dashboard/gamehub/pokemon/save-editor",
     icon: Icons.Sparkles,
     features: ["All Generations", "Full PKHeX", "Browser WASM"],
     featured: true,
@@ -96,11 +96,11 @@ export default async function PokemonPage() {
       <FadeIn delay={0.1}>
         <div className="flex justify-center gap-4 flex-wrap">
           <Link
-            href="/dashboard/gamehub/pokemon/pkhex"
+            href="/dashboard/gamehub/pokemon/save-editor"
             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-8 py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
           >
             <Icons.Sparkles className="h-5 w-5" />
-            PKHeX Editor
+            Save Editor
           </Link>
           <Link
             href="/dashboard/gamehub/pokemon/rom-editor"

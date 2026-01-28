@@ -4,14 +4,14 @@ import Link from "next/link";
 import { Icons } from "@/components/icons";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
-import { PKHeXEditorClient } from "@/components/gamehub/pkhex-editor-client";
+import { SaveEditorClient } from "@/components/gamehub/save-editor-client";
 
 export const metadata = {
-  title: "PKHeX Editor | Pokemon - NxrthStack",
-  description: "Full-featured Pokemon save editor powered by PKHeX",
+  title: "Save Editor | Pokemon - NxrthStack",
+  description: "Full-featured Pokemon save editor powered by PKHeX - supports all generations",
 };
 
-export default async function PKHeXEditorPage() {
+export default async function SaveEditorPage() {
   const session = await auth();
 
   if (!session?.user) {
@@ -32,7 +32,7 @@ export default async function PKHeXEditorPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">
-              <GradientText>PKHeX Editor</GradientText>
+              <GradientText>Save Editor</GradientText>
             </h1>
             <p className="mt-1 text-muted-foreground">
               Full-featured Pokemon save editor powered by PKHeX - supports all generations
@@ -45,14 +45,14 @@ export default async function PKHeXEditorPage() {
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
           >
             <Icons.Github className="h-3 w-3" />
-            PKHeX by kwsch
+            Powered by PKHeX
           </a>
         </div>
       </FadeIn>
 
-      {/* PKHeX Editor */}
+      {/* Save Editor */}
       <FadeIn delay={0.1}>
-        <PKHeXEditorClient />
+        <SaveEditorClient />
       </FadeIn>
     </div>
   );
