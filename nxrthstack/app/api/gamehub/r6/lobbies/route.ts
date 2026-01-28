@@ -4,6 +4,7 @@ import { db, r6Lobbies, users } from "@/lib/db";
 import { eq, or, desc } from "drizzle-orm";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+import { unlockAchievement } from "@/lib/gamehub/unlock-achievement";
 
 const createLobbySchema = z.object({
   name: z.string().min(1).max(100),
@@ -84,6 +85,9 @@ export async function POST(request: Request) {
         status: "open",
       })
       .returning();
+
+    // Unlock the lobby_host achievement
+    await unlockAchievement(session.user.id, "lobby_host");
 
     return NextResponse.json({ lobby }, { status: 201 });
   } catch (error) {

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { users, gamehubAchievements, userAchievements } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
@@ -121,6 +121,40 @@ export async function GET(request: Request) {
         updatedAt: new Date(),
       })
       .where(eq(users.id, session.user.id));
+
+    // Unlock the discord_connected achievement
+    try {
+      const [achievement] = await db
+        .select()
+        .from(gamehubAchievements)
+        .where(eq(gamehubAchievements.key, "discord_connected"))
+        .limit(1);
+
+      if (achievement) {
+        // Check if already unlocked
+        const [existing] = await db
+          .select()
+          .from(userAchievements)
+          .where(
+            and(
+              eq(userAchievements.userId, session.user.id),
+              eq(userAchievements.achievementId, achievement.id)
+            )
+          )
+          .limit(1);
+
+        if (!existing) {
+          await db.insert(userAchievements).values({
+            userId: session.user.id,
+            achievementId: achievement.id,
+            unlockedAt: new Date(),
+          });
+        }
+      }
+    } catch (achievementError) {
+      // Don't fail the Discord connection if achievement unlock fails
+      console.error("Failed to unlock discord achievement:", achievementError);
+    }
 
     return NextResponse.redirect(
       new URL("/dashboard/settings?discord=success", process.env.NEXTAUTH_URL!)

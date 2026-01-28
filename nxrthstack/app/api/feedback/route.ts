@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db, featureRequests, featureVotes, users } from "@/lib/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
+import { unlockAchievement } from "@/lib/gamehub/unlock-achievement";
 
 const createRequestSchema = z.object({
   type: z.enum(["feature", "bug"]),
@@ -98,6 +99,9 @@ export async function POST(request: Request) {
         category: parsed.data.category || "general",
       })
       .returning();
+
+    // Unlock the feedback_submitted achievement
+    await unlockAchievement(session.user.id, "feedback_submitted");
 
     return NextResponse.json({ request: newRequest }, { status: 201 });
   } catch (error) {

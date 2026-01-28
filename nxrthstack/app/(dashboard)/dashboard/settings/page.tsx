@@ -3,6 +3,7 @@ import { db, users } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { FadeIn } from "@/components/ui/fade-in";
 import { SettingsForm } from "./settings-form";
+import { DiscordConnection } from "@/components/settings/discord-connection";
 
 export const metadata = {
   title: "Settings | NxrthStack",
@@ -42,6 +43,14 @@ export default async function SettingsPage() {
               email: user.email,
               createdAt: user.createdAt,
             }}
+          />
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
+          <DiscordConnection
+            discordUsername={user.discordUsername}
+            discordAvatar={user.discordAvatar}
+            discordConnectedAt={user.discordConnectedAt}
           />
         </FadeIn>
 

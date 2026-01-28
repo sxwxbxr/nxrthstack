@@ -112,7 +112,7 @@ export function AchievementsDisplay({ userAchievements }: AchievementsDisplayPro
                 "px-3 py-1.5 text-sm rounded-lg transition-colors",
                 selectedCategory === category
                   ? "bg-primary text-primary-foreground"
-                  : "bg-muted hover:bg-muted/80"
+                  : "bg-muted hover:bg-muted/80 text-foreground"
               )}
             >
               {category === "all" ? "All" : CATEGORY_LABELS[category]}
@@ -127,7 +127,7 @@ export function AchievementsDisplay({ userAchievements }: AchievementsDisplayPro
             onChange={(e) => setShowUnlockedOnly(e.target.checked)}
             className="rounded"
           />
-          <span className="text-sm">Show unlocked only</span>
+          <span className="text-sm text-foreground">Show unlocked only</span>
         </label>
       </div>
 

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db, r6Lobbies, r6Matches } from "@/lib/db";
 import { eq, or, and, desc } from "drizzle-orm";
 import { z } from "zod";
+import { unlockAchievement } from "@/lib/gamehub/unlock-achievement";
 
 interface RouteParams {
   params: Promise<{ lobbyId: string }>;
@@ -146,6 +147,23 @@ export async function POST(request: Request, { params }: RouteParams) {
       .update(r6Lobbies)
       .set({ updatedAt: new Date() })
       .where(eq(r6Lobbies.id, lobbyId));
+
+    // Unlock first_match achievement for both players
+    await unlockAchievement(lobby.hostId, "first_match");
+    if (lobby.opponentId) {
+      await unlockAchievement(lobby.opponentId, "first_match");
+    }
+
+    // Check for flawless_victory (winner had 0 deaths)
+    const winnerId = parsed.data.winnerId;
+    const isPlayer1Winner = winnerId === lobby.hostId;
+    const winnerDeaths = isPlayer1Winner
+      ? parsed.data.player1Deaths
+      : parsed.data.player2Deaths;
+
+    if (winnerDeaths === 0 && winnerDeaths !== undefined) {
+      await unlockAchievement(winnerId, "flawless_victory");
+    }
 
     return NextResponse.json({ match }, { status: 201 });
   } catch (error) {

@@ -72,7 +72,7 @@ export function AchievementBadge({
         {showDetails && (
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className={cn("font-medium truncate", size === "sm" && "text-sm")}>
+              <h4 className={cn("font-medium truncate text-foreground", size === "sm" && "text-sm")}>
                 {isSecret ? "???" : achievement.name}
               </h4>
               <span
