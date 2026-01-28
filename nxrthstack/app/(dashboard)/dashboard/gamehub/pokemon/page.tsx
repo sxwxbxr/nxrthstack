@@ -83,7 +83,7 @@ export default async function PokemonPage() {
       <FadeIn>
         <Link
           href="/dashboard/gamehub"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+          className="inline-flex items-center text-sm text-foreground/60 hover:text-foreground mb-4"
         >
           <Icons.ChevronRight className="h-4 w-4 mr-1 rotate-180" />
           Back to GameHub
@@ -92,7 +92,7 @@ export default async function PokemonPage() {
           <h1 className="text-4xl font-bold">
             <GradientText>Pokemon Tools</GradientText>
           </h1>
-          <p className="mt-2 text-muted-foreground max-w-2xl mx-auto">
+          <p className="mt-2 text-foreground/60 max-w-2xl mx-auto">
             Save editors, team builders, calculators, and more.
             All processing happens locally in your browser.
           </p>
@@ -149,7 +149,7 @@ export default async function PokemonPage() {
                       {feature.title}
                     </h3>
                   </div>
-                  <p className="text-muted-foreground mb-4">{feature.description}</p>
+                  <p className="text-foreground/60 mb-4">{feature.description}</p>
                   <div className="mt-auto flex flex-wrap gap-2">
                     {feature.features.map((f) => (
                       <span
@@ -189,7 +189,7 @@ export default async function PokemonPage() {
                       className="flex items-center justify-between text-sm"
                     >
                       <span className="text-foreground">{game.name}</span>
-                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-foreground/60">
                         {game.platform}
                       </span>
                     </li>
@@ -214,7 +214,7 @@ export default async function PokemonPage() {
                       className="flex items-center justify-between text-sm"
                     >
                       <span className="text-foreground">{game.name}</span>
-                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-foreground/60">
                         {game.platform}
                       </span>
                     </li>
@@ -239,7 +239,7 @@ export default async function PokemonPage() {
                       className="flex items-center justify-between text-sm"
                     >
                       <span className="text-foreground">{game.name}</span>
-                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-foreground/60">
                         {game.platform}
                       </span>
                     </li>
@@ -259,7 +259,7 @@ export default async function PokemonPage() {
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Privacy First</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-foreground/60">
                 All ROM processing happens entirely in your browser. Your ROM files are never
                 uploaded to our servers. The editor works offline once loaded.
               </p>

@@ -24,7 +24,7 @@ export default async function IVCalculatorPage() {
       <FadeIn>
         <Link
           href="/dashboard/gamehub/pokemon"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+          className="inline-flex items-center text-sm text-foreground/60 hover:text-foreground mb-4"
         >
           <Icons.ChevronRight className="h-4 w-4 mr-1 rotate-180" />
           Back to Pokemon
@@ -34,7 +34,7 @@ export default async function IVCalculatorPage() {
             <h1 className="text-3xl font-bold">
               <GradientText>IV Calculator</GradientText>
             </h1>
-            <p className="mt-1 text-muted-foreground">
+            <p className="mt-1 text-foreground/60">
               Calculate your Pokemon's Individual Values from observed stats
             </p>
           </div>

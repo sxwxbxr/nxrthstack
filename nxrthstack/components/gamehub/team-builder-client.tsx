@@ -263,7 +263,7 @@ export function TeamBuilderClient() {
             <div className="rounded-xl border border-border bg-card p-4">
               <h3 className="font-semibold mb-3">Saved Teams</h3>
               {savedTeams.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No saved teams yet</p>
+                <p className="text-sm text-foreground/60">No saved teams yet</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {savedTeams.map((saved) => (
@@ -273,7 +273,7 @@ export function TeamBuilderClient() {
                     >
                       <div>
                         <p className="font-medium">{saved.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-foreground/60">
                           {saved.slots.filter((s) => s.pokemon).length} Pokemon
                         </p>
                       </div>
@@ -316,7 +316,7 @@ export function TeamBuilderClient() {
             {slot.pokemon ? (
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs text-muted-foreground">#{slot.pokemon.pokedexId}</span>
+                  <span className="text-xs text-foreground/60">#{slot.pokemon.pokedexId}</span>
                   <button
                     onClick={() => removePokemonFromSlot(index)}
                     className="p-1 rounded hover:bg-destructive/20 text-destructive"
@@ -341,28 +341,28 @@ export function TeamBuilderClient() {
                 </div>
                 <div className="text-xs space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">HP</span>
-                    <span>{slot.pokemon.hpBase}</span>
+                    <span className="text-foreground/70">HP</span>
+                    <span className="font-medium">{slot.pokemon.hpBase}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Atk</span>
-                    <span>{slot.pokemon.attackBase}</span>
+                    <span className="text-foreground/70">Atk</span>
+                    <span className="font-medium">{slot.pokemon.attackBase}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Def</span>
-                    <span>{slot.pokemon.defenseBase}</span>
+                    <span className="text-foreground/70">Def</span>
+                    <span className="font-medium">{slot.pokemon.defenseBase}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">SpA</span>
-                    <span>{slot.pokemon.spAtkBase}</span>
+                    <span className="text-foreground/70">SpA</span>
+                    <span className="font-medium">{slot.pokemon.spAtkBase}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">SpD</span>
-                    <span>{slot.pokemon.spDefBase}</span>
+                    <span className="text-foreground/70">SpD</span>
+                    <span className="font-medium">{slot.pokemon.spDefBase}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Spe</span>
-                    <span>{slot.pokemon.speedBase}</span>
+                    <span className="text-foreground/70">Spe</span>
+                    <span className="font-medium">{slot.pokemon.speedBase}</span>
                   </div>
                 </div>
                 {slot.pokemon.isLegendary && (
@@ -376,7 +376,7 @@ export function TeamBuilderClient() {
             ) : (
               <button
                 onClick={() => setActiveSlot(activeSlot === index ? null : index)}
-                className="w-full h-full min-h-[200px] flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="w-full h-full min-h-[200px] flex flex-col items-center justify-center gap-2 text-foreground/60 hover:text-foreground transition-colors"
               >
                 <Icons.Plus className="h-8 w-8" />
                 <span className="text-sm">Add Pokemon</span>
@@ -388,7 +388,7 @@ export function TeamBuilderClient() {
               <div className="absolute top-full left-0 right-0 mt-2 z-50">
                 <div className="rounded-xl border border-border bg-card shadow-lg p-3">
                   <div className="relative mb-2">
-                    <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/50" />
                     <input
                       type="text"
                       value={searchQuery}
@@ -401,7 +401,7 @@ export function TeamBuilderClient() {
                   <div className="max-h-60 overflow-y-auto space-y-1">
                     {isSearching ? (
                       <div className="flex items-center justify-center py-4">
-                        <Icons.Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                        <Icons.Loader2 className="h-5 w-5 animate-spin text-foreground/50" />
                       </div>
                     ) : searchResults.length > 0 ? (
                       searchResults.map((pokemon) => (
@@ -410,7 +410,7 @@ export function TeamBuilderClient() {
                           onClick={() => addPokemonToSlot(pokemon, index)}
                           className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
                         >
-                          <span className="text-xs text-muted-foreground w-8">
+                          <span className="text-xs text-foreground/60 w-8">
                             #{pokemon.pokedexId}
                           </span>
                           <span className="font-medium capitalize flex-1">
@@ -431,11 +431,11 @@ export function TeamBuilderClient() {
                         </button>
                       ))
                     ) : searchQuery ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">
+                      <p className="text-sm text-foreground/60 text-center py-4">
                         No Pokemon found
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground text-center py-4">
+                      <p className="text-sm text-foreground/60 text-center py-4">
                         Type to search...
                       </p>
                     )}
@@ -491,7 +491,7 @@ export function TeamBuilderClient() {
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-xs text-foreground/60 mt-4">
             Green = team resists well, Red = team is weak to this type
           </p>
         </div>
@@ -514,9 +514,9 @@ export function TeamBuilderClient() {
               const avg = teamPokemon > 0 ? Math.round(total / teamPokemon) : 0;
               return (
                 <div key={stat} className="text-center">
-                  <p className="text-sm text-muted-foreground">{stat}</p>
+                  <p className="text-sm text-foreground/70">{stat}</p>
                   <p className="text-2xl font-bold">{avg}</p>
-                  <p className="text-xs text-muted-foreground">avg</p>
+                  <p className="text-xs text-foreground/50">avg</p>
                 </div>
               );
             })}

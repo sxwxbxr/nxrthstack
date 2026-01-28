@@ -24,7 +24,7 @@ export default async function EnchantmentPlannerPage() {
       <FadeIn>
         <Link
           href="/dashboard/gamehub/minecraft"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+          className="inline-flex items-center text-sm text-foreground/60 hover:text-foreground mb-4"
         >
           <Icons.ChevronRight className="h-4 w-4 mr-1 rotate-180" />
           Back to Minecraft
@@ -34,7 +34,7 @@ export default async function EnchantmentPlannerPage() {
             <h1 className="text-3xl font-bold">
               <GradientText>Enchantment Planner</GradientText>
             </h1>
-            <p className="mt-1 text-muted-foreground">
+            <p className="mt-1 text-foreground/60">
               Plan optimal enchantment combinations and calculate anvil costs
             </p>
           </div>

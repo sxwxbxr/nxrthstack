@@ -234,7 +234,7 @@ export function IVCalculatorClient() {
           {pokemon ? (
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
               <div className="flex items-center gap-4">
-                <span className="text-lg font-bold text-muted-foreground">#{pokemon.pokedexId}</span>
+                <span className="text-lg font-bold text-foreground/60">#{pokemon.pokedexId}</span>
                 <span className="text-xl font-semibold capitalize">{pokemon.name}</span>
                 <div className="flex gap-1">
                   {pokemon.types.map((type) => (
@@ -259,7 +259,7 @@ export function IVCalculatorClient() {
           ) : (
             <button
               onClick={() => setShowSearch(true)}
-              className="w-full p-4 rounded-lg border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+              className="w-full p-4 rounded-lg border-2 border-dashed border-muted-foreground/30 text-foreground/60 hover:border-primary hover:text-primary transition-colors"
             >
               <Icons.Search className="h-6 w-6 mx-auto mb-2" />
               <span>Search for a Pokemon</span>
@@ -270,7 +270,7 @@ export function IVCalculatorClient() {
           {showSearch && (
             <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border border-border bg-card shadow-lg p-3">
               <div className="relative mb-2">
-                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/60" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -283,7 +283,7 @@ export function IVCalculatorClient() {
               <div className="max-h-60 overflow-y-auto space-y-1">
                 {isSearching ? (
                   <div className="flex items-center justify-center py-4">
-                    <Icons.Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <Icons.Loader2 className="h-5 w-5 animate-spin text-foreground/60" />
                   </div>
                 ) : searchResults.length > 0 ? (
                   searchResults.map((p) => (
@@ -292,7 +292,7 @@ export function IVCalculatorClient() {
                       onClick={() => selectPokemon(p)}
                       className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
                     >
-                      <span className="text-xs text-muted-foreground w-8">#{p.pokedexId}</span>
+                      <span className="text-xs text-foreground/60 w-8">#{p.pokedexId}</span>
                       <span className="font-medium capitalize flex-1">{p.name}</span>
                       <div className="flex gap-1">
                         {p.types.map((type) => (
@@ -309,9 +309,9 @@ export function IVCalculatorClient() {
                     </button>
                   ))
                 ) : searchQuery ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No Pokemon found</p>
+                  <p className="text-sm text-foreground/60 text-center py-4">No Pokemon found</p>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">Type to search...</p>
+                  <p className="text-sm text-foreground/60 text-center py-4">Type to search...</p>
                 )}
               </div>
               <button
@@ -319,7 +319,7 @@ export function IVCalculatorClient() {
                   setShowSearch(false);
                   setSearchQuery("");
                 }}
-                className="w-full mt-2 py-2 text-sm text-muted-foreground hover:text-foreground"
+                className="w-full mt-2 py-2 text-sm text-foreground/60 hover:text-foreground"
               >
                 Cancel
               </button>
@@ -331,7 +331,7 @@ export function IVCalculatorClient() {
       {/* Level & Nature */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
-          <label className="text-sm text-muted-foreground">Level</label>
+          <label className="text-sm text-foreground/60">Level</label>
           <input
             type="number"
             min={1}
@@ -342,7 +342,7 @@ export function IVCalculatorClient() {
           />
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <label className="text-sm text-muted-foreground">Nature</label>
+          <label className="text-sm text-foreground/60">Nature</label>
           <select
             value={nature}
             onChange={(e) => setNature(e.target.value)}
@@ -366,7 +366,7 @@ export function IVCalculatorClient() {
               <div key={key} className="space-y-2">
                 <div className="flex justify-between">
                   <label className="text-sm font-medium">{label}</label>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-foreground/60">
                     Base: {baseStats[key]}
                   </span>
                 </div>
@@ -384,7 +384,7 @@ export function IVCalculatorClient() {
                   className="w-full px-3 py-2 rounded-lg bg-muted border-0 text-sm"
                 />
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">EVs:</span>
+                  <span className="text-xs text-foreground/60">EVs:</span>
                   <input
                     type="number"
                     min={0}
@@ -428,18 +428,18 @@ export function IVCalculatorClient() {
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm text-muted-foreground">{label}</span>
+                    <span className="text-sm text-foreground/60">{label}</span>
                     {rating && (
                       <span className={`text-xs font-medium ${rating.color}`}>
                         {rating.label}
                       </span>
                     )}
                   </div>
-                  <p className={`text-2xl font-bold ${!hasValue ? "text-muted-foreground" : ""}`}>
+                  <p className={`text-2xl font-bold ${!hasValue ? "text-foreground/60" : ""}`}>
                     {hasValue ? getIVDisplay(ivs) : "—"}
                   </p>
                   {hasValue && ivs && ivs.length > 1 && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-foreground/60 mt-1">
                       {ivs.length} possible value{ivs.length > 1 ? "s" : ""}
                     </p>
                   )}
@@ -449,7 +449,7 @@ export function IVCalculatorClient() {
           </div>
 
           <div className="mt-4 p-3 rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground/60">
               <Icons.Info className="inline h-4 w-4 mr-1" />
               Enter stats at multiple levels to narrow down IV ranges. EVs affect calculations - set them to 0 if unknown.
             </p>
@@ -460,9 +460,9 @@ export function IVCalculatorClient() {
       {/* Instructions */}
       {!pokemon && (
         <div className="rounded-xl border border-border bg-card p-6 text-center">
-          <Icons.HelpCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <Icons.HelpCircle className="h-12 w-12 mx-auto text-foreground/60 mb-4" />
           <h3 className="font-semibold mb-2">How to Use</h3>
-          <ol className="text-sm text-muted-foreground text-left max-w-md mx-auto space-y-2">
+          <ol className="text-sm text-foreground/60 text-left max-w-md mx-auto space-y-2">
             <li>1. Search and select your Pokemon</li>
             <li>2. Enter your Pokemon's current level</li>
             <li>3. Select its nature (check summary screen in game)</li>

@@ -171,7 +171,7 @@ export function EnchantmentPlannerClient() {
         <div className="rounded-xl border border-border bg-card p-4">
           <h3 className="font-semibold mb-3">Saved Plans</h3>
           {savedPlans.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No saved plans yet</p>
+            <p className="text-sm text-foreground/60">No saved plans yet</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {savedPlans.map((plan) => (
@@ -181,7 +181,7 @@ export function EnchantmentPlannerClient() {
                 >
                   <div>
                     <p className="font-medium">{plan.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground/60">
                       {ITEM_TYPES.find((t) => t.id === plan.itemType)?.name} - {plan.enchantments.length} enchants
                     </p>
                   </div>
@@ -272,13 +272,13 @@ export function EnchantmentPlannerClient() {
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-foreground/60 mb-2">
                   {enchantment.description}
                 </p>
 
                 {selected && (
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-muted-foreground">Level:</span>
+                    <span className="text-xs text-foreground/60">Level:</span>
                     <select
                       value={selectedData?.level || 1}
                       onChange={(e) =>
@@ -358,7 +358,7 @@ export function EnchantmentPlannerClient() {
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Prior work penalty:</span>
+                  <span className="text-sm text-foreground/60">Prior work penalty:</span>
                   <select
                     value={priorWorkPenalty}
                     onChange={(e) => setPriorWorkPenalty(parseInt(e.target.value))}
@@ -395,7 +395,7 @@ export function EnchantmentPlannerClient() {
                   )}
                 </div>
 
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-foreground/60">
                   Note: Actual costs may vary based on enchantment order and source (book vs item).
                 </p>
               </div>
@@ -410,7 +410,7 @@ export function EnchantmentPlannerClient() {
           <Icons.HelpCircle className="h-4 w-4 text-primary" />
           Tips
         </h3>
-        <ul className="text-sm text-muted-foreground space-y-1">
+        <ul className="text-sm text-foreground/60 space-y-1">
           <li>- Combine enchanted books first to minimize prior work penalty</li>
           <li>- Treasure enchantments can only be found, not enchanted directly</li>
           <li>- Some enchantments are mutually exclusive (highlighted conflicts)</li>

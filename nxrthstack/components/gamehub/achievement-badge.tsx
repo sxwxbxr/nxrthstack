@@ -58,12 +58,12 @@ export function AchievementBadge({
           )}
         >
           {isSecret ? (
-            <Icons.Lock className={cn(iconSizes[size], "text-muted-foreground")} />
+            <Icons.Lock className={cn(iconSizes[size], "text-foreground/60")} />
           ) : (
             <IconComponent
               className={cn(
                 iconSizes[size],
-                isUnlocked ? "" : "text-muted-foreground"
+                isUnlocked ? "" : "text-foreground/60"
               )}
             />
           )}
@@ -86,18 +86,18 @@ export function AchievementBadge({
             </div>
             <p
               className={cn(
-                "text-muted-foreground line-clamp-2",
+                "text-foreground/60 line-clamp-2",
                 size === "sm" ? "text-xs" : "text-sm"
               )}
             >
               {isSecret ? "Complete a secret challenge to unlock" : achievement.description}
             </p>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-foreground/60">
                 {achievement.points} pts
               </span>
               {isUnlocked && unlockedAt && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-foreground/60">
                   Unlocked {new Date(unlockedAt).toLocaleDateString()}
                 </span>
               )}

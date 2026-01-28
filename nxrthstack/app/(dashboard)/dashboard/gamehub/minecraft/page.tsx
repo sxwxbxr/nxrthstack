@@ -23,7 +23,7 @@ export default async function MinecraftPage() {
       <FadeIn>
         <Link
           href="/dashboard/gamehub"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+          className="inline-flex items-center text-sm text-foreground/60 hover:text-foreground mb-4"
         >
           <Icons.ChevronRight className="h-4 w-4 mr-1 rotate-180" />
           Back to GameHub
@@ -32,7 +32,7 @@ export default async function MinecraftPage() {
           <h1 className="text-4xl font-bold">
             <GradientText>Minecraft</GradientText>
           </h1>
-          <p className="mt-2 text-muted-foreground max-w-2xl mx-auto">
+          <p className="mt-2 text-foreground/60 max-w-2xl mx-auto">
             Tools and utilities for Minecraft. Check server status, monitor
             player counts, and more.
           </p>
@@ -63,7 +63,7 @@ export default async function MinecraftPage() {
                   Enchantment Planner
                 </h3>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/60">
                 Plan optimal enchantment combinations and calculate anvil costs
               </p>
             </Link>
@@ -80,43 +80,43 @@ export default async function MinecraftPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-dashed border-border p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Icons.Users className="h-5 w-5 text-muted-foreground" />
+                <Icons.Users className="h-5 w-5 text-foreground/60" />
                 <h3 className="font-medium text-foreground">
                   Server Management
                 </h3>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/60">
                 Manage your own Minecraft servers with easy-to-use controls
               </p>
             </div>
             <div className="rounded-xl border border-dashed border-border p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Icons.Globe className="h-5 w-5 text-muted-foreground" />
+                <Icons.Globe className="h-5 w-5 text-foreground/60" />
                 <h3 className="font-medium text-foreground">World Tools</h3>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/60">
                 View and edit your Minecraft world saves and backups
               </p>
             </div>
             <div className="rounded-xl border border-dashed border-border p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Icons.FileText className="h-5 w-5 text-muted-foreground" />
+                <Icons.FileText className="h-5 w-5 text-foreground/60" />
                 <h3 className="font-medium text-foreground">
                   Plugin Directory
                 </h3>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/60">
                 Browse and discover popular server plugins and mods
               </p>
             </div>
             <div className="rounded-xl border border-dashed border-border p-6">
               <div className="flex items-center gap-3 mb-2">
-                <Icons.TrendingUp className="h-5 w-5 text-muted-foreground" />
+                <Icons.TrendingUp className="h-5 w-5 text-foreground/60" />
                 <h3 className="font-medium text-foreground">
                   Server Analytics
                 </h3>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/60">
                 Track player activity and server performance over time
               </p>
             </div>

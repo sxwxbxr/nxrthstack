@@ -283,7 +283,7 @@ export function DamageCalculatorClient() {
         {state.pokemon ? (
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">#{state.pokemon.pokedexId}</span>
+              <span className="text-sm text-foreground/60">#{state.pokemon.pokedexId}</span>
               <span className="font-medium capitalize">{state.pokemon.name}</span>
               <div className="flex gap-1">
                 {state.pokemon.types.map((type) => (
@@ -308,7 +308,7 @@ export function DamageCalculatorClient() {
         ) : (
           <button
             onClick={() => setSearchTarget(target)}
-            className="w-full p-3 rounded-lg border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            className="w-full p-3 rounded-lg border-2 border-dashed border-muted-foreground/30 text-foreground/60 hover:border-primary hover:text-primary transition-colors"
           >
             Select Pokemon
           </button>
@@ -318,7 +318,7 @@ export function DamageCalculatorClient() {
         {searchTarget === target && (
           <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border border-border bg-card shadow-lg p-3">
             <div className="relative mb-2">
-              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/60" />
               <input
                 type="text"
                 value={searchQuery}
@@ -331,7 +331,7 @@ export function DamageCalculatorClient() {
             <div className="max-h-48 overflow-y-auto space-y-1">
               {isSearching ? (
                 <div className="flex items-center justify-center py-4">
-                  <Icons.Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <Icons.Loader2 className="h-5 w-5 animate-spin text-foreground/60" />
                 </div>
               ) : searchResults.length > 0 ? (
                 searchResults.map((pokemon) => (
@@ -340,14 +340,14 @@ export function DamageCalculatorClient() {
                     onClick={() => selectPokemon(pokemon)}
                     className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
                   >
-                    <span className="text-xs text-muted-foreground w-8">#{pokemon.pokedexId}</span>
+                    <span className="text-xs text-foreground/60 w-8">#{pokemon.pokedexId}</span>
                     <span className="font-medium capitalize flex-1">{pokemon.name}</span>
                   </button>
                 ))
               ) : searchQuery ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No Pokemon found</p>
+                <p className="text-sm text-foreground/60 text-center py-4">No Pokemon found</p>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">Type to search...</p>
+                <p className="text-sm text-foreground/60 text-center py-4">Type to search...</p>
               )}
             </div>
           </div>
@@ -357,7 +357,7 @@ export function DamageCalculatorClient() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-muted-foreground">Level</label>
+          <label className="text-xs text-foreground/60">Level</label>
           <input
             type="number"
             min={1}
@@ -371,7 +371,7 @@ export function DamageCalculatorClient() {
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">HP</label>
+          <label className="text-xs text-foreground/60">HP</label>
           <input
             type="number"
             min={1}
@@ -384,7 +384,7 @@ export function DamageCalculatorClient() {
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Attack</label>
+          <label className="text-xs text-foreground/60">Attack</label>
           <input
             type="number"
             min={1}
@@ -397,7 +397,7 @@ export function DamageCalculatorClient() {
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Defense</label>
+          <label className="text-xs text-foreground/60">Defense</label>
           <input
             type="number"
             min={1}
@@ -410,7 +410,7 @@ export function DamageCalculatorClient() {
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Sp. Atk</label>
+          <label className="text-xs text-foreground/60">Sp. Atk</label>
           <input
             type="number"
             min={1}
@@ -423,7 +423,7 @@ export function DamageCalculatorClient() {
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground">Sp. Def</label>
+          <label className="text-xs text-foreground/60">Sp. Def</label>
           <input
             type="number"
             min={1}
@@ -452,7 +452,7 @@ export function DamageCalculatorClient() {
         <h3 className="font-semibold mb-4">Move Settings</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label className="text-xs text-muted-foreground">Move Type</label>
+            <label className="text-xs text-foreground/60">Move Type</label>
             <select
               value={moveType}
               onChange={(e) => {
@@ -471,7 +471,7 @@ export function DamageCalculatorClient() {
             </select>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Base Power</label>
+            <label className="text-xs text-foreground/60">Base Power</label>
             <input
               type="number"
               min={0}
@@ -482,7 +482,7 @@ export function DamageCalculatorClient() {
             />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Category</label>
+            <label className="text-xs text-foreground/60">Category</label>
             <select
               value={moveCategory}
               onChange={(e) => setMoveCategory(e.target.value as "physical" | "special")}
@@ -493,7 +493,7 @@ export function DamageCalculatorClient() {
             </select>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Weather</label>
+            <label className="text-xs text-foreground/60">Weather</label>
             <select
               value={weather}
               onChange={(e) => setWeather(e.target.value as any)}
@@ -540,17 +540,17 @@ export function DamageCalculatorClient() {
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">Damage Range</p>
+            <p className="text-sm text-foreground/60 mb-1">Damage Range</p>
             <p className="text-3xl font-bold">
               {damage.min} - {damage.max}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-foreground/60 mt-1">
               ({damagePercent.min}% - {damagePercent.max}%)
             </p>
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">Type Effectiveness</p>
+            <p className="text-sm text-foreground/60 mb-1">Type Effectiveness</p>
             <p className={`text-lg font-semibold ${
               damage.effectiveness > 1 ? "text-green-500" :
               damage.effectiveness < 1 ? "text-red-500" : ""
@@ -560,10 +560,10 @@ export function DamageCalculatorClient() {
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">OHKO Analysis</p>
+            <p className="text-sm text-foreground/60 mb-1">OHKO Analysis</p>
             <p className={`text-lg font-semibold ${
               damage.min >= defender.hp ? "text-green-500" :
-              damage.max >= defender.hp ? "text-yellow-500" : "text-muted-foreground"
+              damage.max >= defender.hp ? "text-yellow-500" : "text-foreground/60"
             }`}>
               {getOHKOChance()}
             </p>
@@ -573,7 +573,7 @@ export function DamageCalculatorClient() {
         {/* HP Bar Visualization */}
         <div className="mt-6">
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground">Defender HP</span>
+            <span className="text-foreground/60">Defender HP</span>
             <span>{defender.hp} HP</span>
           </div>
           <div className="h-6 bg-muted rounded-full overflow-hidden relative">
@@ -593,7 +593,7 @@ export function DamageCalculatorClient() {
               }}
             />
           </div>
-          <div className="flex justify-between text-xs mt-1 text-muted-foreground">
+          <div className="flex justify-between text-xs mt-1 text-foreground/60">
             <span>Min: {damage.min} dmg</span>
             <span>Max: {damage.max} dmg</span>
           </div>

@@ -61,7 +61,7 @@ export default async function GameHubPage() {
           <div className="mt-2">
             <TextGenerateEffect
               words={`Hey ${session?.user?.name || "Friend"}! Check out the latest updates and tools for your favorite games.`}
-              className="text-muted-foreground"
+              className="text-foreground/60"
             />
           </div>
         </div>
@@ -93,10 +93,10 @@ export default async function GameHubPage() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
+                  <p className="mt-2 text-sm text-foreground/60 whitespace-pre-wrap">
                     {announcement.content}
                   </p>
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="mt-2 text-xs text-foreground/60">
                     {new Date(announcement.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -121,7 +121,7 @@ export default async function GameHubPage() {
                 <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
                   Achievements
                 </h3>
-                <p className="text-xs text-muted-foreground">Track your progress</p>
+                <p className="text-xs text-foreground/60">Track your progress</p>
               </div>
             </div>
           </Link>
@@ -137,7 +137,7 @@ export default async function GameHubPage() {
                 <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
                   Stream Overlays
                 </h3>
-                <p className="text-xs text-muted-foreground">For OBS/streaming</p>
+                <p className="text-xs text-foreground/60">For OBS/streaming</p>
               </div>
             </div>
           </Link>
@@ -153,7 +153,7 @@ export default async function GameHubPage() {
                 <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
                   Connect Discord
                 </h3>
-                <p className="text-xs text-muted-foreground">Link your account</p>
+                <p className="text-xs text-foreground/60">Link your account</p>
               </div>
             </div>
           </Link>
@@ -176,7 +176,7 @@ export default async function GameHubPage() {
                       {game.title}
                     </h3>
                   </div>
-                  <p className="text-muted-foreground mb-4">{game.description}</p>
+                  <p className="text-foreground/60 mb-4">{game.description}</p>
                   <div className="mt-auto flex flex-wrap gap-2">
                     {game.features.map((feature) => (
                       <span
@@ -210,16 +210,16 @@ export default async function GameHubPage() {
                     </h3>
                     <div className="flex items-center gap-2">
                       {announcement.category && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-foreground/60">
                           {announcement.category}
                         </span>
                       )}
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-foreground/60">
                         {new Date(announcement.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                  <p className="mt-2 text-sm text-foreground/60 line-clamp-2">
                     {announcement.content}
                   </p>
                 </div>
@@ -233,11 +233,11 @@ export default async function GameHubPage() {
       {announcements.length === 0 && (
         <FadeIn delay={0.2}>
           <div className="rounded-xl border border-dashed border-border p-12 text-center">
-            <Icons.Info className="mx-auto h-12 w-12 text-muted-foreground" />
+            <Icons.Info className="mx-auto h-12 w-12 text-foreground/60" />
             <h3 className="mt-4 text-lg font-medium text-foreground">
               No announcements yet
             </h3>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 text-foreground/60">
               Check back later for updates and news about your favorite games!
             </p>
           </div>

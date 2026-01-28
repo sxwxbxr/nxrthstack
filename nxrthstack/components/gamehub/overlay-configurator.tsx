@@ -157,7 +157,7 @@ export function OverlayConfigurator() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <Icons.Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Icons.Loader2 className="h-8 w-8 animate-spin text-foreground/60" />
       </div>
     );
   }
@@ -182,7 +182,7 @@ export function OverlayConfigurator() {
                     <IconComponent className="h-5 w-5 text-primary" />
                     <span className="font-medium">{type.name}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{type.description}</p>
+                  <p className="text-sm text-foreground/60">{type.description}</p>
                 </button>
               );
             })}
@@ -235,7 +235,7 @@ export function OverlayConfigurator() {
         <h3 className="font-semibold mb-4">Your Overlays</h3>
 
         {overlays.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-foreground/60">
             <Icons.Tv className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No overlays created yet</p>
             <p className="text-sm">Create one above to get started</p>
@@ -263,7 +263,7 @@ export function OverlayConfigurator() {
                       <IconComponent className="h-5 w-5 text-primary" />
                       <div>
                         <h4 className="font-medium">{overlay.name}</h4>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-foreground/60">
                           {type?.name || overlay.type}
                         </p>
                       </div>
@@ -276,7 +276,7 @@ export function OverlayConfigurator() {
                           "px-3 py-1 text-xs rounded-full transition-colors",
                           overlay.isActive
                             ? "bg-green-500/10 text-green-500"
-                            : "bg-muted text-muted-foreground"
+                            : "bg-muted text-foreground/60"
                         )}
                       >
                         {overlay.isActive ? "Active" : "Disabled"}
@@ -289,7 +289,7 @@ export function OverlayConfigurator() {
                       type="text"
                       readOnly
                       value={`${typeof window !== "undefined" ? window.location.origin : ""}/overlay/${overlay.type}/${overlay.accessToken}`}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg bg-muted/50 border-0 text-muted-foreground"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg bg-muted/50 border-0 text-foreground/60"
                     />
                     <button
                       onClick={() => copyOverlayUrl(overlay)}
@@ -315,7 +315,7 @@ export function OverlayConfigurator() {
                     </button>
                   </div>
 
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="mt-2 text-xs text-foreground/60">
                     Add this URL as a Browser Source in OBS (recommended: 400x200)
                   </p>
                 </div>
@@ -331,7 +331,7 @@ export function OverlayConfigurator() {
           <Icons.HelpCircle className="h-5 w-5 text-primary" />
           How to Use
         </h3>
-        <ol className="space-y-3 text-sm text-muted-foreground">
+        <ol className="space-y-3 text-sm text-foreground/60">
           <li className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
               1

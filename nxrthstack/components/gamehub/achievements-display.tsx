@@ -67,21 +67,21 @@ export function AchievementsDisplay({ userAchievements }: AchievementsDisplayPro
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-border bg-card p-4 text-center">
           <div className="text-3xl font-bold text-primary">{unlockedKeys.length}</div>
-          <div className="text-sm text-muted-foreground">Unlocked</div>
+          <div className="text-sm text-foreground/60">Unlocked</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 text-center">
           <div className="text-3xl font-bold">{ACHIEVEMENT_DEFINITIONS.length}</div>
-          <div className="text-sm text-muted-foreground">Total</div>
+          <div className="text-sm text-foreground/60">Total</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 text-center">
           <div className="text-3xl font-bold text-yellow-500">{totalPoints}</div>
-          <div className="text-sm text-muted-foreground">Points</div>
+          <div className="text-sm text-foreground/60">Points</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 text-center">
           <div className="text-3xl font-bold">
             {Math.round((unlockedKeys.length / ACHIEVEMENT_DEFINITIONS.length) * 100)}%
           </div>
-          <div className="text-sm text-muted-foreground">Completion</div>
+          <div className="text-sm text-foreground/60">Completion</div>
         </div>
       </div>
 
@@ -89,7 +89,7 @@ export function AchievementsDisplay({ userAchievements }: AchievementsDisplayPro
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">Overall Progress</span>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-foreground/60">
             {totalPoints} / {totalPossiblePoints} points
           </span>
         </div>
@@ -139,7 +139,7 @@ export function AchievementsDisplay({ userAchievements }: AchievementsDisplayPro
               <h3 className={cn("text-lg font-semibold mb-4 flex items-center gap-2", CATEGORY_COLORS[category])}>
                 <Icons.Award className="h-5 w-5" />
                 {CATEGORY_LABELS[category]}
-                <span className="text-sm text-muted-foreground font-normal">
+                <span className="text-sm text-foreground/60 font-normal">
                   ({groupedByCategory[category].filter((a) => unlockedKeys.includes(a.key)).length}/
                   {groupedByCategory[category].length})
                 </span>
@@ -177,7 +177,7 @@ export function AchievementsDisplay({ userAchievements }: AchievementsDisplayPro
       )}
 
       {filteredAchievements.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
+        <div className="text-center py-12 text-foreground/60">
           <Icons.Award className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>No achievements found matching your filters.</p>
         </div>
