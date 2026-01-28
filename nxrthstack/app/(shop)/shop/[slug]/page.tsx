@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PricingTable } from "@/components/shop/pricing-table";
 import { Icons } from "@/components/icons";
+import { Markdown } from "@/components/ui/markdown";
 
 export const dynamic = "force-dynamic";
 
@@ -164,10 +165,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
               )}
 
               {product.description && (
-                <div className="mt-6 prose prose-invert max-w-none">
-                  <p className="text-foreground whitespace-pre-wrap">
-                    {product.description}
-                  </p>
+                <div className="mt-6">
+                  <Markdown>{product.description}</Markdown>
                 </div>
               )}
 
