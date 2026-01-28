@@ -14,6 +14,20 @@ interface Overlay {
   createdAt: string;
 }
 
+interface Lobby {
+  id: string;
+  name: string;
+  status: string;
+  host: { name: string } | null;
+  opponent: { name: string } | null;
+}
+
+interface Tournament {
+  id: string;
+  name: string;
+  status: string;
+}
+
 const OVERLAY_TYPES = [
   {
     id: "shiny_counter",
@@ -68,6 +82,13 @@ export function OverlayConfigurator() {
   const [newOverlayName, setNewOverlayName] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // R6 Stats specific state
+  const [lobbies, setLobbies] = useState<Lobby[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedLobbyId, setSelectedLobbyId] = useState<string>("");
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string>("");
+  const [r6SourceType, setR6SourceType] = useState<"lobby" | "tournament">("lobby");
+
   const fetchOverlays = async () => {
     try {
       const response = await fetch("/api/gamehub/overlays");
@@ -82,23 +103,78 @@ export function OverlayConfigurator() {
     }
   };
 
+  const fetchLobbies = async () => {
+    try {
+      const response = await fetch("/api/gamehub/r6/lobbies");
+      const data = await response.json();
+      if (data.lobbies) {
+        setLobbies(data.lobbies);
+      }
+    } catch (error) {
+      console.error("Failed to fetch lobbies:", error);
+    }
+  };
+
+  const fetchTournaments = async () => {
+    try {
+      const response = await fetch("/api/gamehub/r6/tournaments");
+      const data = await response.json();
+      if (data.tournaments) {
+        setTournaments(data.tournaments);
+      }
+    } catch (error) {
+      console.error("Failed to fetch tournaments:", error);
+    }
+  };
+
   useEffect(() => {
     fetchOverlays();
   }, []);
 
+  // Fetch lobbies/tournaments when R6 Stats is selected
+  useEffect(() => {
+    if (selectedType === "r6_stats") {
+      fetchLobbies();
+      fetchTournaments();
+    }
+  }, [selectedType]);
+
   const createOverlay = async () => {
     if (!selectedType || !newOverlayName.trim()) return;
+
+    // Validate R6 Stats requires a lobby or tournament selection
+    if (selectedType === "r6_stats") {
+      if (r6SourceType === "lobby" && !selectedLobbyId) {
+        alert("Please select a lobby for the overlay");
+        return;
+      }
+      if (r6SourceType === "tournament" && !selectedTournamentId) {
+        alert("Please select a tournament for the overlay");
+        return;
+      }
+    }
 
     setIsCreating(true);
     try {
       const typeConfig = OVERLAY_TYPES.find((t) => t.id === selectedType);
+      let config: Record<string, unknown> = typeConfig?.defaultConfig ? { ...typeConfig.defaultConfig } : {};
+
+      // Add lobby/tournament ID to R6 Stats config
+      if (selectedType === "r6_stats") {
+        if (r6SourceType === "lobby") {
+          config = { ...config, lobbyId: selectedLobbyId, sourceType: "lobby" };
+        } else {
+          config = { ...config, tournamentId: selectedTournamentId, sourceType: "tournament" };
+        }
+      }
+
       const response = await fetch("/api/gamehub/overlays", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: selectedType,
           name: newOverlayName,
-          config: typeConfig?.defaultConfig || {},
+          config,
         }),
       });
 
@@ -107,6 +183,9 @@ export function OverlayConfigurator() {
         setOverlays([...overlays, data.overlay]);
         setSelectedType(null);
         setNewOverlayName("");
+        setSelectedLobbyId("");
+        setSelectedTournamentId("");
+        setR6SourceType("lobby");
       }
     } catch (error) {
       console.error("Failed to create overlay:", error);
@@ -213,6 +292,99 @@ export function OverlayConfigurator() {
                 className="w-full px-3 py-2 rounded-lg bg-muted border-0 text-foreground placeholder:text-foreground/40"
               />
             </div>
+
+            {/* R6 Stats Source Selection */}
+            {selectedType === "r6_stats" && (
+              <div className="space-y-4 p-4 rounded-lg bg-muted/30 border border-border">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-foreground">
+                    Stats Source
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setR6SourceType("lobby")}
+                      className={cn(
+                        "flex-1 px-3 py-2 text-sm rounded-lg transition-colors",
+                        r6SourceType === "lobby"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      1v1 Lobby
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setR6SourceType("tournament")}
+                      className={cn(
+                        "flex-1 px-3 py-2 text-sm rounded-lg transition-colors",
+                        r6SourceType === "tournament"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      Tournament
+                    </button>
+                  </div>
+                </div>
+
+                {r6SourceType === "lobby" && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-foreground">
+                      Select Lobby
+                    </label>
+                    {lobbies.length === 0 ? (
+                      <p className="text-sm text-foreground/60">
+                        No lobbies found. Create a lobby first in the R6 1v1 Tracker.
+                      </p>
+                    ) : (
+                      <select
+                        value={selectedLobbyId}
+                        onChange={(e) => setSelectedLobbyId(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-muted border-0 text-foreground"
+                      >
+                        <option value="">Select a lobby...</option>
+                        {lobbies.map((lobby) => (
+                          <option key={lobby.id} value={lobby.id}>
+                            {lobby.name} ({lobby.host?.name || "Unknown"} vs {lobby.opponent?.name || "Waiting..."})
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                )}
+
+                {r6SourceType === "tournament" && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-foreground">
+                      Select Tournament
+                    </label>
+                    {tournaments.length === 0 ? (
+                      <p className="text-sm text-foreground/60">
+                        No tournaments found. Join or create a tournament first.
+                      </p>
+                    ) : (
+                      <select
+                        value={selectedTournamentId}
+                        onChange={(e) => setSelectedTournamentId(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-muted border-0 text-foreground"
+                      >
+                        <option value="">Select a tournament...</option>
+                        {tournaments.map((tournament) => (
+                          <option key={tournament.id} value={tournament.id}>
+                            {tournament.name} ({tournament.status})
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                )}
+
+                <p className="text-xs text-foreground/60">
+                  The overlay will automatically update with live stats from the selected {r6SourceType}.
+                </p>
+              </div>
+            )}
 
             <button
               onClick={createOverlay}

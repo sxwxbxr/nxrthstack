@@ -42,7 +42,7 @@ export default async function OverlayPage({ params }: OverlayPageProps) {
     case "shiny_counter":
       return <ShinyCounterOverlay config={config} />;
     case "r6_stats":
-      return <R6StatsOverlay config={config} />;
+      return <R6StatsOverlay config={config} token={token} />;
     case "pokemon_team":
       return <PokemonTeamOverlay config={config} />;
     default:
