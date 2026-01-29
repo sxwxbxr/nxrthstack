@@ -6,7 +6,6 @@ import { signOut, useSession } from "next-auth/react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
-import { NotificationBell } from "@/components/notifications";
 
 const navItems = [
   {
@@ -72,7 +71,6 @@ export function DashboardNav() {
                 {session?.user?.email}
               </p>
             </div>
-            <NotificationBell />
           </div>
         </div>
 
