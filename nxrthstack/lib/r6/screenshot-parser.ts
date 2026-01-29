@@ -72,13 +72,17 @@ export async function parseScreenshot(
   try {
     onProgress?.(10, "Initializing OCR engine...");
 
-    // Run OCR with blocks output for detailed structure
+    // Run OCR with optimized settings for game scoreboards
     const result = await Tesseract.recognize(imageUrl, "eng", {
       logger: (m) => {
         if (m.status === "recognizing text") {
           onProgress?.(10 + m.progress * 70, "Recognizing text...");
         }
       },
+      // Tesseract parameters optimized for scoreboards
+      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -_",
+      tessedit_pageseg_mode: "6", // Assume uniform block of text
+      preserve_interword_spaces: "1",
     });
 
     onProgress?.(85, "Analyzing scoreboard...");
@@ -440,41 +444,75 @@ function extractStatsFallback(text: string): Array<{ kills: number; deaths: numb
 
 /**
  * Pre-process image for better OCR results.
- * Applies contrast enhancement and grayscale conversion.
+ * Optimized for R6 Siege scoreboards with dark backgrounds and light text.
  */
 export async function preprocessImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) {
-      resolve(file); // Fallback to original
-      return;
-    }
 
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
-      // Draw original image
-      ctx.drawImage(img, 0, 0);
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      // Upscale small images for better OCR (target ~2000px width)
+      const targetWidth = 2000;
+      const scale = img.width < targetWidth ? targetWidth / img.width : 1;
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+
+      // Use better image interpolation
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      // Draw scaled image
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       // Get image data
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
-      // Convert to grayscale and enhance contrast
+      // Step 1: Convert to grayscale and collect histogram
+      const grayValues: number[] = new Array(data.length / 4);
+      let minGray = 255;
+      let maxGray = 0;
+
       for (let i = 0; i < data.length; i += 4) {
-        // Grayscale
-        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+        grayValues[i / 4] = gray;
+        minGray = Math.min(minGray, gray);
+        maxGray = Math.max(maxGray, gray);
+      }
 
-        // Contrast enhancement (stretch histogram)
-        const enhanced = Math.min(255, Math.max(0, (gray - 128) * 1.5 + 128));
+      // Step 2: Apply histogram stretching and adaptive thresholding
+      const range = maxGray - minGray || 1;
 
-        data[i] = enhanced;
-        data[i + 1] = enhanced;
-        data[i + 2] = enhanced;
+      for (let i = 0; i < data.length; i += 4) {
+        let gray = grayValues[i / 4];
+
+        // Histogram stretching (normalize to full 0-255 range)
+        gray = Math.round(((gray - minGray) / range) * 255);
+
+        // Strong contrast enhancement for text
+        // This makes light text (scores, names) stand out from dark background
+        const contrast = 2.0;
+        gray = Math.min(255, Math.max(0, Math.round((gray - 128) * contrast + 128)));
+
+        // Mild sharpening effect by boosting already-bright pixels
+        // R6 scoreboards have white/yellow text on dark backgrounds
+        if (gray > 160) {
+          gray = Math.min(255, gray + 40);
+        } else if (gray < 80) {
+          gray = Math.max(0, gray - 30);
+        }
+
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
       }
 
       ctx.putImageData(imageData, 0, 0);
