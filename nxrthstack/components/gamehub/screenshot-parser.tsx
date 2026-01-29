@@ -211,6 +211,14 @@ export function ScreenshotParser({
             </button>
           </div>
 
+          {/* Map Name */}
+          {result.map && (
+            <div className="text-center py-1">
+              <span className="text-xs text-muted-foreground">Map: </span>
+              <span className="text-sm font-medium text-foreground">{result.map}</span>
+            </div>
+          )}
+
           {/* Match Score */}
           {(result.team1Score !== null || result.team2Score !== null) && (
             <div className="flex items-center justify-center gap-4 py-2">

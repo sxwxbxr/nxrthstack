@@ -3,6 +3,9 @@
 import Tesseract from "tesseract.js";
 
 export interface ParsedMatchData {
+  // Map info
+  map: string | null;
+
   // Team scores (round wins)
   team1Score: number | null;
   team2Score: number | null;
@@ -123,6 +126,15 @@ export async function parseScreenshot(
   }
 }
 
+// Known R6 Siege map names for detection
+const R6_MAPS = [
+  "BANK", "BORDER", "CHALET", "CLUBHOUSE", "COASTLINE", "CONSULATE",
+  "EMERALD PLAINS", "KAFE DOSTOYEVSKY", "KAFE", "KANAL", "LAIR",
+  "NIGHTHAVEN LABS", "NIGHTHAVEN", "OREGON", "OUTBACK", "SKYSCRAPER",
+  "THEME PARK", "VILLA", "HOUSE", "HEREFORD", "PLANE", "YACHT",
+  "FAVELA", "FORTRESS", "TOWER", "BARTLETT", "STADIUM"
+];
+
 /**
  * Analyze OCR results to extract scoreboard data.
  */
@@ -131,6 +143,7 @@ function analyzeScoreboard(
   warnings: string[]
 ): Omit<ParsedMatchData, "rawText" | "warnings"> {
   const result: Omit<ParsedMatchData, "rawText" | "warnings"> = {
+    map: null,
     team1Score: null,
     team2Score: null,
     player1: { name: null, kills: null, deaths: null, assists: null, score: null },
@@ -139,22 +152,43 @@ function analyzeScoreboard(
     confidence: ocr.confidence,
   };
 
-  // Strategy 1: Find the match score (e.g., "3 - 2", "4-1", "3 : 2")
-  const matchScorePattern = /(\d)\s*[-:]\s*(\d)/;
-  const scoreMatch = ocr.text.match(matchScorePattern);
+  // Detect map name
+  const upperText = ocr.text.toUpperCase();
+  for (const map of R6_MAPS) {
+    if (upperText.includes(map)) {
+      result.map = map;
+      break;
+    }
+  }
 
-  if (scoreMatch) {
-    result.team1Score = parseInt(scoreMatch[1]);
-    result.team2Score = parseInt(scoreMatch[2]);
+  // Strategy 1: Find team scores in R6 format ("YOUR TEAM X" / "ENEMY TEAM Y")
+  // or standalone large numbers near "YOUR TEAM" / "ENEMY TEAM" labels
+  const yourTeamMatch = ocr.text.match(/YOUR\s*TEAM[\s\n]*(\d)/i);
+  const enemyTeamMatch = ocr.text.match(/ENEMY\s*TEAM[\s\n]*(\d)/i);
 
-    // Determine winner based on round score
+  if (yourTeamMatch && enemyTeamMatch) {
+    result.team1Score = parseInt(yourTeamMatch[1]);
+    result.team2Score = parseInt(enemyTeamMatch[1]);
+  } else {
+    // Fallback: Find the match score pattern (e.g., "3 - 2", "4-1", "3 : 2")
+    const matchScorePattern = /(\d)\s*[-:]\s*(\d)/;
+    const scoreMatch = ocr.text.match(matchScorePattern);
+
+    if (scoreMatch) {
+      result.team1Score = parseInt(scoreMatch[1]);
+      result.team2Score = parseInt(scoreMatch[2]);
+    } else {
+      warnings.push("Could not detect match score");
+    }
+  }
+
+  // Determine winner based on round score
+  if (result.team1Score !== null && result.team2Score !== null) {
     if (result.team1Score > result.team2Score) {
       result.winner = "player1";
     } else if (result.team2Score > result.team1Score) {
       result.winner = "player2";
     }
-  } else {
-    warnings.push("Could not detect match score (e.g., 3-2)");
   }
 
   // Strategy 2: Find player stat lines
@@ -200,22 +234,39 @@ function analyzeScoreboard(
 
 /**
  * Find lines that look like player stat rows.
- * These typically contain multiple numbers (score, K, A, D, ping).
+ * R6 scoreboard shows: [Operator icon] Name Score K D A [Ping]
+ * Player 1 (your team) is typically highlighted and near top.
+ * Enemy players may have "AI" prefix in Field Training mode.
  */
 function findStatLines(lines: LineInfo[]): LineInfo[] {
-  const candidates: Array<{ line: LineInfo; numberCount: number; y: number }> = [];
+  const candidates: Array<{
+    line: LineInfo;
+    numberCount: number;
+    y: number;
+    isPlayer: boolean;
+    isEnemy: boolean;
+    hasName: boolean;
+  }> = [];
 
   for (const line of lines) {
-    // Count how many number tokens are in this line
+    const text = line.text;
     const numbers = line.words.filter((w) => /^\d+$/.test(w.text.trim()));
 
-    // A stat line typically has 4-6 numbers (score, K, A, D, maybe ping)
-    // But at minimum we need K and D (2 numbers)
-    if (numbers.length >= 2) {
+    // A stat line typically has 3-5 numbers (score, K, D, A, maybe ping)
+    if (numbers.length >= 3) {
+      // Check if this looks like a player line
+      const hasAIPrefix = /\bAI\s+\w+/i.test(text);
+      const hasPlayerName = line.words.some(
+        (w) => w.text.length > 3 && !/^\d+$/.test(w.text) && !/^(ATK|DEF|Score|Kills|Deaths|Assists)$/i.test(w.text)
+      );
+
       candidates.push({
         line,
         numberCount: numbers.length,
         y: line.bbox.y0,
+        isPlayer: !hasAIPrefix && hasPlayerName,
+        isEnemy: hasAIPrefix,
+        hasName: hasPlayerName || hasAIPrefix,
       });
     }
   }
@@ -223,23 +274,31 @@ function findStatLines(lines: LineInfo[]): LineInfo[] {
   // Sort by Y position (top to bottom)
   candidates.sort((a, b) => a.y - b.y);
 
-  // If we have many candidates, filter to those with the most numbers
-  // (more likely to be actual stat lines)
-  if (candidates.length > 2) {
-    const maxNumbers = Math.max(...candidates.map((c) => c.numberCount));
-    const filtered = candidates.filter((c) => c.numberCount >= maxNumbers - 1);
+  // Find the player line (your team - typically first non-AI line with stats)
+  const playerLine = candidates.find((c) => c.isPlayer);
 
-    // Return top 2 (one per team in 1v1)
-    return filtered.slice(0, 2).map((c) => c.line);
+  // Find the first enemy line (AI player in Field Training)
+  const enemyLine = candidates.find((c) => c.isEnemy);
+
+  // If we found specific player/enemy lines, use those
+  if (playerLine && enemyLine) {
+    return [playerLine.line, enemyLine.line];
   }
 
+  // Fallback: use lines with most numbers, prioritizing those with names
+  const withNames = candidates.filter((c) => c.hasName);
+  if (withNames.length >= 2) {
+    return withNames.slice(0, 2).map((c) => c.line);
+  }
+
+  // Last resort: just take top 2 candidates
   return candidates.slice(0, 2).map((c) => c.line);
 }
 
 /**
  * Extract player stats from a stat line.
- * Expected format: [Name] [Score] [K] [A] [D] [Ping]
- * But order might vary, so we use heuristics.
+ * R6 Siege scoreboard format: [Name] [Score] [K] [D] [A] [Ping]
+ * We use X-coordinate positions to determine column order.
  */
 function extractPlayerStats(line: LineInfo): {
   name: string | null;
@@ -256,62 +315,85 @@ function extractPlayerStats(line: LineInfo): {
     score: null as number | null,
   };
 
-  // Separate words into text and numbers
-  const textWords: string[] = [];
-  const numbers: number[] = [];
+  // Separate words into text and numbers, preserving position info
+  const textWords: Array<{ text: string; x: number }> = [];
+  const numberWords: Array<{ value: number; x: number }> = [];
 
   for (const word of line.words) {
     const cleaned = word.text.trim();
     if (/^\d+$/.test(cleaned)) {
-      numbers.push(parseInt(cleaned));
+      numberWords.push({ value: parseInt(cleaned), x: word.bbox.x0 });
     } else if (cleaned.length > 1 && !/^[|\[\]{}()]+$/.test(cleaned)) {
       // Filter out OCR artifacts like |, [], etc.
-      textWords.push(cleaned);
+      textWords.push({ text: cleaned, x: word.bbox.x0 });
     }
   }
 
-  // Name is typically the longest text token or first text token
+  // Sort numbers by X position (left to right)
+  numberWords.sort((a, b) => a.x - b.x);
+
+  // Name extraction - look for player name patterns
   if (textWords.length > 0) {
     // Filter out common OCR misreads and column headers
     const filtered = textWords.filter(
-      (t) => !["Score", "Kills", "Deaths", "Assists", "Ping", "K", "D", "A"].includes(t)
+      (t) => !["Score", "Kills", "Deaths", "Assists", "Ping", "K", "D", "A", "ATK", "DEF"].includes(t.text)
     );
     if (filtered.length > 0) {
-      result.name = filtered[0];
+      // For AI players, combine "AI" with the city name
+      const aiIndex = filtered.findIndex((t) => t.text.toUpperCase() === "AI");
+      if (aiIndex >= 0 && filtered.length > aiIndex + 1) {
+        result.name = `AI ${filtered[aiIndex + 1].text}`;
+      } else {
+        // Take the longest text as name, or first non-trivial text
+        const sortedByLength = [...filtered].sort((a, b) => b.text.length - a.text.length);
+        result.name = sortedByLength[0].text;
+      }
     }
   }
 
-  // For numbers, typical order in R6 is: Score, K, A, D, Ping
-  // Score is usually the largest (hundreds/thousands)
-  // Ping is usually 10-200
-  // K, A, D are usually 0-20 in a single match
+  // R6 Siege stat column order: Score, K, D, A (sometimes with ping at end)
+  // Score is typically large (100s-1000s), K/D/A are small (0-30 typically)
 
-  if (numbers.length >= 4) {
-    // Sort by likely category
-    const sorted = [...numbers].sort((a, b) => b - a);
+  if (numberWords.length >= 4) {
+    // First large number is score
+    const scoreCandidate = numberWords.find((n) => n.value >= 100);
+    if (scoreCandidate) {
+      result.score = scoreCandidate.value;
+    }
 
-    // Largest is probably score
-    result.score = sorted[0];
-
-    // Find K, D, A among remaining (smaller numbers, typically < 30)
-    const kdaCandidates = numbers.filter((n) => n < 50 && n !== result.score);
+    // K, D, A are the small numbers after score, in order by X position
+    const kdaCandidates = numberWords
+      .filter((n) => n.value < 100 && (!scoreCandidate || n.x > scoreCandidate.x))
+      .slice(0, 3);
 
     if (kdaCandidates.length >= 3) {
-      // Order in the line matters: K, A, D or K, D based on position
-      const kda = kdaCandidates.slice(0, 3);
-      result.kills = kda[0];
-      result.assists = kda[1];
-      result.deaths = kda[2];
+      result.kills = kdaCandidates[0].value;
+      result.deaths = kdaCandidates[1].value;
+      result.assists = kdaCandidates[2].value;
     } else if (kdaCandidates.length >= 2) {
-      result.kills = kdaCandidates[0];
-      result.deaths = kdaCandidates[1];
+      result.kills = kdaCandidates[0].value;
+      result.deaths = kdaCandidates[1].value;
+    } else if (kdaCandidates.length === 1) {
+      result.kills = kdaCandidates[0].value;
     }
-  } else if (numbers.length >= 2) {
-    // Minimal case: just K and D
-    const small = numbers.filter((n) => n < 50);
+  } else if (numberWords.length >= 3) {
+    // Assume first is score if large, rest are K, D, A
+    if (numberWords[0].value >= 100) {
+      result.score = numberWords[0].value;
+      result.kills = numberWords[1].value;
+      result.deaths = numberWords[2].value;
+    } else {
+      // All small - treat as K, D, A
+      result.kills = numberWords[0].value;
+      result.deaths = numberWords[1].value;
+      result.assists = numberWords[2].value;
+    }
+  } else if (numberWords.length >= 2) {
+    // Minimal case: just two numbers - assume K and D
+    const small = numberWords.filter((n) => n.value < 50);
     if (small.length >= 2) {
-      result.kills = small[0];
-      result.deaths = small[1];
+      result.kills = small[0].value;
+      result.deaths = small[1].value;
     }
   }
 
