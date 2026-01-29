@@ -83,6 +83,9 @@ import {
   BookOpen,
   Flame,
   Edit,
+  Bell,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
 
 export const Icons = {
@@ -172,6 +175,9 @@ export const Icons = {
   Flame,
   Edit,
   MessageSquare,
+  Bell,
+  UserPlus,
+  UserMinus,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

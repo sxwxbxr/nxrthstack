@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
+import { NotificationBell } from "@/components/notifications";
 
 const navItems = [
   {
@@ -63,7 +64,7 @@ export function DashboardNav() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <Icons.User className="h-5 w-5 text-primary" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate font-medium text-foreground">
                 {session?.user?.name || "User"}
               </p>
@@ -71,6 +72,7 @@ export function DashboardNav() {
                 {session?.user?.email}
               </p>
             </div>
+            <NotificationBell />
           </div>
         </div>
 

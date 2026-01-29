@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { gamehubAchievements, userAchievements } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { notifyAchievementUnlocked } from "@/lib/notifications/gamehub";
 
 /**
  * Unlock an achievement for a user
@@ -47,6 +48,14 @@ export async function unlockAchievement(
       achievementId: achievement.id,
       unlockedAt: new Date(),
     });
+
+    // Send notification
+    await notifyAchievementUnlocked(
+      userId,
+      achievement.key,
+      achievement.name,
+      achievement.points
+    );
 
     return { success: true, alreadyUnlocked: false };
   } catch (error) {

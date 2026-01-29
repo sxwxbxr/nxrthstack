@@ -274,7 +274,7 @@ export const r6Operators = pgTable("r6_operators", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   purchases: many(purchases),
   subscriptions: many(subscriptions),
   sessions: many(sessions),
@@ -283,6 +283,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   refreshTokens: many(refreshTokens),
   hostedLobbies: many(r6Lobbies, { relationName: "host" }),
   joinedLobbies: many(r6Lobbies, { relationName: "opponent" }),
+  notifications: many(notifications),
+  notificationPreferences: one(notificationPreferences),
 }));
 
 export const productsRelations = relations(products, ({ many }) => ({
@@ -771,6 +773,70 @@ export const streamOverlaysRelations = relations(streamOverlays, ({ one }) => ({
   }),
 }));
 
+// ============================================================================
+// Notifications System
+// ============================================================================
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 50 }).notNull(), // e.g., 'achievement_unlocked', 'product_update_available'
+  category: varchar("category", { length: 30 }).notNull(), // 'gamehub' | 'product' | 'system'
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  actionUrl: varchar("action_url", { length: 500 }), // Optional link
+  actionLabel: varchar("action_label", { length: 100 }), // e.g., "View Achievement"
+  metadata: jsonb("metadata").default({}), // Type-specific data (productId, achievementKey, etc.)
+  isRead: boolean("is_read").default(false).notNull(),
+  readAt: timestamp("read_at", { mode: "date" }),
+  // For future SMTP integration
+  emailSent: boolean("email_sent").default(false).notNull(),
+  emailSentAt: timestamp("email_sent_at", { mode: "date" }),
+  emailEnabled: boolean("email_enabled").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }), // Optional expiration
+});
+
+// Notification preferences per user
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  // GameHub notifications (website only)
+  gamehubAchievements: boolean("gamehub_achievements").default(true).notNull(),
+  gamehubLobbyInvites: boolean("gamehub_lobby_invites").default(true).notNull(),
+  gamehubMatchResults: boolean("gamehub_match_results").default(true).notNull(),
+  gamehubTournaments: boolean("gamehub_tournaments").default(true).notNull(),
+  gamehubAnnouncements: boolean("gamehub_announcements").default(true).notNull(),
+  // Product notifications (website + future email)
+  productUpdates: boolean("product_updates").default(true).notNull(),
+  productUpdatesEmail: boolean("product_updates_email").default(true).notNull(),
+  // System notifications
+  systemAnnouncements: boolean("system_announcements").default(true).notNull(),
+  systemAnnouncementsEmail: boolean("system_announcements_email").default(true).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Notification Relations
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [notificationPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -838,3 +904,9 @@ export type NewUserAchievement = typeof userAchievements.$inferInsert;
 // Stream Overlay Types
 export type StreamOverlay = typeof streamOverlays.$inferSelect;
 export type NewStreamOverlay = typeof streamOverlays.$inferInsert;
+
+// Notification Types
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+export type NewNotificationPreferences = typeof notificationPreferences.$inferInsert;
