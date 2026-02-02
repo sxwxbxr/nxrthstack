@@ -63,11 +63,11 @@ Here are some ideas for GameHub improvements and additions:
   ┌────────────────────────┬─────────────────────────────────────────────────────────────┐
   │        Feature         │                         Description                         │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Gaming Stats Dashboard │ Overview of all your GameHub activity                       │
+  │ Gaming Stats Dashboard │ Done                                                        │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
   │ Achievement System     │ Done                                                        │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Session Scheduler      │ Plan gaming sessions with friends                           │
+  │ Session Scheduler      │ Done                                                        │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤
   │ Discord Integration    │ Done (OAuth account linking)                                │
   ├────────────────────────┼─────────────────────────────────────────────────────────────┤

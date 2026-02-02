@@ -108,7 +108,39 @@ export default async function GameHubPage() {
 
       {/* Cross-Game Features */}
       <FadeIn delay={0.15}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link
+            href="/dashboard/gamehub/stats"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                <Icons.BarChart className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Gaming Stats
+                </h3>
+                <p className="text-xs text-foreground/60">Your activity overview</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/dashboard/gamehub/sessions"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
+                <Icons.Calendar className="h-5 w-5 text-orange-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Session Scheduler
+                </h3>
+                <p className="text-xs text-foreground/60">Plan gaming sessions</p>
+              </div>
+            </div>
+          </Link>
           <Link
             href="/dashboard/gamehub/achievements"
             className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"

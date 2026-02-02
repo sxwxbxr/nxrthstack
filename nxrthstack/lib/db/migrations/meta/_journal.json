@@ -15,6 +15,13 @@
       "when": 1769696217911,
       "tag": "0001_omniscient_nekra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770012321387,
+      "tag": "0002_small_manta",
+      "breakpoints": true
     }
   ]
 }
