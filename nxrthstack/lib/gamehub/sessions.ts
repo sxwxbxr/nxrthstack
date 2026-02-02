@@ -447,3 +447,70 @@ export async function getSessionRsvps(sessionId: string) {
 
   return rsvps;
 }
+
+/**
+ * Update a session (host only)
+ */
+export async function updateSession(
+  sessionId: string,
+  userId: string,
+  data: {
+    title?: string;
+    game?: string;
+    scheduledAt?: Date;
+    durationMinutes?: number;
+  }
+) {
+  const [session] = await db
+    .select()
+    .from(gamingSessions)
+    .where(eq(gamingSessions.id, sessionId))
+    .limit(1);
+
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  if (session.hostId !== userId) {
+    throw new Error("Only the host can update the session");
+  }
+
+  const updateData: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
+
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.game !== undefined) updateData.game = data.game;
+  if (data.scheduledAt !== undefined) updateData.scheduledAt = data.scheduledAt;
+  if (data.durationMinutes !== undefined) updateData.durationMinutes = data.durationMinutes;
+
+  await db
+    .update(gamingSessions)
+    .set(updateData)
+    .where(eq(gamingSessions.id, sessionId));
+
+  return { success: true };
+}
+
+/**
+ * Delete a session (host only)
+ */
+export async function deleteSession(sessionId: string, userId: string) {
+  const [session] = await db
+    .select()
+    .from(gamingSessions)
+    .where(eq(gamingSessions.id, sessionId))
+    .limit(1);
+
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  if (session.hostId !== userId) {
+    throw new Error("Only the host can delete the session");
+  }
+
+  await db.delete(gamingSessions).where(eq(gamingSessions.id, sessionId));
+
+  return { success: true };
+}

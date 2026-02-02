@@ -5,6 +5,8 @@ import {
   getSessionRsvps,
   updateRsvp,
   cancelSession,
+  updateSession,
+  deleteSession,
 } from "@/lib/gamehub/sessions";
 
 export async function GET(
@@ -59,7 +61,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { action, status, note } = body;
+    const { action, status, note, title, game, scheduledAt, durationMinutes } = body;
 
     if (action === "rsvp") {
       if (!status || !["going", "maybe", "not_going"].includes(status)) {
@@ -78,10 +80,42 @@ export async function PATCH(
       return NextResponse.json({ success: true });
     }
 
+    // Update session details (if no action specified, treat as update)
+    if (title !== undefined || game !== undefined || scheduledAt !== undefined || durationMinutes !== undefined) {
+      await updateSession(sessionId, userSession.user.id, {
+        title,
+        game,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+        durationMinutes,
+      });
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
     console.error("Failed to update session:", error);
     const message = error instanceof Error ? error.message : "Failed to update session";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ sessionId: string }> }
+) {
+  try {
+    const { sessionId } = await params;
+    const userSession = await auth();
+
+    if (!userSession?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await deleteSession(sessionId, userSession.user.id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete session:", error);
+    const message = error instanceof Error ? error.message : "Failed to delete session";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

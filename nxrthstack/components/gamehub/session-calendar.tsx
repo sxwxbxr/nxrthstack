@@ -29,6 +29,7 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
   const [view, setView] = useState<"week" | "day">("week");
   const [isCreating, setIsCreating] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ date: Date; hour: number } | null>(null);
+  const [editingEntry, setEditingEntry] = useState<CalendarEntry | null>(null);
 
   // Get the start of the current week (Sunday)
   const weekStart = useMemo(() => {
@@ -248,22 +249,17 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
                       const gameLabel = GAME_OPTIONS.find((g) => g.value === entry.game)?.label || entry.game;
 
                       return (
-                        <div
+                        <EntryCard
                           key={entry.id}
-                          className={`absolute left-1 right-1 rounded-md px-2 py-1 text-xs text-white border-l-2 overflow-hidden cursor-pointer hover:opacity-90 transition-opacity ${getGameColor(entry.game)}`}
-                          style={{ top: pos.top, height: pos.height }}
-                          title={`${entry.userName || "Unknown"} - ${gameLabel}`}
-                        >
-                          <div className="font-medium truncate">{entry.title || gameLabel}</div>
-                          <div className="text-white/80 truncate">
-                            {new Date(entry.startTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-                            {" - "}
-                            {new Date(entry.endTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-                          </div>
-                          {!isOwn && (
-                            <div className="text-white/70 truncate">{entry.userName}</div>
-                          )}
-                        </div>
+                          entry={entry}
+                          isOwn={isOwn}
+                          gameLabel={gameLabel}
+                          position={pos}
+                          colorClass={getGameColor(entry.game)}
+                          onEdit={isOwn ? () => {
+                            setEditingEntry(entry);
+                          } : undefined}
+                        />
                       );
                     })}
 
@@ -298,6 +294,54 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
           }}
         />
       )}
+
+      {/* Edit Entry Modal */}
+      {editingEntry && (
+        <EditEntryModal
+          entry={editingEntry}
+          onClose={() => setEditingEntry(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function EntryCard({
+  entry,
+  isOwn,
+  gameLabel,
+  position,
+  colorClass,
+  onEdit,
+}: {
+  entry: CalendarEntry;
+  isOwn: boolean;
+  gameLabel: string;
+  position: { top: string; height: string };
+  colorClass: string;
+  onEdit?: () => void;
+}) {
+  return (
+    <div
+      onClick={onEdit}
+      className={`absolute left-1 right-1 rounded-md px-2 py-1 text-xs text-white border-l-2 overflow-hidden transition-opacity ${colorClass} ${
+        onEdit ? "cursor-pointer hover:opacity-90" : ""
+      }`}
+      style={{ top: position.top, height: position.height }}
+      title={`${entry.userName || "Unknown"} - ${gameLabel}${isOwn ? " (Click to edit)" : ""}`}
+    >
+      <div className="flex items-center gap-1">
+        <span className="font-medium truncate flex-1">{entry.title || gameLabel}</span>
+        {isOwn && <Icons.Pencil className="h-3 w-3 flex-shrink-0 opacity-70" />}
+      </div>
+      <div className="text-white/80 truncate">
+        {new Date(entry.startTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+        {" - "}
+        {new Date(entry.endTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+      </div>
+      <div className="text-white/70 truncate text-[10px]">
+        {isOwn ? "You" : entry.userName || "Unknown"}
+      </div>
     </div>
   );
 }
@@ -478,6 +522,213 @@ function CreateEntryModal({
                 <Icons.Calendar className="h-4 w-4" />
               )}
               Add to Calendar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditEntryModal({
+  entry,
+  onClose,
+}: {
+  entry: CalendarEntry;
+  onClose: () => void;
+}) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const startDate = new Date(entry.startTime);
+  const endDate = new Date(entry.endTime);
+
+  const [formData, setFormData] = useState({
+    title: entry.title,
+    game: entry.game,
+    date: startDate.toISOString().split("T")[0],
+    startTime: `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`,
+    endTime: `${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`,
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const startDateTime = new Date(`${formData.date}T${formData.startTime}`);
+      const endDateTime = new Date(`${formData.date}T${formData.endTime}`);
+
+      if (endDateTime <= startDateTime) {
+        endDateTime.setDate(endDateTime.getDate() + 1);
+      }
+
+      const response = await fetch(`/api/gamehub/sessions/${entry.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.title,
+          game: formData.game,
+          scheduledAt: startDateTime.toISOString(),
+          durationMinutes: Math.round((endDateTime.getTime() - startDateTime.getTime()) / 60000),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to update session");
+      }
+
+      window.location.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this session?")) return;
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/gamehub/sessions/${entry.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete session");
+      }
+
+      window.location.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-foreground">Edit Session</h2>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted">
+            <Icons.X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Title
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Session title..."
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Game
+            </label>
+            <select
+              value={formData.game}
+              onChange={(e) => setFormData({ ...formData, game: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {GAME_OPTIONS.map((game) => (
+                <option key={game.value} value={game.value}>
+                  {game.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Date
+            </label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">
+                From
+              </label>
+              <input
+                type="time"
+                value={formData.startTime}
+                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">
+                To
+              </label>
+              <input
+                type="time"
+                value={formData.endTime}
+                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-4 py-2 rounded-lg border border-destructive text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <Icons.Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Icons.Trash2 className="h-4 w-4" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <Icons.Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Icons.Check className="h-4 w-4" />
+              )}
+              Save Changes
             </button>
           </div>
         </form>
