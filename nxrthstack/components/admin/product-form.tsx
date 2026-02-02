@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
+import { upload } from "@vercel/blob/client";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/db/schema";
@@ -16,6 +17,9 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: product?.name ?? "",
@@ -40,6 +44,56 @@ export function ProductForm({ product, mode }: ProductFormProps) {
       name,
       slug: mode === "create" ? generateSlug(name) : prev.slug,
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Please upload a valid image file (PNG, JPEG, GIF, or WebP)");
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image must be less than 10MB");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setError("");
+
+    try {
+      const timestamp = Date.now();
+      const filename = `products/${timestamp}-${file.name}`;
+
+      const blob = await upload(filename, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/upload/token",
+        onUploadProgress: (progress) => {
+          setUploadProgress(Math.round(progress.percentage));
+        },
+      });
+
+      setFormData((prev) => ({ ...prev, imageUrl: blob.url }));
+    } catch (err) {
+      console.error("Failed to upload image:", err);
+      setError("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, imageUrl: "" }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,20 +228,99 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-foreground">
-              Image URL
+              Product Image
             </label>
-            <input
-              type="url"
-              value={formData.imageUrl}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, imageUrl: e.target.value }))
-              }
-              className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="https://example.com/image.png"
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Direct URL to product image (upload feature coming soon)
-            </p>
+            <div className="mt-2 space-y-3">
+              {/* Image Preview / Upload Area */}
+              {formData.imageUrl ? (
+                <div className="relative overflow-hidden rounded-lg border border-border">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Product preview"
+                    className="h-48 w-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                    <label className="cursor-pointer rounded-lg bg-white/90 px-3 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-white">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/gif,image/webp"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={isUploading}
+                      />
+                      Replace
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="rounded-lg bg-destructive/90 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted/50">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                  {isUploading ? (
+                    <div className="text-center">
+                      <Icons.Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
+                      <p className="mt-2 font-medium text-foreground">
+                        Uploading... {uploadProgress}%
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <Icons.ImagePlus className="mx-auto h-10 w-10 text-muted-foreground" />
+                      <p className="mt-2 font-medium text-foreground">
+                        Click to upload an image
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        PNG, JPEG, GIF, or WebP (max 10MB)
+                      </p>
+                    </div>
+                  )}
+                </label>
+              )}
+
+              {/* Upload Progress Bar */}
+              {isUploading && (
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${uploadProgress}%` }}
+                    className="absolute left-0 top-0 h-full bg-primary"
+                  />
+                </div>
+              )}
+
+              {/* URL Fallback Input */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">or enter URL</span>
+                </div>
+              </div>
+              <input
+                type="url"
+                value={formData.imageUrl}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, imageUrl: e.target.value }))
+                }
+                className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="https://example.com/image.png"
+              />
+            </div>
           </div>
         </div>
       </div>
