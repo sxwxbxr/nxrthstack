@@ -1,24 +1,31 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { upload } from "@vercel/blob/client";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/lib/db/schema";
+import type { Product, ProductImage } from "@/lib/db/schema";
 
 interface ProductFormProps {
-  product?: Product;
+  product?: Product & { images?: ProductImage[] };
   mode: "create" | "edit";
+}
+
+interface ImageItem {
+  id?: string;
+  url: string;
+  isPrimary: boolean;
+  isNew?: boolean;
+  isUploading?: boolean;
+  uploadProgress?: number;
 }
 
 export function ProductForm({ product, mode }: ProductFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -27,8 +34,28 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     description: product?.description ?? "",
     shortDescription: product?.shortDescription ?? "",
     productType: product?.productType ?? "paid",
-    imageUrl: product?.imageUrl ?? "",
   });
+
+  // Image gallery state
+  const [images, setImages] = useState<ImageItem[]>([]);
+
+  // Initialize images from product
+  useEffect(() => {
+    if (product?.images && product.images.length > 0) {
+      setImages(
+        product.images
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((img) => ({
+            id: img.id,
+            url: img.url,
+            isPrimary: img.isPrimary,
+          }))
+      );
+    } else if (product?.imageUrl) {
+      // Legacy: single imageUrl field
+      setImages([{ url: product.imageUrl, isPrimary: true }]);
+    }
+  }, [product]);
 
   const generateSlug = (name: string) => {
     return name
@@ -47,53 +74,145 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    // Validate file type
     const allowedTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      setError("Please upload a valid image file (PNG, JPEG, GIF, or WebP)");
-      return;
+    const maxSize = 10 * 1024 * 1024;
+
+    const validFiles: File[] = [];
+    for (const file of Array.from(files)) {
+      if (!allowedTypes.includes(file.type)) {
+        setError(`${file.name}: Invalid file type. Use PNG, JPEG, GIF, or WebP`);
+        continue;
+      }
+      if (file.size > maxSize) {
+        setError(`${file.name}: File too large. Max 10MB`);
+        continue;
+      }
+      validFiles.push(file);
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Image must be less than 10MB");
-      return;
-    }
+    if (validFiles.length === 0) return;
 
-    setIsUploading(true);
-    setUploadProgress(0);
     setError("");
 
-    try {
-      const timestamp = Date.now();
-      const filename = `products/${timestamp}-${file.name}`;
+    // Add placeholder items for uploading files
+    const placeholders: ImageItem[] = validFiles.map((file, idx) => ({
+      url: URL.createObjectURL(file),
+      isPrimary: images.length === 0 && idx === 0,
+      isNew: true,
+      isUploading: true,
+      uploadProgress: 0,
+    }));
 
-      const blob = await upload(filename, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload/token",
-        onUploadProgress: (progress) => {
-          setUploadProgress(Math.round(progress.percentage));
-        },
-      });
+    setImages((prev) => [...prev, ...placeholders]);
 
-      setFormData((prev) => ({ ...prev, imageUrl: blob.url }));
-    } catch (err) {
-      console.error("Failed to upload image:", err);
-      setError("Failed to upload image. Please try again.");
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
+    // Upload each file
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
+      const placeholderIndex = images.length + i;
+
+      try {
+        const timestamp = Date.now();
+        const filename = `products/${timestamp}-${file.name}`;
+
+        const blob = await upload(filename, file, {
+          access: "public",
+          handleUploadUrl: "/api/admin/upload/token",
+          onUploadProgress: (progress) => {
+            setImages((prev) =>
+              prev.map((img, idx) =>
+                idx === placeholderIndex
+                  ? { ...img, uploadProgress: Math.round(progress.percentage) }
+                  : img
+              )
+            );
+          },
+        });
+
+        // Update with real URL
+        setImages((prev) =>
+          prev.map((img, idx) =>
+            idx === placeholderIndex
+              ? { ...img, url: blob.url, isUploading: false }
+              : img
+          )
+        );
+
+        // If editing and product exists, save to server immediately
+        if (mode === "edit" && product?.id) {
+          const isPrimary = placeholderIndex === 0 && images.length === 0;
+          await fetch(`/api/admin/products/${product.id}/images`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: blob.url, isPrimary }),
+          });
+          // Refresh to get the image ID
+          const res = await fetch(`/api/admin/products/${product.id}/images`);
+          const data = await res.json();
+          if (data.images) {
+            setImages(
+              data.images.map((img: ProductImage) => ({
+                id: img.id,
+                url: img.url,
+                isPrimary: img.isPrimary,
+              }))
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Failed to upload image:", err);
+        // Remove failed upload
+        setImages((prev) => prev.filter((_, idx) => idx !== placeholderIndex));
+        setError("Failed to upload image. Please try again.");
+      }
     }
-  };
 
-  const handleRemoveImage = () => {
-    setFormData((prev) => ({ ...prev, imageUrl: "" }));
+    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const handleSetCover = async (index: number) => {
+    const image = images[index];
+
+    setImages((prev) =>
+      prev.map((img, idx) => ({
+        ...img,
+        isPrimary: idx === index,
+      }))
+    );
+
+    // If editing and has image ID, update on server
+    if (mode === "edit" && product?.id && image.id) {
+      await fetch(`/api/admin/products/${product.id}/images`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageId: image.id, isPrimary: true }),
+      });
+    }
+  };
+
+  const handleRemoveImage = async (index: number) => {
+    const image = images[index];
+
+    // If editing and has image ID, delete on server
+    if (mode === "edit" && product?.id && image.id) {
+      await fetch(`/api/admin/products/${product.id}/images/${image.id}`, {
+        method: "DELETE",
+      });
+    }
+
+    const newImages = images.filter((_, idx) => idx !== index);
+
+    // If we removed the primary, make the first one primary
+    if (image.isPrimary && newImages.length > 0) {
+      newImages[0].isPrimary = true;
+    }
+
+    setImages(newImages);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,10 +226,16 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           ? "/api/admin/products"
           : `/api/admin/products/${product?.id}`;
 
+      // For backward compatibility, include the primary image URL in imageUrl
+      const primaryImage = images.find((img) => img.isPrimary);
+
       const res = await fetch(url, {
         method: mode === "create" ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          imageUrl: primaryImage?.url || "",
+        }),
       });
 
       const data = await res.json();
@@ -120,7 +245,21 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         return;
       }
 
-      if (mode === "create") {
+      // If creating, save images to the new product
+      if (mode === "create" && data.product?.id) {
+        for (let i = 0; i < images.length; i++) {
+          const img = images[i];
+          if (!img.isUploading) {
+            await fetch(`/api/admin/products/${data.product.id}/images`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                url: img.url,
+                isPrimary: img.isPrimary,
+              }),
+            });
+          }
+        }
         router.push(`/admin/products/${data.product.id}`);
       } else {
         router.refresh();
@@ -225,103 +364,115 @@ export function ProductForm({ product, mode }: ProductFormProps) {
               placeholder="Detailed product description..."
             />
           </div>
+        </div>
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground">
-              Product Image
-            </label>
-            <div className="mt-2 space-y-3">
-              {/* Image Preview / Upload Area */}
-              {formData.imageUrl ? (
-                <div className="relative overflow-hidden rounded-lg border border-border">
-                  <img
-                    src={formData.imageUrl}
-                    alt="Product preview"
-                    className="h-48 w-full object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity hover:opacity-100">
-                    <label className="cursor-pointer rounded-lg bg-white/90 px-3 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-white">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/gif,image/webp"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        disabled={isUploading}
-                      />
-                      Replace
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="rounded-lg bg-destructive/90 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted/50">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/gif,image/webp"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                  {isUploading ? (
-                    <div className="text-center">
-                      <Icons.Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
-                      <p className="mt-2 font-medium text-foreground">
-                        Uploading... {uploadProgress}%
-                      </p>
+      {/* Image Gallery Section */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground">Product Images</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Upload multiple images. The cover image is shown in the shop listing.
+        </p>
+
+        <div className="mt-6 space-y-4">
+          {/* Image Grid */}
+          {images.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              {images.map((image, index) => (
+                <div
+                  key={image.id || image.url}
+                  className={cn(
+                    "group relative aspect-square overflow-hidden rounded-lg border-2",
+                    image.isPrimary
+                      ? "border-primary ring-2 ring-primary/20"
+                      : "border-border"
+                  )}
+                >
+                  {image.isUploading ? (
+                    <div className="flex h-full items-center justify-center bg-muted">
+                      <div className="text-center">
+                        <Icons.Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {image.uploadProgress}%
+                        </p>
+                      </div>
                     </div>
                   ) : (
-                    <div className="text-center">
-                      <Icons.ImagePlus className="mx-auto h-10 w-10 text-muted-foreground" />
-                      <p className="mt-2 font-medium text-foreground">
-                        Click to upload an image
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        PNG, JPEG, GIF, or WebP (max 10MB)
-                      </p>
-                    </div>
+                    <>
+                      <img
+                        src={image.url}
+                        alt={`Product image ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                      {image.isPrimary && (
+                        <div className="absolute left-2 top-2 rounded bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                          Cover
+                        </div>
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                        {!image.isPrimary && (
+                          <button
+                            type="button"
+                            onClick={() => handleSetCover(index)}
+                            className="rounded-lg bg-white/90 px-2 py-1.5 text-xs font-medium text-gray-900 transition-colors hover:bg-white"
+                            title="Set as cover"
+                          >
+                            <Icons.Star className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="rounded-lg bg-destructive/90 px-2 py-1.5 text-xs font-medium text-white transition-colors hover:bg-destructive"
+                          title="Remove"
+                        >
+                          <Icons.Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </>
                   )}
-                </label>
-              )}
+                </div>
+              ))}
 
-              {/* Upload Progress Bar */}
-              {isUploading && (
-                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${uploadProgress}%` }}
-                    className="absolute left-0 top-0 h-full bg-primary"
-                  />
-                </div>
-              )}
-
-              {/* URL Fallback Input */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">or enter URL</span>
-                </div>
-              </div>
-              <input
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, imageUrl: e.target.value }))
-                }
-                className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="https://example.com/image.png"
-              />
+              {/* Add Image Button */}
+              <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border transition-colors hover:border-primary hover:bg-muted/50">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/gif,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  multiple
+                />
+                <Icons.Plus className="h-8 w-8 text-muted-foreground" />
+                <span className="mt-1 text-xs text-muted-foreground">Add</span>
+              </label>
             </div>
-          </div>
+          )}
+
+          {/* Empty State Upload Area */}
+          {images.length === 0 && (
+            <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted/50">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/gif,image/webp"
+                onChange={handleImageUpload}
+                className="hidden"
+                multiple
+              />
+              <Icons.ImagePlus className="mx-auto h-10 w-10 text-muted-foreground" />
+              <p className="mt-2 font-medium text-foreground">
+                Click to upload images
+              </p>
+              <p className="text-sm text-muted-foreground">
+                PNG, JPEG, GIF, or WebP (max 10MB each)
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                First image will be the cover
+              </p>
+            </label>
+          )}
         </div>
       </div>
 

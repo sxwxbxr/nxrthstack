@@ -5,6 +5,7 @@ import { db, products, productPrices, productImages, purchases, subscriptions } 
 import { eq, and } from "drizzle-orm";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PricingTable } from "@/components/shop/pricing-table";
+import { ProductGallery } from "@/components/shop/product-gallery";
 import { Icons } from "@/components/icons";
 import { Markdown } from "@/components/ui/markdown";
 
@@ -102,38 +103,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Product Info */}
         <FadeIn>
           <div>
-            {/* Image */}
-            <div className="aspect-video overflow-hidden rounded-2xl bg-muted">
-              {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center">
-                  <Icons.Package className="h-24 w-24 text-muted-foreground/50" />
-                </div>
-              )}
-            </div>
-
-            {/* Gallery */}
-            {product.images.length > 0 && (
-              <div className="mt-4 grid grid-cols-4 gap-4">
-                {product.images.slice(0, 4).map((image) => (
-                  <div
-                    key={image.id}
-                    className="aspect-video overflow-hidden rounded-lg bg-muted"
-                  >
-                    <img
-                      src={image.url}
-                      alt={image.altText || ""}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Product Gallery */}
+            <ProductGallery
+              images={product.images}
+              fallbackImageUrl={product.imageUrl}
+              productName={product.name}
+            />
 
             {/* Details */}
             <div className="mt-8">
