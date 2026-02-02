@@ -141,7 +141,7 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
           </button>
           <button
             onClick={handleToday}
-            className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-muted transition-colors"
+            className="px-3 py-1.5 text-sm rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
           >
             Today
           </button>
@@ -155,7 +155,7 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
             <button
               onClick={() => setView("day")}
               className={`px-3 py-1.5 text-sm transition-colors ${
-                view === "day" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                view === "day" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
               }`}
             >
               Day
@@ -163,7 +163,7 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
             <button
               onClick={() => setView("week")}
               className={`px-3 py-1.5 text-sm transition-colors ${
-                view === "week" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                view === "week" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
               }`}
             >
               Week
@@ -216,7 +216,7 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
               {HOURS.map((hour) => (
                 <div
                   key={hour}
-                  className="h-12 border-b border-border/50 text-xs text-muted-foreground px-2 flex items-start pt-1"
+                  className="h-12 border-b border-border/50 text-xs text-foreground/70 px-2 flex items-start pt-1"
                 >
                   {hour === 0 ? "12 AM" : hour < 12 ? `${hour} AM` : hour === 12 ? "12 PM" : `${hour - 12} PM`}
                 </div>
@@ -507,7 +507,7 @@ function CreateEntryModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
+              className="flex-1 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
             >
               Cancel
             </button>
@@ -714,7 +714,7 @@ function EditEntryModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
+              className="flex-1 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-muted transition-colors"
             >
               Cancel
             </button>
