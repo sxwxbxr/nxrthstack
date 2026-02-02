@@ -1,0 +1,24 @@
+{
+  "name": "nxrthstack-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for NxrthStack gaming community",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "deploy-commands": "tsx src/deploy-commands.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "drizzle-orm": "^0.29.0",
+    "@neondatabase/serverless": "^0.9.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.11.0"
+  }
+}

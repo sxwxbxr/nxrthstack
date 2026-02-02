@@ -1299,6 +1299,24 @@ export const clipCommentsRelations = relations(clipComments, ({ one }) => ({
   }),
 }));
 
+// ============================================================================
+// Discord Bot Integration
+// ============================================================================
+
+// Webhook configurations per guild
+export const webhookConfigs = pgTable("webhook_configs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  guildId: varchar("guild_id", { length: 20 }).notNull(),
+  channelId: varchar("channel_id", { length: 20 }).notNull(),
+  webhookUrl: varchar("webhook_url", { length: 300 }),
+  eventType: varchar("event_type", { length: 50 }).notNull(), // 'sessions' | 'achievements' | 'rivalries' | 'announcements'
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Webhook Config Relations
+export const webhookConfigsRelations = relations(webhookConfigs, () => ({}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -1416,3 +1434,7 @@ export type ClipLike = typeof clipLikes.$inferSelect;
 export type NewClipLike = typeof clipLikes.$inferInsert;
 export type ClipComment = typeof clipComments.$inferSelect;
 export type NewClipComment = typeof clipComments.$inferInsert;
+
+// Discord Bot Types
+export type WebhookConfig = typeof webhookConfigs.$inferSelect;
+export type NewWebhookConfig = typeof webhookConfigs.$inferInsert;
