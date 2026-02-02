@@ -942,6 +942,363 @@ export const sessionInvitesRelations = relations(sessionInvites, ({ one }) => ({
   }),
 }));
 
+// ============================================================================
+// Friends & Activity Feed
+// ============================================================================
+
+// Friendships
+export const friendships = pgTable("friendships", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  friendId: uuid("friend_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending' | 'accepted' | 'blocked'
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  acceptedAt: timestamp("accepted_at", { mode: "date" }),
+});
+
+// Activity Feed
+export const activityFeed = pgTable("activity_feed", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  activityType: varchar("activity_type", { length: 50 }).notNull(), // 'achievement_unlocked' | 'session_joined' | 'match_won' | 'rivalry_update' | 'clip_uploaded'
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description"),
+  metadata: jsonb("metadata").default({}),
+  game: varchar("game", { length: 50 }),
+  isPublic: boolean("is_public").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Activity Likes
+export const activityLikes = pgTable("activity_likes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  activityId: uuid("activity_id")
+    .notNull()
+    .references(() => activityFeed.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Activity Comments
+export const activityComments = pgTable("activity_comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  activityId: uuid("activity_id")
+    .notNull()
+    .references(() => activityFeed.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: varchar("content", { length: 500 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Friends & Activity Relations
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  user: one(users, {
+    fields: [friendships.userId],
+    references: [users.id],
+    relationName: "friendshipUser",
+  }),
+  friend: one(users, {
+    fields: [friendships.friendId],
+    references: [users.id],
+    relationName: "friendshipFriend",
+  }),
+}));
+
+export const activityFeedRelations = relations(activityFeed, ({ one, many }) => ({
+  user: one(users, {
+    fields: [activityFeed.userId],
+    references: [users.id],
+  }),
+  likes: many(activityLikes),
+  comments: many(activityComments),
+}));
+
+export const activityLikesRelations = relations(activityLikes, ({ one }) => ({
+  activity: one(activityFeed, {
+    fields: [activityLikes.activityId],
+    references: [activityFeed.id],
+  }),
+  user: one(users, {
+    fields: [activityLikes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const activityCommentsRelations = relations(activityComments, ({ one }) => ({
+  activity: one(activityFeed, {
+    fields: [activityComments.activityId],
+    references: [activityFeed.id],
+  }),
+  user: one(users, {
+    fields: [activityComments.userId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// Rivalry System
+// ============================================================================
+
+// Rivalries
+export const rivalries = pgTable("rivalries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  challengerId: uuid("challenger_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  opponentId: uuid("opponent_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // 'pending' | 'active' | 'ended'
+  season: integer("season").default(1).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  acceptedAt: timestamp("accepted_at", { mode: "date" }),
+  endedAt: timestamp("ended_at", { mode: "date" }),
+});
+
+// Rivalry Matches
+export const rivalryMatches = pgTable("rivalry_matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  rivalryId: uuid("rivalry_id")
+    .notNull()
+    .references(() => rivalries.id, { onDelete: "cascade" }),
+  game: varchar("game", { length: 50 }).notNull(),
+  winnerId: uuid("winner_id").references(() => users.id, { onDelete: "set null" }),
+  loserId: uuid("loser_id").references(() => users.id, { onDelete: "set null" }),
+  isDraw: boolean("is_draw").default(false).notNull(),
+  metadata: jsonb("metadata").default({}),
+  playedAt: timestamp("played_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Rivalry Stats
+export const rivalryStats = pgTable("rivalry_stats", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  rivalryId: uuid("rivalry_id")
+    .notNull()
+    .references(() => rivalries.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  wins: integer("wins").default(0).notNull(),
+  losses: integer("losses").default(0).notNull(),
+  draws: integer("draws").default(0).notNull(),
+  currentStreak: integer("current_streak").default(0).notNull(),
+  bestStreak: integer("best_streak").default(0).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Rivalry Relations
+export const rivalriesRelations = relations(rivalries, ({ one, many }) => ({
+  challenger: one(users, {
+    fields: [rivalries.challengerId],
+    references: [users.id],
+    relationName: "rivalryChallenger",
+  }),
+  opponent: one(users, {
+    fields: [rivalries.opponentId],
+    references: [users.id],
+    relationName: "rivalryOpponent",
+  }),
+  matches: many(rivalryMatches),
+  stats: many(rivalryStats),
+}));
+
+export const rivalryMatchesRelations = relations(rivalryMatches, ({ one }) => ({
+  rivalry: one(rivalries, {
+    fields: [rivalryMatches.rivalryId],
+    references: [rivalries.id],
+  }),
+  winner: one(users, {
+    fields: [rivalryMatches.winnerId],
+    references: [users.id],
+    relationName: "matchWinnerRivalry",
+  }),
+  loser: one(users, {
+    fields: [rivalryMatches.loserId],
+    references: [users.id],
+    relationName: "matchLoserRivalry",
+  }),
+}));
+
+export const rivalryStatsRelations = relations(rivalryStats, ({ one }) => ({
+  rivalry: one(rivalries, {
+    fields: [rivalryStats.rivalryId],
+    references: [rivalries.id],
+  }),
+  user: one(users, {
+    fields: [rivalryStats.userId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// Gaming Passport (Public Profile)
+// ============================================================================
+
+// User Profiles
+export const userProfiles = pgTable("user_profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  usernameSlug: varchar("username_slug", { length: 50 }).unique(), // for /u/username URL
+  bio: varchar("bio", { length: 500 }),
+  bannerUrl: varchar("banner_url", { length: 500 }),
+  featuredAchievements: jsonb("featured_achievements").default([]), // array of achievement IDs
+  socialLinks: jsonb("social_links").default({}),
+  isPublic: boolean("is_public").default(true).notNull(),
+  showStats: boolean("show_stats").default(true).notNull(),
+  showActivity: boolean("show_activity").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Profile Views
+export const profileViews = pgTable("profile_views", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => userProfiles.id, { onDelete: "cascade" }),
+  viewerId: uuid("viewer_id").references(() => users.id, { onDelete: "set null" }),
+  viewedAt: timestamp("viewed_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Profile Relations
+export const userProfilesRelations = relations(userProfiles, ({ one, many }) => ({
+  user: one(users, {
+    fields: [userProfiles.userId],
+    references: [users.id],
+  }),
+  views: many(profileViews),
+}));
+
+export const profileViewsRelations = relations(profileViews, ({ one }) => ({
+  profile: one(userProfiles, {
+    fields: [profileViews.profileId],
+    references: [userProfiles.id],
+  }),
+  viewer: one(users, {
+    fields: [profileViews.viewerId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// Global Leaderboards
+// ============================================================================
+
+// Leaderboard Entries
+export const leaderboardEntries = pgTable("leaderboard_entries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  category: varchar("category", { length: 50 }).notNull(), // 'achievement_points' | 'r6_wins' | 'pokemon_shinies' | etc.
+  score: integer("score").default(0).notNull(),
+  rank: integer("rank"),
+  period: varchar("period", { length: 20 }).default("all_time").notNull(), // 'weekly' | 'monthly' | 'all_time'
+  periodStart: timestamp("period_start", { mode: "date" }),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Leaderboard Relations
+export const leaderboardEntriesRelations = relations(leaderboardEntries, ({ one }) => ({
+  user: one(users, {
+    fields: [leaderboardEntries.userId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// Clip Gallery
+// ============================================================================
+
+// Clips
+export const clips = pgTable("clips", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: varchar("description", { length: 500 }),
+  game: varchar("game", { length: 50 }).notNull(),
+  category: varchar("category", { length: 50 }), // 'funny' | 'clutch' | 'fail' | 'tutorial'
+  blobUrl: varchar("blob_url", { length: 500 }).notNull(),
+  thumbnailUrl: varchar("thumbnail_url", { length: 500 }),
+  durationSeconds: integer("duration_seconds"),
+  isPublic: boolean("is_public").default(true).notNull(),
+  viewCount: integer("view_count").default(0).notNull(),
+  isFeatured: boolean("is_featured").default(false).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Clip Likes
+export const clipLikes = pgTable("clip_likes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clipId: uuid("clip_id")
+    .notNull()
+    .references(() => clips.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Clip Comments
+export const clipComments = pgTable("clip_comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clipId: uuid("clip_id")
+    .notNull()
+    .references(() => clips.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: varchar("content", { length: 500 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Clip Relations
+export const clipsRelations = relations(clips, ({ one, many }) => ({
+  user: one(users, {
+    fields: [clips.userId],
+    references: [users.id],
+  }),
+  likes: many(clipLikes),
+  comments: many(clipComments),
+}));
+
+export const clipLikesRelations = relations(clipLikes, ({ one }) => ({
+  clip: one(clips, {
+    fields: [clipLikes.clipId],
+    references: [clips.id],
+  }),
+  user: one(users, {
+    fields: [clipLikes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const clipCommentsRelations = relations(clipComments, ({ one }) => ({
+  clip: one(clips, {
+    fields: [clipComments.clipId],
+    references: [clips.id],
+  }),
+  user: one(users, {
+    fields: [clipComments.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -1023,3 +1380,39 @@ export type SessionRsvp = typeof sessionRsvps.$inferSelect;
 export type NewSessionRsvp = typeof sessionRsvps.$inferInsert;
 export type SessionInvite = typeof sessionInvites.$inferSelect;
 export type NewSessionInvite = typeof sessionInvites.$inferInsert;
+
+// Friends & Activity Types
+export type Friendship = typeof friendships.$inferSelect;
+export type NewFriendship = typeof friendships.$inferInsert;
+export type Activity = typeof activityFeed.$inferSelect;
+export type NewActivity = typeof activityFeed.$inferInsert;
+export type ActivityLike = typeof activityLikes.$inferSelect;
+export type NewActivityLike = typeof activityLikes.$inferInsert;
+export type ActivityComment = typeof activityComments.$inferSelect;
+export type NewActivityComment = typeof activityComments.$inferInsert;
+
+// Rivalry Types
+export type Rivalry = typeof rivalries.$inferSelect;
+export type NewRivalry = typeof rivalries.$inferInsert;
+export type RivalryMatch = typeof rivalryMatches.$inferSelect;
+export type NewRivalryMatch = typeof rivalryMatches.$inferInsert;
+export type RivalryStat = typeof rivalryStats.$inferSelect;
+export type NewRivalryStat = typeof rivalryStats.$inferInsert;
+
+// Gaming Passport Types
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type NewUserProfile = typeof userProfiles.$inferInsert;
+export type ProfileView = typeof profileViews.$inferSelect;
+export type NewProfileView = typeof profileViews.$inferInsert;
+
+// Leaderboard Types
+export type LeaderboardEntry = typeof leaderboardEntries.$inferSelect;
+export type NewLeaderboardEntry = typeof leaderboardEntries.$inferInsert;
+
+// Clip Gallery Types
+export type Clip = typeof clips.$inferSelect;
+export type NewClip = typeof clips.$inferInsert;
+export type ClipLike = typeof clipLikes.$inferSelect;
+export type NewClipLike = typeof clipLikes.$inferInsert;
+export type ClipComment = typeof clipComments.$inferSelect;
+export type NewClipComment = typeof clipComments.$inferInsert;

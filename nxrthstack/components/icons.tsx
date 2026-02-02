@@ -88,6 +88,9 @@ import {
   Bell,
   UserPlus,
   UserMinus,
+  Send,
+  Activity,
+  MessageCircle,
 } from "lucide-react";
 
 export const Icons = {
@@ -105,6 +108,7 @@ export const Icons = {
   MapPin,
   ExternalLink,
   Loader2,
+  Spinner: Loader2,
   User,
   LogOut,
   Settings,
@@ -183,6 +187,9 @@ export const Icons = {
   Bell,
   UserPlus,
   UserMinus,
+  Send,
+  Activity,
+  MessageCircle,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

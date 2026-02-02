@@ -189,6 +189,86 @@ export default async function GameHubPage() {
               </div>
             </div>
           </Link>
+          <Link
+            href="/dashboard/gamehub/friends"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10">
+                <Icons.Users className="h-5 w-5 text-cyan-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Friends
+                </h3>
+                <p className="text-xs text-foreground/60">Connect with gamers</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/dashboard/gamehub/feed"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/10">
+                <Icons.Activity className="h-5 w-5 text-pink-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Activity Feed
+                </h3>
+                <p className="text-xs text-foreground/60">See what friends do</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/dashboard/gamehub/rivalries"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
+                <Icons.Swords className="h-5 w-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Rivalries
+                </h3>
+                <p className="text-xs text-foreground/60">Head-to-head battles</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/dashboard/gamehub/leaderboards"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                <Icons.Crown className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Leaderboards
+                </h3>
+                <p className="text-xs text-foreground/60">Global rankings</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/dashboard/gamehub/passport"
+            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10">
+                <Icons.User className="h-5 w-5 text-indigo-500" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  Gaming Passport
+                </h3>
+                <p className="text-xs text-foreground/60">Your public profile</p>
+              </div>
+            </div>
+          </Link>
         </div>
       </FadeIn>
 

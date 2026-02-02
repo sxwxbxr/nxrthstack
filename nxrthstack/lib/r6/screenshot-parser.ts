@@ -73,16 +73,13 @@ export async function parseScreenshot(
     onProgress?.(10, "Initializing OCR engine...");
 
     // Run OCR with optimized settings for game scoreboards
-    const result = await Tesseract.recognize(imageUrl, "eng", {
-      logger: (m) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (Tesseract as any).recognize(imageUrl, "eng", {
+      logger: (m: { status: string; progress: number }) => {
         if (m.status === "recognizing text") {
           onProgress?.(10 + m.progress * 70, "Recognizing text...");
         }
       },
-      // Tesseract parameters optimized for scoreboards
-      tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -_",
-      tessedit_pageseg_mode: "6", // Assume uniform block of text
-      preserve_interword_spaces: "1",
     });
 
     onProgress?.(85, "Analyzing scoreboard...");
@@ -98,7 +95,7 @@ export async function parseScreenshot(
               text: line.text,
               confidence: line.confidence,
               bbox: line.bbox,
-              words: line.words.map((w) => ({
+              words: line.words.map((w: { text: string; confidence: number; bbox: { x0: number; y0: number; x1: number; y1: number } }) => ({
                 text: w.text,
                 confidence: w.confidence,
                 bbox: w.bbox,
