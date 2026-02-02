@@ -125,6 +125,43 @@ const STATEMENTS = [
     "content" varchar(500) NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS "gaming_sessions" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    "host_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+    "title" varchar(100) NOT NULL,
+    "description" text,
+    "game" varchar(50) NOT NULL,
+    "activity_type" varchar(50),
+    "scheduled_at" timestamp NOT NULL,
+    "duration_minutes" integer DEFAULT 60,
+    "max_participants" integer,
+    "is_private" boolean DEFAULT false NOT NULL,
+    "invite_code" varchar(20) UNIQUE,
+    "status" varchar(20) DEFAULT 'scheduled' NOT NULL,
+    "linked_lobby_id" uuid,
+    "linked_tournament_id" uuid,
+    "created_at" timestamp DEFAULT now() NOT NULL,
+    "updated_at" timestamp DEFAULT now() NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS "session_rsvps" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    "session_id" uuid NOT NULL REFERENCES "gaming_sessions"("id") ON DELETE CASCADE,
+    "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+    "status" varchar(20) DEFAULT 'pending' NOT NULL,
+    "responded_at" timestamp,
+    "note" varchar(255),
+    "created_at" timestamp DEFAULT now() NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS "session_invites" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    "session_id" uuid NOT NULL REFERENCES "gaming_sessions"("id") ON DELETE CASCADE,
+    "invited_user_id" uuid REFERENCES "users"("id") ON DELETE CASCADE,
+    "invited_discord_id" varchar(50),
+    "invited_email" varchar(255),
+    "invited_by" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+    "status" varchar(20) DEFAULT 'pending' NOT NULL,
+    "created_at" timestamp DEFAULT now() NOT NULL
+  )`,
 ];
 
 async function runMigration() {
