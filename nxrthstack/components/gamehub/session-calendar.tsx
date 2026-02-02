@@ -182,12 +182,36 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
       </div>
 
       {/* Calendar Grid */}
-      <div className="flex-1 border border-border rounded-xl overflow-hidden bg-card">
-        <div className="flex h-full">
-          {/* Time Column */}
-          <div className="w-16 flex-shrink-0 border-r border-border bg-muted/30">
-            <div className="h-10 border-b border-border" /> {/* Header spacer */}
-            <div className="relative">
+      <div className="flex-1 border border-border rounded-xl overflow-hidden bg-card flex flex-col">
+        {/* Day Headers - Fixed */}
+        <div className="flex border-b border-border flex-shrink-0">
+          <div className="w-16 flex-shrink-0 border-r border-border bg-muted/30 h-10" />
+          <div className={`flex-1 grid ${view === "week" ? "grid-cols-7" : "grid-cols-1"}`}>
+            {(view === "week" ? weekDays : [currentDate]).map((day, dayIndex) => {
+              const isToday = day.toDateString() === new Date().toDateString();
+              return (
+                <div
+                  key={dayIndex}
+                  className={`h-10 border-r border-border last:border-r-0 flex flex-col items-center justify-center ${
+                    isToday ? "bg-primary/10" : ""
+                  }`}
+                >
+                  <span className="text-xs text-muted-foreground">{DAYS[day.getDay()]}</span>
+                  <span className={`text-sm font-medium ${isToday ? "text-primary" : "text-foreground"}`}>
+                    {day.getDate()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Scrollable Time Grid */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex">
+            {/* Time Column */}
+            <div className="w-16 flex-shrink-0 border-r border-border bg-muted/30">
+              <div className="relative">
               {HOURS.map((hour) => (
                 <div
                   key={hour}
@@ -208,25 +232,7 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
               );
 
               return (
-                <div key={dayIndex} className="border-r border-border last:border-r-0">
-                  {/* Day Header */}
-                  <div
-                    className={`h-10 border-b border-border flex flex-col items-center justify-center ${
-                      isToday ? "bg-primary/10" : ""
-                    }`}
-                  >
-                    <span className="text-xs text-muted-foreground">{DAYS[day.getDay()]}</span>
-                    <span
-                      className={`text-sm font-medium ${
-                        isToday ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      {day.getDate()}
-                    </span>
-                  </div>
-
-                  {/* Hour Slots */}
-                  <div className="relative">
+                <div key={dayIndex} className="border-r border-border last:border-r-0 relative">
                     {HOURS.map((hour) => (
                       <div
                         key={hour}
@@ -272,13 +278,13 @@ export function SessionCalendar({ entries, currentUserId, currentUserName }: Ses
                         <div className="absolute -left-1 -top-1.5 w-3 h-3 rounded-full bg-red-500" />
                       </div>
                     )}
-                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       </div>
+    </div>
 
       {/* Create Entry Modal */}
       {isCreating && selectedSlot && (
