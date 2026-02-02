@@ -19,13 +19,22 @@ export default async function SessionsPage() {
     redirect("/login");
   }
 
-  const [upcomingSessions, userSessions] = await Promise.all([
-    getUpcomingSessions(session.user.id, 10),
-    getUserSessions(session.user.id),
-  ]);
+  let upcomingSessions: Awaited<ReturnType<typeof getUpcomingSessions>> = [];
+  let myHostedSessions: Awaited<ReturnType<typeof getUserSessions>>["hosting"] = [];
+  let myAttendingSessions: Awaited<ReturnType<typeof getUserSessions>>["attending"] = [];
 
-  const myHostedSessions = userSessions.hosting;
-  const myAttendingSessions = userSessions.attending;
+  try {
+    const [upcoming, userSessions] = await Promise.all([
+      getUpcomingSessions(session.user.id, 10),
+      getUserSessions(session.user.id),
+    ]);
+    upcomingSessions = upcoming;
+    myHostedSessions = userSessions.hosting;
+    myAttendingSessions = userSessions.attending;
+  } catch (error) {
+    console.error("Failed to load sessions:", error);
+    // Continue with empty arrays - page will show "no sessions" state
+  }
 
   return (
     <div className="space-y-8">
