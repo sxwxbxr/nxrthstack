@@ -1,75 +1,201 @@
-Here are some ideas for GameHub improvements and additions:                                                                                                                                           
-                                                                                                                                                                                                        
-  Rainbow Six Siege Enhancements                                                                                                                                                                          ┌──────────────────────────┬───────────────────────────────────────────────────────────────┐
-  │         Feature          │                          Description                          │                                                                                                          
-  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤                                                                                                          
-  │ Match History Export     │ Export 1v1 stats to CSV/JSON for external analysis            │
-  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Stats Visualization      │ Done                                                          │
-  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Map Tracker              │ Skip this one, it's not that useful                           │
-  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Operator Usage Stats     │ Skip this one, it's not that useful                           │
-  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Strat Roulette           │ Done                                                          │
-  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Interactive Callout Maps │ Needs map layouts from the community                          │
-  ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-  │ Tournament Brackets      │ Done                                                          │
-  └──────────────────────────┴───────────────────────────────────────────────────────────────┘
-  Pokemon Additions
-  ┌────────────────────┬─────────────────────────────────────────────────────┐
-  │      Feature       │                     Description                     │
-  ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Team Builder       │ Done                                                │
-  ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Damage Calculator  │ Done                                                │
-  ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Nuzlocke Tracker   │ Track encounters, deaths, rules for Nuzlocke runs   │
-  ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Shiny Counter      │ Done                                                │
-  ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ Living Dex Tracker │ Track progress toward completing a living Pokedex   │
-  ├────────────────────┼─────────────────────────────────────────────────────┤
-  │ IV Calculator      │ Done                                                │
-  └────────────────────┴─────────────────────────────────────────────────────┘
-  Minecraft Tools
-  ┌───────────────────────┬──────────────────────────────────────────────────────┐
-  │        Feature        │                     Description                      │
-  ├───────────────────────┼──────────────────────────────────────────────────────┤
-  │ Server Status Checker │ Done                                                 │
-  ├───────────────────────┼──────────────────────────────────────────────────────┤
-  │ Crafting Calculator   │ Calculate materials needed for builds                │
-  ├───────────────────────┼──────────────────────────────────────────────────────┤
-  │ Coordinate Saver      │ Save important locations (base, portals, spawners)   │
-  ├───────────────────────┼──────────────────────────────────────────────────────┤
-  │ Seed Library          │ Share/browse interesting world seeds                 │
-  ├───────────────────────┼──────────────────────────────────────────────────────┤
-  │ Enchantment Planner   │ Done                                                 │
-  └───────────────────────┴──────────────────────────────────────────────────────┘
-  New Game Support
-  ┌───────────────┬───────────────────────────────────────────────┐
-  │     Game      │                   Features                    │
-  ├───────────────┼───────────────────────────────────────────────┤
-  │ Valorant      │ Agent randomizer, 1v1 tracker, lineup library │
-  ├───────────────┼───────────────────────────────────────────────┤
-  │ Rocket League │ Rank tracker, training pack organizer         │
-  ├───────────────┼───────────────────────────────────────────────┤
-  │ CS2           │ Similar to R6 - 1v1 tracker, map stats        │
-  ├───────────────┼───────────────────────────────────────────────┤
-  │ Apex Legends  │ Legend randomizer, loadout randomizer         │
-  └───────────────┴───────────────────────────────────────────────┘
-  Cross-Game Features
-  ┌────────────────────────┬─────────────────────────────────────────────────────────────┐
-  │        Feature         │                         Description                         │
-  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Gaming Stats Dashboard │ Done                                                        │
-  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Achievement System     │ Done                                                        │
-  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Session Scheduler      │ Done                                                        │
-  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Discord Integration    │ Done (OAuth account linking)                                │
-  ├────────────────────────┼─────────────────────────────────────────────────────────────┤
-  │ Stream Overlays        │ Done                                                        │
-  └────────────────────────┴─────────────────────────────────────────────────────────────┘
+GameHub Feature Roadmap
+=======================
+
+Cross-Game Features (Priority)
+┌─────────────────────────┬────────────────────────────────────────────────────────────────┬──────────┐
+│        Feature          │                          Description                           │  Status  │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Gaming Stats Dashboard  │ Overview of all your GameHub activity                          │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Achievement System      │ Unlock achievements across all games                           │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Session Scheduler       │ Plan gaming sessions with friends, RSVP system                 │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Discord Integration     │ OAuth account linking, display Discord info                    │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Stream Overlays         │ Custom overlays for OBS/streaming                              │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Friend Activity Feed    │ See what friends are doing - sessions, achievements, activity  │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Rivalry System          │ Challenge friends to head-to-head competitions across games    │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Gaming Passport         │ Public profile showcasing all stats, badges, and achievements  │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Weekly Challenges       │ Rotating challenges across games for bonus achievement points  │ Planned  │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Global Leaderboards     │ Compete for top spots in achievements, activity, game stats    │ Done     │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Clip Gallery            │ Upload and share gaming clips/screenshots with the community   │ WIP      │
+├─────────────────────────┼────────────────────────────────────────────────────────────────┼──────────┤
+│ Quick Play Finder       │ See who's online and looking to play, instant matchmaking      │ Planned  │
+└─────────────────────────┴────────────────────────────────────────────────────────────────┴──────────┘
+
+Feature Details
+===============
+
+Friend Activity Feed
+--------------------
+- Real-time feed of friend activity on GameHub
+- Shows: achievements unlocked, sessions joined/created, match results
+- Like and comment on friend activity
+- Privacy controls for what you share
+- Filter by game or activity type
+
+Rivalry System
+--------------
+- Challenge any friend to a rivalry
+- Track head-to-head stats across all games
+- Rivalry dashboard showing current standings
+- Seasonal rivalry resets with winner badges
+- Rivalry achievements (e.g., "Win 10 rivalries")
+
+Gaming Passport (Public Profile)
+--------------------------------
+- Shareable public profile URL (/u/username)
+- Customizable banner and bio
+- Achievement showcase (pin your favorites)
+- Stats summary across all games
+- Recent activity highlights
+- Linked social accounts display
+- QR code for easy sharing
+
+Weekly Challenges
+-----------------
+- 3-5 new challenges every week
+- Examples:
+  * "Win 5 R6 1v1 matches"
+  * "Log 3 shiny encounters"
+  * "Create a session with 4+ attendees"
+  * "Complete 10 enchantment plans"
+- Bonus achievement points for completion
+- Streak bonuses for consecutive weeks
+- Community challenge progress bar
+
+Global Leaderboards
+-------------------
+- Achievement points leaderboard
+- Per-game leaderboards (R6 wins, Pokemon shinies, etc.)
+- Weekly/Monthly/All-time views
+- Friend-only leaderboard filter
+- Seasonal competitions with rewards
+
+Clip Gallery [WIP]
+------------------
+Current Status: Basic functionality implemented using Vercel Blob Storage.
+Will migrate to local NAS storage via Cloudflare Tunnels for better cost/capacity.
+
+Implemented:
+- Upload gaming clips (100MB max, MP4/WebM/MOV/AVI/MKV)
+- Tag with game and category (funny, clutch, fail, tutorial, highlight)
+- Like/unlike system
+- Comments with timestamps
+- View count tracking
+- Gallery with filters (game, category, search, my clips)
+- Clip detail page with video player
+- Public/private clips
+- Featured clips support
+
+Pending (after NAS migration):
+- Thumbnail generation
+- Video compression/transcoding
+- Embed in stream overlays
+- Personal highlight reel
+- Integration with session recaps
+- Screenshot support
+
+STORAGE MIGRATION - Information Needed:
+---------------------------------------
+To switch from Vercel Blob to local NAS storage, I need:
+
+1. NAS Access Details:
+   - Port-forwarded IP address (or Cloudflare Tunnel URL when ready)
+   - Authentication method (API key, basic auth, or custom)
+   - Protocol preference (HTTP API, WebDAV, S3-compatible, etc.)
+
+2. Storage API Endpoints:
+   - Upload endpoint URL
+   - Download/serve endpoint URL
+   - Delete endpoint URL (if supported)
+   - Any rate limits or size restrictions
+
+3. Authentication Credentials:
+   - Username/API key
+   - Password/secret
+   - Any required headers or tokens
+
+4. File Organization:
+   - Preferred folder structure on NAS
+   - Naming conventions for files
+   - Whether to keep original filenames or generate UUIDs
+
+5. URL Structure:
+   - How files will be publicly accessible
+   - Whether URLs need signing/expiration
+   - CORS configuration if needed
+
+Example .env variables that will be needed:
+```
+NAS_STORAGE_URL=https://your-tunnel.domain.com  # or IP:port
+NAS_API_KEY=your-api-key
+NAS_UPLOAD_PATH=/clips
+NAS_PUBLIC_URL=https://your-tunnel.domain.com/files
+```
+
+Quick Play Finder
+-----------------
+- Set your "looking to play" status
+- Specify game and activity type
+- See friends who are also looking
+- One-click invite to session
+- Auto-expire after 30 minutes
+- Discord status sync (future)
+
+Game-Specific Features (Lower Priority)
+=======================================
+
+Rainbow Six Siege
+┌──────────────────────────┬───────────────────────────────────────────────────────────────┬──────────┐
+│         Feature          │                          Description                          │  Status  │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┼──────────┤
+│ 1v1 Tracker              │ Track matches, stats, and history                             │ Done     │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┼──────────┤
+│ Strat Roulette           │ Random strategy generator                                     │ Done     │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┼──────────┤
+│ Tournament Brackets      │ Create and manage tournaments                                 │ Done     │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┼──────────┤
+│ Operator Randomizer      │ Random operator selection                                     │ Done     │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┼──────────┤
+│ Match History Export     │ Export stats to CSV/JSON                                      │ Backlog  │
+└──────────────────────────┴───────────────────────────────────────────────────────────────┴──────────┘
+
+Pokemon
+┌────────────────────┬─────────────────────────────────────────────────────┬──────────┐
+│      Feature       │                     Description                     │  Status  │
+├────────────────────┼─────────────────────────────────────────────────────┼──────────┤
+│ Team Builder       │ Build and analyze competitive teams                 │ Done     │
+├────────────────────┼─────────────────────────────────────────────────────┼──────────┤
+│ Damage Calculator  │ Calculate move damage with all modifiers            │ Done     │
+├────────────────────┼─────────────────────────────────────────────────────┼──────────┤
+│ Shiny Counter      │ Track shiny hunting encounters                      │ Done     │
+├────────────────────┼─────────────────────────────────────────────────────┼──────────┤
+│ IV Calculator      │ Calculate Pokemon IVs from stats                    │ Done     │
+├────────────────────┼─────────────────────────────────────────────────────┼──────────┤
+│ Save Editor        │ Edit Pokemon save files (PKHeX integration)         │ Done     │
+├────────────────────┼─────────────────────────────────────────────────────┼──────────┤
+│ Nuzlocke Tracker   │ Track encounters, deaths, rules for Nuzlocke runs   │ Backlog  │
+├────────────────────┼─────────────────────────────────────────────────────┼──────────┤
+│ Living Dex Tracker │ Track progress toward completing a living Pokedex   │ Backlog  │
+└────────────────────┴─────────────────────────────────────────────────────┴──────────┘
+
+Minecraft
+┌───────────────────────┬──────────────────────────────────────────────────────┬──────────┐
+│        Feature        │                     Description                      │  Status  │
+├───────────────────────┼──────────────────────────────────────────────────────┼──────────┤
+│ Server Status Checker │ Check if Minecraft servers are online                │ Done     │
+├───────────────────────┼──────────────────────────────────────────────────────┼──────────┤
+│ Enchantment Planner   │ Plan optimal enchantment combinations                │ Done     │
+├───────────────────────┼──────────────────────────────────────────────────────┼──────────┤
+│ Crafting Calculator   │ Calculate materials needed for builds                │ Backlog  │
+├───────────────────────┼──────────────────────────────────────────────────────┼──────────┤
+│ Coordinate Saver      │ Save important locations (base, portals, spawners)   │ Backlog  │
+└───────────────────────┴──────────────────────────────────────────────────────┴──────────┘
