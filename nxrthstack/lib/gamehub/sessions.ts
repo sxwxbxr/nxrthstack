@@ -389,6 +389,14 @@ export async function getUserSessions(userId: string) {
       )
     );
 
+  // If no RSVPs, return empty attending array
+  if (rsvpedSessionIds.length === 0) {
+    return {
+      hosting,
+      attending: [],
+    };
+  }
+
   const attending = await db
     .select()
     .from(gamingSessions)
