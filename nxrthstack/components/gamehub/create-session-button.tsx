@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/components/icons";
-import { GAME_OPTIONS, ACTIVITY_OPTIONS } from "@/lib/gamehub/sessions";
+import { GAME_OPTIONS, ACTIVITY_OPTIONS } from "@/lib/gamehub/sessions-constants";
 
 export function CreateSessionButton() {
   const router = useRouter();

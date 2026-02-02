@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
-import { GAME_OPTIONS, ACTIVITY_OPTIONS, type SessionWithDetails, type RsvpStatus } from "@/lib/gamehub/sessions";
+import { GAME_OPTIONS, ACTIVITY_OPTIONS, type RsvpStatus } from "@/lib/gamehub/sessions-constants";
+import type { SessionWithDetails } from "@/lib/gamehub/sessions";
 
 interface SessionCardProps {
   session: SessionWithDetails;
