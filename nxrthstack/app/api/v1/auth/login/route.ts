@@ -35,8 +35,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify password
-    const isValid = await bcrypt.compare(password, user.passwordHash);
+    // Verify password - check both passwordHash and legacyPasswordHash
+    const hashToCheck = user.passwordHash || user.legacyPasswordHash;
+    if (!hashToCheck) {
+      // User has no local password (Neon Auth only user)
+      return NextResponse.json(
+        { error: "invalid_credentials", message: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+
+    const isValid = await bcrypt.compare(password, hashToCheck);
     if (!isValid) {
       return NextResponse.json(
         { error: "invalid_credentials", message: "Invalid email or password" },

@@ -1,19 +1,21 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getSessionWithUser } from "@/lib/auth/server";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const { user } = await getSessionWithUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
-  if (session.user.role !== "admin") {
+  if (user.role !== "admin") {
     redirect("/dashboard");
   }
 

@@ -16,7 +16,7 @@ import { relations } from "drizzle-orm";
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: varchar("email", { length: 255 }).notNull().unique(),
-  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  passwordHash: varchar("password_hash", { length: 255 }), // Nullable for Neon Auth users
   name: varchar("name", { length: 255 }),
   role: varchar("role", { length: 20 }).default("customer").notNull(), // 'customer' | 'admin'
   isFriend: boolean("is_friend").default(false).notNull(), // GameHub access
@@ -29,6 +29,12 @@ export const users = pgTable("users", {
   discordUsername: varchar("discord_username", { length: 100 }),
   discordAvatar: varchar("discord_avatar", { length: 255 }),
   discordConnectedAt: timestamp("discord_connected_at", { mode: "date" }),
+  // Neon Auth Migration
+  neonAuthUserId: varchar("neon_auth_user_id", { length: 255 }).unique(),
+  legacyPasswordHash: varchar("legacy_password_hash", { length: 255 }),
+  passwordMigratedAt: timestamp("password_migrated_at", { mode: "date" }),
+  // GameHub Onboarding
+  gamehubOnboardingComplete: boolean("gamehub_onboarding_complete").default(false).notNull(),
 });
 
 // Products table

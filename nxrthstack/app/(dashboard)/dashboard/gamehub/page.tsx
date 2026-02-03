@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSessionWithUser } from "@/lib/auth/server";
 import { db, gamehubAnnouncements } from "@/lib/db";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
@@ -44,8 +44,10 @@ const gameCategories = [
   },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default async function GameHubPage() {
-  const session = await auth();
+  const { user } = await getSessionWithUser();
   const announcements = await getAnnouncements();
   const pinnedAnnouncements = announcements.filter((a) => a.isPinned);
   const regularAnnouncements = announcements.filter((a) => !a.isPinned);
@@ -60,7 +62,7 @@ export default async function GameHubPage() {
           </h1>
           <div className="mt-2">
             <TextGenerateEffect
-              words={`Hey ${session?.user?.name || "Friend"}! Check out the latest updates and tools for your favorite games.`}
+              words={`Hey ${user?.name || "Friend"}! Check out the latest updates and tools for your favorite games.`}
               className="text-foreground/60"
             />
           </div>

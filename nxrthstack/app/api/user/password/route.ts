@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db, users } from "@/lib/db";
-import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { authServer } from "@/lib/auth/server";
 import { z } from "zod";
 
 const updatePasswordSchema = z.object({
@@ -12,11 +9,6 @@ const updatePasswordSchema = z.object({
 
 export async function PUT(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const parsed = updatePasswordSchema.safeParse(body);
 
@@ -29,35 +21,18 @@ export async function PUT(request: Request) {
 
     const { currentPassword, newPassword } = parsed.data;
 
-    // Get user with password hash
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
+    // Use Neon Auth to change password
+    const result = await authServer.changePassword({
+      currentPassword,
+      newPassword,
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Verify current password
-    const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!passwordMatch) {
+    if (result.error) {
       return NextResponse.json(
-        { error: "Current password is incorrect" },
-        { status: 400 }
+        { error: result.error.message || "Failed to change password" },
+        { status: result.error.status || 400 }
       );
     }
-
-    // Hash new password
-    const newPasswordHash = await bcrypt.hash(newPassword, 12);
-
-    // Update password
-    await db
-      .update(users)
-      .set({
-        passwordHash: newPasswordHash,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, session.user.id));
 
     return NextResponse.json({ success: true });
   } catch (error) {

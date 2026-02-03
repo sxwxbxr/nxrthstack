@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
 import { motion } from "motion/react";
 import { Icons } from "@/components/icons";
+import { useExtendedSession } from "@/lib/auth/hooks";
 
 export function ShopHeader() {
-  const { data: session, status } = useSession();
+  const { user, isPending, signOut } = useExtendedSession();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -31,9 +31,9 @@ export function ShopHeader() {
             Home
           </Link>
 
-          {status === "loading" ? (
+          {isPending ? (
             <div className="h-9 w-24 animate-pulse rounded-lg bg-muted" />
-          ) : session ? (
+          ) : user ? (
             <div className="flex items-center gap-4">
               <Link
                 href="/dashboard"
@@ -41,7 +41,7 @@ export function ShopHeader() {
               >
                 Dashboard
               </Link>
-              {session.user.role === "admin" && (
+              {user.role === "admin" && (
                 <Link
                   href="/admin"
                   className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -52,7 +52,10 @@ export function ShopHeader() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => signOut({ callbackUrl: "/shop" })}
+                onClick={async () => {
+                  await signOut();
+                  window.location.href = "/shop";
+                }}
                 className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
               >
                 <Icons.LogOut className="h-4 w-4" />

@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
+import { useExtendedSession } from "@/lib/auth/hooks";
 
 const navItems = [
   {
@@ -43,7 +43,7 @@ const navItems = [
 
 export function DashboardNav() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { user, signOut } = useExtendedSession();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-card">
@@ -65,10 +65,10 @@ export function DashboardNav() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium text-foreground">
-                {session?.user?.name || "User"}
+                {user?.name || "User"}
               </p>
               <p className="truncate text-sm text-muted-foreground">
-                {session?.user?.email}
+                {user?.email}
               </p>
             </div>
           </div>
@@ -81,8 +81,8 @@ export function DashboardNav() {
               (item) =>
                 !("requiresFriend" in item) ||
                 !item.requiresFriend ||
-                session?.user?.isFriend ||
-                session?.user?.role === "admin"
+                user?.isFriend ||
+                user?.role === "admin"
             )
             .map((item) => {
               const isActive =
@@ -111,7 +111,7 @@ export function DashboardNav() {
 
         {/* Footer */}
         <div className="border-t border-border p-4">
-          {session?.user?.role === "admin" && (
+          {user?.role === "admin" && (
             <Link href="/admin">
               <motion.div
                 whileHover={{ x: 4 }}
@@ -132,7 +132,10 @@ export function DashboardNav() {
             </motion.div>
           </Link>
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={async () => {
+              await signOut();
+              window.location.href = "/";
+            }}
             className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           >
             <Icons.LogOut className="h-5 w-5" />

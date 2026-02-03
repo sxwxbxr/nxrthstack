@@ -43,7 +43,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+        // Check for password - could be in passwordHash or legacyPasswordHash
+        const hashToCheck = user.passwordHash || user.legacyPasswordHash;
+        if (!hashToCheck) {
+          return null;
+        }
+
+        const passwordMatch = await bcrypt.compare(password, hashToCheck);
 
         if (!passwordMatch) {
           return null;

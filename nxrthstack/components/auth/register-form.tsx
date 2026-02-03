@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { Icons } from "@/components/icons";
+import { authClient } from "@/lib/auth/client";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -34,25 +35,41 @@ export function RegisterForm() {
       return;
     }
 
+    const normalizedEmail = email.toLowerCase();
+
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email: email.toLowerCase(),
-          password,
-        }),
+      // Step 1: Create Neon Auth account
+      const signUpResult = await authClient.signUp.email({
+        email: normalizedEmail,
+        password,
+        name,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
+      if (signUpResult.error) {
+        setError(signUpResult.error.message || "Registration failed");
         return;
       }
 
-      router.push("/login?registered=true");
+      // Step 2: Create local user record with custom fields
+      if (signUpResult.data?.user) {
+        const setupRes = await fetch("/api/auth/setup-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            neonAuthUserId: signUpResult.data.user.id,
+            email: normalizedEmail,
+            name,
+          }),
+        });
+
+        if (!setupRes.ok) {
+          console.error("Failed to create local user record");
+        }
+      }
+
+      // Redirect to dashboard (user is already logged in after signup)
+      router.push("/dashboard");
+      router.refresh();
     } catch {
       setError("An error occurred. Please try again.");
     } finally {

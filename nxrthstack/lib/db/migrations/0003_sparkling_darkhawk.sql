@@ -1,0 +1,3 @@
+-- Migration 0003: Previously applied (placeholder)
+-- This migration was applied but the SQL file was missing from the repository.
+-- The changes have already been applied to the database.
