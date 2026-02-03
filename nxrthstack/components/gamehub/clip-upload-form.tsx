@@ -87,7 +87,7 @@ export function ClipUploadForm() {
 
     try {
       // Step 1: Get presigned upload token
-      const presignRes = await fetch("/api/clips/presign", {
+      const presignRes = await fetch("/api/clips?action=presign", {
         method: "POST",
       });
 
