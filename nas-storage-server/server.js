@@ -62,7 +62,7 @@ app.use(cors({
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-API-Key", "X-Upload-Token"],
   exposedHeaders: ["Content-Length", "Content-Type"],
 }));
 
