@@ -8,19 +8,98 @@ import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { Icons } from "@/components/icons";
 import { authClient } from "@/lib/auth/client";
 
+type AuthMode = "password" | "otp";
+type OtpStep = "email" | "code";
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const error = searchParams.get("error");
 
+  const [authMode, setAuthMode] = useState<AuthMode>("password");
+  const [otpStep, setOtpStep] = useState<OtpStep>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [migrationStatus, setMigrationStatus] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Handle sending OTP code to email
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setFormError("");
+    setInfoMessage("");
+
+    const normalizedEmail = email.toLowerCase();
+
+    try {
+      const result = await authClient.emailOtp.sendVerificationOtp({
+        email: normalizedEmail,
+        type: "sign-in",
+      });
+
+      if (result.error) {
+        setFormError(result.error.message || "Failed to send verification code");
+        return;
+      }
+
+      setInfoMessage("Verification code sent to your email");
+      setOtpStep("code");
+    } catch {
+      setFormError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle verifying OTP code
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setFormError("");
+    setInfoMessage("");
+
+    const normalizedEmail = email.toLowerCase();
+
+    try {
+      const result = await authClient.signIn.emailOtp({
+        email: normalizedEmail,
+        otp: otpCode,
+      });
+
+      if (result.error) {
+        setFormError(result.error.message || "Invalid verification code");
+        return;
+      }
+
+      // Ensure local user record exists
+      if (result.data?.user) {
+        await fetch("/api/auth/setup-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            neonAuthUserId: result.data.user.id,
+            email: result.data.user.email,
+            name: result.data.user.name || "User",
+          }),
+        });
+      }
+
+      router.push(callbackUrl);
+      router.refresh();
+    } catch {
+      setFormError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle password-based login
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setFormError("");
@@ -129,6 +208,14 @@ export function LoginForm() {
     }
   };
 
+  const switchAuthMode = (mode: AuthMode) => {
+    setAuthMode(mode);
+    setOtpStep("email");
+    setFormError("");
+    setInfoMessage("");
+    setOtpCode("");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -148,6 +235,32 @@ export function LoginForm() {
           </p>
         </div>
 
+        {/* Auth mode tabs */}
+        <div className="mb-6 flex rounded-lg border border-input p-1">
+          <button
+            type="button"
+            onClick={() => switchAuthMode("password")}
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              authMode === "password"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Password
+          </button>
+          <button
+            type="button"
+            onClick={() => switchAuthMode("otp")}
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              authMode === "otp"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Email Code
+          </button>
+        </div>
+
         {(error || formError) && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -155,6 +268,16 @@ export function LoginForm() {
             className="mb-6 rounded-lg bg-destructive/10 p-4 text-sm text-destructive"
           >
             {formError || "Authentication failed. Please try again."}
+          </motion.div>
+        )}
+
+        {infoMessage && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 rounded-lg bg-primary/10 p-4 text-sm text-primary"
+          >
+            {infoMessage}
           </motion.div>
         )}
 
@@ -169,59 +292,160 @@ export function LoginForm() {
           </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-foreground"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="you@example.com"
-            />
-          </div>
+        {/* Password-based login form */}
+        {authMode === "password" && (
+          <form onSubmit={handlePasswordSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-foreground"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="you@example.com"
+              />
+            </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-foreground"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="••••••••"
-            />
-          </div>
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-foreground"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="••••••••"
+              />
+            </div>
 
-          <ShimmerButton
-            type="submit"
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? (
-              <>
-                <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              "Sign In"
-            )}
-          </ShimmerButton>
-        </form>
+            <ShimmerButton
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </ShimmerButton>
+          </form>
+        )}
+
+        {/* Email OTP login form */}
+        {authMode === "otp" && otpStep === "email" && (
+          <form onSubmit={handleSendOtp} className="space-y-6">
+            <div>
+              <label
+                htmlFor="otp-email"
+                className="block text-sm font-medium text-foreground"
+              >
+                Email
+              </label>
+              <input
+                id="otp-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="you@example.com"
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                We&apos;ll send a verification code to your email
+              </p>
+            </div>
+
+            <ShimmerButton
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending code...
+                </>
+              ) : (
+                "Send Verification Code"
+              )}
+            </ShimmerButton>
+          </form>
+        )}
+
+        {/* OTP verification step */}
+        {authMode === "otp" && otpStep === "code" && (
+          <form onSubmit={handleVerifyOtp} className="space-y-6">
+            <div>
+              <label
+                htmlFor="otp-code"
+                className="block text-sm font-medium text-foreground"
+              >
+                Verification Code
+              </label>
+              <input
+                id="otp-code"
+                type="text"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value)}
+                required
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-center tracking-widest text-lg"
+                placeholder="000000"
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                Enter the 6-digit code sent to {email}
+              </p>
+            </div>
+
+            <ShimmerButton
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify & Sign In"
+              )}
+            </ShimmerButton>
+
+            <button
+              type="button"
+              onClick={() => {
+                setOtpStep("email");
+                setOtpCode("");
+                setFormError("");
+                setInfoMessage("");
+              }}
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
+            >
+              Use a different email
+            </button>
+          </form>
+        )}
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
