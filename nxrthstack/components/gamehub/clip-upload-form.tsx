@@ -86,13 +86,25 @@ export function ClipUploadForm() {
     setUploadProgress(0);
 
     try {
+      // Step 1: Get presigned upload token
+      const presignRes = await fetch("/api/clips/upload/presign", {
+        method: "POST",
+      });
+
+      if (!presignRes.ok) {
+        const presignError = await presignRes.json().catch(() => ({ error: "Failed to get upload token" }));
+        throw new Error(presignError.error || "Failed to get upload token");
+      }
+
+      const { token, uploadUrl } = await presignRes.json();
+
+      // Step 2: Upload directly to NAS with token
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);
 
-      // Use XMLHttpRequest for progress tracking
-      const xhr = new XMLHttpRequest();
-
       const uploadPromise = new Promise<{ url: string }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
         xhr.upload.addEventListener("progress", (event) => {
           if (event.lengthComputable) {
             const progress = Math.round((event.loaded / event.total) * 100);
@@ -126,7 +138,8 @@ export function ClipUploadForm() {
           reject(new Error("Network error during upload"));
         });
 
-        xhr.open("POST", "/api/clips/upload");
+        xhr.open("POST", uploadUrl);
+        xhr.setRequestHeader("X-Upload-Token", token);
         xhr.send(uploadFormData);
       });
 
