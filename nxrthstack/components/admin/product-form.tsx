@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { upload } from "@vercel/blob/client";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { Product, ProductImage } from "@/lib/db/schema";
@@ -114,28 +113,62 @@ export function ProductForm({ product, mode }: ProductFormProps) {
       const placeholderIndex = images.length + i;
 
       try {
-        const timestamp = Date.now();
-        const filename = `products/${timestamp}-${file.name}`;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "products");
 
-        const blob = await upload(filename, file, {
-          access: "public",
-          handleUploadUrl: "/api/admin/upload/token",
-          onUploadProgress: (progress) => {
-            setImages((prev) =>
-              prev.map((img, idx) =>
-                idx === placeholderIndex
-                  ? { ...img, uploadProgress: Math.round(progress.percentage) }
-                  : img
-              )
-            );
-          },
+        // Use XMLHttpRequest for progress tracking
+        const uploadedUrl = await new Promise<string>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+
+          xhr.upload.addEventListener("progress", (event) => {
+            if (event.lengthComputable) {
+              const progress = Math.round((event.loaded / event.total) * 100);
+              setImages((prev) =>
+                prev.map((img, idx) =>
+                  idx === placeholderIndex
+                    ? { ...img, uploadProgress: progress }
+                    : img
+                )
+              );
+            }
+          });
+
+          xhr.addEventListener("load", () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                if (response.url) {
+                  resolve(response.url);
+                } else {
+                  reject(new Error(response.error || "Upload failed"));
+                }
+              } catch {
+                reject(new Error("Invalid response from server"));
+              }
+            } else {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                reject(new Error(response.error || "Upload failed"));
+              } catch {
+                reject(new Error("Upload failed"));
+              }
+            }
+          });
+
+          xhr.addEventListener("error", () => {
+            reject(new Error("Network error during upload"));
+          });
+
+          xhr.open("POST", "/api/admin/upload");
+          xhr.send(formData);
         });
 
         // Update with real URL
         setImages((prev) =>
           prev.map((img, idx) =>
             idx === placeholderIndex
-              ? { ...img, url: blob.url, isUploading: false }
+              ? { ...img, url: uploadedUrl, isUploading: false }
               : img
           )
         );
@@ -146,7 +179,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           await fetch(`/api/admin/products/${product.id}/images`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: blob.url, isPrimary }),
+            body: JSON.stringify({ url: uploadedUrl, isPrimary }),
           });
           // Refresh to get the image ID
           const res = await fetch(`/api/admin/products/${product.id}/images`);

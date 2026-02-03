@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { upload } from "@vercel/blob/client";
 import { Icons } from "@/components/icons";
 import type { ProductFile, ProductPrice } from "@/lib/db/schema";
 
@@ -50,16 +49,49 @@ export function FilesManager({ productId, files, prices }: FilesManagerProps) {
     setUploadProgress(5);
 
     try {
-      // Upload directly to Vercel Blob (supports large files up to 500MB)
-      const timestamp = Date.now();
-      const filename = `${timestamp}-${formData.file.name}`;
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", formData.file);
+      uploadFormData.append("folder", "downloads");
 
-      const blob = await upload(filename, formData.file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload/token",
-        onUploadProgress: (progress) => {
-          setUploadProgress(Math.round(progress.percentage * 0.9)); // 0-90%
-        },
+      // Upload with progress tracking
+      const uploadedUrl = await new Promise<string>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener("progress", (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded / event.total) * 90); // 0-90%
+            setUploadProgress(progress);
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              if (response.url) {
+                resolve(response.url);
+              } else {
+                reject(new Error(response.error || "Upload failed"));
+              }
+            } catch {
+              reject(new Error("Invalid response from server"));
+            }
+          } else {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              reject(new Error(response.error || "Upload failed"));
+            } catch {
+              reject(new Error("Upload failed"));
+            }
+          }
+        });
+
+        xhr.addEventListener("error", () => {
+          reject(new Error("Network error during upload"));
+        });
+
+        xhr.open("POST", "/api/admin/upload");
+        xhr.send(uploadFormData);
       });
 
       setUploadProgress(95);
@@ -71,7 +103,7 @@ export function FilesManager({ productId, files, prices }: FilesManagerProps) {
         body: JSON.stringify({
           name: formData.name,
           priceId: formData.priceId || null,
-          fileKey: blob.url,
+          fileKey: uploadedUrl,
           fileSizeBytes: formData.file.size,
           fileType: formData.file.type,
         }),
