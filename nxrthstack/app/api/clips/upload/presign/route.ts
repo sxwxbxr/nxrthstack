@@ -4,6 +4,11 @@ import { getSessionWithUser } from "@/lib/auth/server";
 const NAS_STORAGE_URL = process.env.NAS_STORAGE_URL;
 const NAS_API_KEY = process.env.NAS_API_KEY;
 
+// Debug endpoint
+export async function GET() {
+  return NextResponse.json({ status: "presign route exists", method: "GET" });
+}
+
 export async function POST() {
   try {
     const { user } = await getSessionWithUser();
