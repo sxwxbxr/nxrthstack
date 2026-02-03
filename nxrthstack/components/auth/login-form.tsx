@@ -8,8 +8,8 @@ import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { Icons } from "@/components/icons";
 import { authClient } from "@/lib/auth/client";
 
-type AuthMode = "password" | "otp";
-type OtpStep = "email" | "code";
+type AuthMode = "password" | "otp" | "forgot";
+type OtpStep = "email" | "code" | "newPassword";
 
 export function LoginForm() {
   const router = useRouter();
@@ -21,6 +21,8 @@ export function LoginForm() {
   const [otpStep, setOtpStep] = useState<OtpStep>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState("");
@@ -208,12 +210,97 @@ export function LoginForm() {
     }
   };
 
+  // Handle sending forgot password OTP
+  const handleForgotPasswordSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setFormError("");
+    setInfoMessage("");
+
+    const normalizedEmail = email.toLowerCase();
+
+    try {
+      const result = await authClient.emailOtp.sendVerificationOtp({
+        email: normalizedEmail,
+        type: "forget-password",
+      });
+
+      if (result.error) {
+        setFormError(result.error.message || "Failed to send reset code");
+        return;
+      }
+
+      setInfoMessage("Password reset code sent to your email");
+      setOtpStep("code");
+    } catch {
+      setFormError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle forgot password OTP verification (move to new password step)
+  const handleForgotPasswordVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setInfoMessage("");
+    setOtpStep("newPassword");
+  };
+
+  // Handle setting new password
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setFormError("");
+    setInfoMessage("");
+
+    if (newPassword !== confirmNewPassword) {
+      setFormError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setFormError("Password must be at least 8 characters");
+      setIsLoading(false);
+      return;
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    try {
+      const result = await authClient.emailOtp.resetPassword({
+        email: normalizedEmail,
+        otp: otpCode,
+        password: newPassword,
+      });
+
+      if (result.error) {
+        setFormError(result.error.message || "Failed to reset password");
+        return;
+      }
+
+      setInfoMessage("Password reset successful! You can now sign in.");
+      setAuthMode("password");
+      setOtpStep("email");
+      setOtpCode("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch {
+      setFormError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const switchAuthMode = (mode: AuthMode) => {
     setAuthMode(mode);
     setOtpStep("email");
     setFormError("");
     setInfoMessage("");
     setOtpCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
   };
 
   return (
@@ -346,6 +433,182 @@ export function LoginForm() {
                 "Sign In"
               )}
             </ShimmerButton>
+
+            <button
+              type="button"
+              onClick={() => switchAuthMode("forgot")}
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
+            >
+              Forgot password?
+            </button>
+          </form>
+        )}
+
+        {/* Forgot password - email step */}
+        {authMode === "forgot" && otpStep === "email" && (
+          <form onSubmit={handleForgotPasswordSendOtp} className="space-y-6">
+            <div>
+              <label
+                htmlFor="forgot-email"
+                className="block text-sm font-medium text-foreground"
+              >
+                Email
+              </label>
+              <input
+                id="forgot-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="you@example.com"
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                We&apos;ll send a password reset code to your email
+              </p>
+            </div>
+
+            <ShimmerButton
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending code...
+                </>
+              ) : (
+                "Send Reset Code"
+              )}
+            </ShimmerButton>
+
+            <button
+              type="button"
+              onClick={() => switchAuthMode("password")}
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
+            >
+              Back to sign in
+            </button>
+          </form>
+        )}
+
+        {/* Forgot password - OTP verification step */}
+        {authMode === "forgot" && otpStep === "code" && (
+          <form onSubmit={handleForgotPasswordVerifyOtp} className="space-y-6">
+            <div>
+              <label
+                htmlFor="forgot-otp"
+                className="block text-sm font-medium text-foreground"
+              >
+                Reset Code
+              </label>
+              <input
+                id="forgot-otp"
+                type="text"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value)}
+                required
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-center tracking-widest text-lg"
+                placeholder="000000"
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                Enter the 6-digit code sent to {email}
+              </p>
+            </div>
+
+            <ShimmerButton
+              type="submit"
+              disabled={isLoading || !otpCode}
+              className="w-full"
+            >
+              Continue
+            </ShimmerButton>
+
+            <button
+              type="button"
+              onClick={() => {
+                setOtpStep("email");
+                setOtpCode("");
+                setFormError("");
+                setInfoMessage("");
+              }}
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
+            >
+              Use a different email
+            </button>
+          </form>
+        )}
+
+        {/* Forgot password - new password step */}
+        {authMode === "forgot" && otpStep === "newPassword" && (
+          <form onSubmit={handleResetPassword} className="space-y-6">
+            <div>
+              <label
+                htmlFor="new-password"
+                className="block text-sm font-medium text-foreground"
+              >
+                New Password
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={8}
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="••••••••"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                At least 8 characters
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirm-new-password"
+                className="block text-sm font-medium text-foreground"
+              >
+                Confirm New Password
+              </label>
+              <input
+                id="confirm-new-password"
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                required
+                minLength={8}
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <ShimmerButton
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Icons.Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Resetting password...
+                </>
+              ) : (
+                "Reset Password"
+              )}
+            </ShimmerButton>
+
+            <button
+              type="button"
+              onClick={() => switchAuthMode("password")}
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
+            >
+              Back to sign in
+            </button>
           </form>
         )}
 
