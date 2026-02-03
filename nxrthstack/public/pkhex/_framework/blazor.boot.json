@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "PKHeX.NxrthStack.Web",
   "resources": {
-    "hash": "sha256-h2RS7ifEifqqmm1cRDHbHHwgBgnd39SyQ6BcaqnBtSs=",
+    "hash": "sha256-Ej/sVYD/tYtS+nAM4ENcmoQJpNI7LsXoW50xyVm5NOw=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Components.gfemslzieu.wasm": "Microsoft.AspNetCore.Components.wasm",
       "Microsoft.AspNetCore.Components.Web.r0qajrzk46.wasm": "Microsoft.AspNetCore.Components.Web.wasm",
@@ -46,9 +46,9 @@
       "System.Text.RegularExpressions.z0772gqxtf.wasm": "System.Text.RegularExpressions.wasm",
       "System.Threading.jgr1p9vi98.wasm": "System.Threading.wasm",
       "System.Private.CoreLib.qc9s9lk01x.wasm": "System.Private.CoreLib.wasm",
-      "PKHeX.NxrthStack.Components.4a8chsn0ti.wasm": "PKHeX.NxrthStack.Components.wasm",
-      "PKHeX.NxrthStack.Core.5k5ahm6f6b.wasm": "PKHeX.NxrthStack.Core.wasm",
-      "PKHeX.NxrthStack.Web.rzowp1948i.wasm": "PKHeX.NxrthStack.Web.wasm",
+      "PKHeX.NxrthStack.Components.1jxf03suox.wasm": "PKHeX.NxrthStack.Components.wasm",
+      "PKHeX.NxrthStack.Core.ii3qmhf3ad.wasm": "PKHeX.NxrthStack.Core.wasm",
+      "PKHeX.NxrthStack.Web.mgn6tfsvcc.wasm": "PKHeX.NxrthStack.Web.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.9ih887ebfz.js": "dotnet.native.js",
       "dotnet.native.21mns4qp4i.wasm": "dotnet.native.wasm",
@@ -117,9 +117,9 @@
       "System.Text.Json.1jgy0n6nim.wasm": "sha256-05sWTYUD3QXrp8gRHkxx9gFA65ZzqKM0CBWoBeD5Y84=",
       "System.Text.RegularExpressions.z0772gqxtf.wasm": "sha256-rX72Y5M6UcjtrHzCSo2/oLytg2GWxaniHehvjpaxgYQ=",
       "System.Threading.jgr1p9vi98.wasm": "sha256-Qy6+vmFJ1FJPhLt3UC9Hi4rUgoWOYV9Qslfr2Nke1pU=",
-      "PKHeX.NxrthStack.Components.4a8chsn0ti.wasm": "sha256-FDrqqoCNc03XRnuNWGXP/Nfyjo1kKTQHxHllG5vf5vc=",
-      "PKHeX.NxrthStack.Core.5k5ahm6f6b.wasm": "sha256-pSPnagA4mmUzKrcpWcKls9uB6iQwTUESlaknOTjVitY=",
-      "PKHeX.NxrthStack.Web.rzowp1948i.wasm": "sha256-hzMzd3z0HwQ5HZyHL+OB69blZrvMHX/GZ1nLa/E4QNY="
+      "PKHeX.NxrthStack.Components.1jxf03suox.wasm": "sha256-g3y3wLVaRtaKajUjQJpY4GlFcpKbd9rQTGlcCEMh8jk=",
+      "PKHeX.NxrthStack.Core.ii3qmhf3ad.wasm": "sha256-Sv4VBUMwel5loPmRJn+5PmaPITzLPxrn+AIcZ8NGVMY=",
+      "PKHeX.NxrthStack.Web.mgn6tfsvcc.wasm": "sha256-uurYMOmtelSWkCxUq7JX9uQahnNBbrHFqdDyJHpEb0c="
     }
   },
   "cacheBootResources": true,
