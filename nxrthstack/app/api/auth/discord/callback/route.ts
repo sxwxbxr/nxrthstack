@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getSessionWithUser } from "@/lib/auth/server";
 import { db } from "@/lib/db";
 import { users, gamehubAchievements, userAchievements } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI = `${process.env.NEXTAUTH_URL}/api/auth/discord/callback`;
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+const DISCORD_REDIRECT_URI = `${BASE_URL}/api/auth/discord/callback`;
 
 interface DiscordUser {
   id: string;
@@ -18,7 +19,7 @@ interface DiscordUser {
 
 export async function GET(request: Request) {
   try {
-    const session = await auth();
+    const { user } = await getSessionWithUser();
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
@@ -27,13 +28,13 @@ export async function GET(request: Request) {
     // Handle user cancellation or error
     if (error) {
       return NextResponse.redirect(
-        new URL("/dashboard/settings?discord=cancelled", process.env.NEXTAUTH_URL!)
+        new URL("/dashboard/settings?discord=cancelled", BASE_URL)
       );
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL("/dashboard/settings?discord=error", process.env.NEXTAUTH_URL!)
+        new URL("/dashboard/settings?discord=error", BASE_URL)
       );
     }
 
@@ -43,14 +44,14 @@ export async function GET(request: Request) {
       stateData = JSON.parse(Buffer.from(state, "base64").toString());
     } catch {
       return NextResponse.redirect(
-        new URL("/dashboard/settings?discord=invalid_state", process.env.NEXTAUTH_URL!)
+        new URL("/dashboard/settings?discord=invalid_state", BASE_URL)
       );
     }
 
     // Verify the user is still logged in
-    if (!session?.user?.id || session.user.id !== stateData.userId) {
+    if (!user?.id || user.id !== stateData.userId) {
       return NextResponse.redirect(
-        new URL("/login", process.env.NEXTAUTH_URL!)
+        new URL("/login", BASE_URL)
       );
     }
 
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
     if (!tokenResponse.ok) {
       console.error("Discord token error:", await tokenResponse.text());
       return NextResponse.redirect(
-        new URL("/dashboard/settings?discord=token_error", process.env.NEXTAUTH_URL!)
+        new URL("/dashboard/settings?discord=token_error", BASE_URL)
       );
     }
 
@@ -88,7 +89,7 @@ export async function GET(request: Request) {
     if (!userResponse.ok) {
       console.error("Discord user error:", await userResponse.text());
       return NextResponse.redirect(
-        new URL("/dashboard/settings?discord=user_error", process.env.NEXTAUTH_URL!)
+        new URL("/dashboard/settings?discord=user_error", BASE_URL)
       );
     }
 
@@ -101,9 +102,9 @@ export async function GET(request: Request) {
       .where(eq(users.discordId, discordUser.id))
       .limit(1);
 
-    if (existingUser && existingUser.id !== session.user.id) {
+    if (existingUser && existingUser.id !== user.id) {
       return NextResponse.redirect(
-        new URL("/dashboard/settings?discord=already_linked", process.env.NEXTAUTH_URL!)
+        new URL("/dashboard/settings?discord=already_linked", BASE_URL)
       );
     }
 
@@ -120,7 +121,7 @@ export async function GET(request: Request) {
         discordConnectedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(users.id, session.user.id));
+      .where(eq(users.id, user.id));
 
     // Unlock the discord_connected achievement
     try {
@@ -137,7 +138,7 @@ export async function GET(request: Request) {
           .from(userAchievements)
           .where(
             and(
-              eq(userAchievements.userId, session.user.id),
+              eq(userAchievements.userId, user.id),
               eq(userAchievements.achievementId, achievement.id)
             )
           )
@@ -145,7 +146,7 @@ export async function GET(request: Request) {
 
         if (!existing) {
           await db.insert(userAchievements).values({
-            userId: session.user.id,
+            userId: user.id,
             achievementId: achievement.id,
             unlockedAt: new Date(),
           });
@@ -157,12 +158,12 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(
-      new URL("/dashboard/settings?discord=success", process.env.NEXTAUTH_URL!)
+      new URL("/dashboard/settings?discord=success", BASE_URL)
     );
   } catch (error) {
     console.error("Discord callback error:", error);
     return NextResponse.redirect(
-      new URL("/dashboard/settings?discord=error", process.env.NEXTAUTH_URL!)
+      new URL("/dashboard/settings?discord=error", BASE_URL)
     );
   }
 }

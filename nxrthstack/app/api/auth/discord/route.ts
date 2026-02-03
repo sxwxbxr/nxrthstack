@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getSessionWithUser } from "@/lib/auth/server";
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-const DISCORD_REDIRECT_URI = `${process.env.NEXTAUTH_URL}/api/auth/discord/callback`;
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+const DISCORD_REDIRECT_URI = `${BASE_URL}/api/auth/discord/callback`;
 
 export async function GET() {
   try {
-    const session = await auth();
+    const { user } = await getSessionWithUser();
 
-    if (!session?.user?.id) {
-      return NextResponse.redirect(new URL("/login", process.env.NEXTAUTH_URL));
+    if (!user?.id) {
+      return NextResponse.redirect(new URL("/login", BASE_URL));
     }
 
     if (!DISCORD_CLIENT_ID) {
@@ -21,7 +22,7 @@ export async function GET() {
 
     // Discord OAuth URL with required scopes
     const scopes = ["identify"].join("%20");
-    const state = Buffer.from(JSON.stringify({ userId: session.user.id })).toString("base64");
+    const state = Buffer.from(JSON.stringify({ userId: user.id })).toString("base64");
 
     const discordAuthUrl = new URL("https://discord.com/api/oauth2/authorize");
     discordAuthUrl.searchParams.set("client_id", DISCORD_CLIENT_ID);
