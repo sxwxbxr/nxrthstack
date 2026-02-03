@@ -175,22 +175,24 @@ export default async function GameHubPage() {
               </div>
             </div>
           </Link>
-          <Link
-            href="/dashboard/settings"
-            className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                <Icons.Link className="h-5 w-5 text-blue-500" />
+{!user?.discordId && (
+            <Link
+              href="/dashboard/settings"
+              className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                  <Icons.Link className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                    Connect Discord
+                  </h3>
+                  <p className="text-xs text-foreground/60">Link your account</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                  Connect Discord
-                </h3>
-                <p className="text-xs text-foreground/60">Link your account</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          )}
           <Link
             href="/dashboard/gamehub/friends"
             className="group rounded-xl border border-border bg-card p-4 hover:border-primary/50 hover:bg-card/80 transition-all"
