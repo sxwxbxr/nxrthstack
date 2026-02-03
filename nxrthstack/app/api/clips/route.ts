@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getSessionWithUser } from "@/lib/auth/server";
 import { db, clips, clipLikes, users } from "@/lib/db";
 import { desc, eq, and, sql, ilike, or } from "drizzle-orm";
 import { z } from "zod";
@@ -104,8 +104,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const { user } = await getSessionWithUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
     const [newClip] = await db
       .insert(clips)
       .values({
-        userId: session.user.id,
+        userId: user.id,
         title: parsed.data.title,
         description: parsed.data.description || null,
         game: parsed.data.game,

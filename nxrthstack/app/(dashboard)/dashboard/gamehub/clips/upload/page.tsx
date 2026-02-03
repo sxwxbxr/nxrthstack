@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSessionWithUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
@@ -11,12 +11,12 @@ export const metadata = {
 };
 
 export default async function UploadClipPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const { user } = await getSessionWithUser();
+  if (!user?.id) {
     redirect("/login");
   }
 
-  if (!session.user.isFriend && session.user.role !== "admin") {
+  if (!user.isFriend && user.role !== "admin") {
     redirect("/dashboard/gamehub");
   }
 

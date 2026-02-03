@@ -2,9 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import { Icons } from "@/components/icons";
-import { cn } from "@/lib/utils";
 
 const games = [
   { value: "r6", label: "Rainbow Six Siege" },
@@ -33,7 +31,7 @@ export function ClipUploadForm() {
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
-  const [blobUrl, setBlobUrl] = useState("");
+  const [uploadedUrl, setUploadedUrl] = useState("");
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
@@ -61,9 +59,9 @@ export function ClipUploadForm() {
       return;
     }
 
-    // Validate file size (100MB max)
-    if (file.size > 100 * 1024 * 1024) {
-      setError("Video must be less than 100MB");
+    // Validate file size (500MB max)
+    if (file.size > 500 * 1024 * 1024) {
+      setError("Video must be less than 500MB");
       return;
     }
 
@@ -88,21 +86,55 @@ export function ClipUploadForm() {
     setUploadProgress(0);
 
     try {
-      const timestamp = Date.now();
-      const filename = `clips/${timestamp}-${file.name}`;
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
 
-      const blob = await upload(filename, file, {
-        access: "public",
-        handleUploadUrl: "/api/clips/upload/token",
-        onUploadProgress: (progress) => {
-          setUploadProgress(Math.round(progress.percentage));
-        },
+      // Use XMLHttpRequest for progress tracking
+      const xhr = new XMLHttpRequest();
+
+      const uploadPromise = new Promise<{ url: string }>((resolve, reject) => {
+        xhr.upload.addEventListener("progress", (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(progress);
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              if (response.success) {
+                resolve({ url: response.url });
+              } else {
+                reject(new Error(response.error || "Upload failed"));
+              }
+            } catch {
+              reject(new Error("Invalid response from server"));
+            }
+          } else {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              reject(new Error(response.error || "Upload failed"));
+            } catch {
+              reject(new Error("Upload failed"));
+            }
+          }
+        });
+
+        xhr.addEventListener("error", () => {
+          reject(new Error("Network error during upload"));
+        });
+
+        xhr.open("POST", "/api/clips/upload");
+        xhr.send(uploadFormData);
       });
 
-      setBlobUrl(blob.url);
+      const result = await uploadPromise;
+      setUploadedUrl(result.url);
     } catch (err) {
       console.error("Failed to upload video:", err);
-      setError("Failed to upload video. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to upload video. Please try again.");
       setVideoFile(null);
       setVideoPreviewUrl(null);
     } finally {
@@ -113,7 +145,7 @@ export function ClipUploadForm() {
   const handleRemoveVideo = () => {
     setVideoFile(null);
     setVideoPreviewUrl(null);
-    setBlobUrl("");
+    setUploadedUrl("");
     setVideoDuration(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -123,7 +155,7 @@ export function ClipUploadForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!blobUrl) {
+    if (!uploadedUrl) {
       setError("Please upload a video first");
       return;
     }
@@ -142,7 +174,7 @@ export function ClipUploadForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          blobUrl,
+          blobUrl: uploadedUrl,
           durationSeconds: videoDuration,
         }),
       });
@@ -174,7 +206,7 @@ export function ClipUploadForm() {
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="text-lg font-semibold text-foreground">Video File</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Upload your gaming clip (MP4, WebM, MOV - max 100MB)
+          Upload your gaming clip (MP4, WebM, MOV - max 500MB)
         </p>
 
         <div className="mt-4">
@@ -229,7 +261,7 @@ export function ClipUploadForm() {
                 </button>
               </div>
 
-              {blobUrl && !isUploading && (
+              {uploadedUrl && !isUploading && (
                 <div className="flex items-center gap-2 text-sm text-green-500">
                   <Icons.CheckCircle className="h-4 w-4" />
                   Upload complete
@@ -250,7 +282,7 @@ export function ClipUploadForm() {
                 Click to upload a video
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                MP4, WebM, MOV, AVI, MKV (max 100MB)
+                MP4, WebM, MOV, AVI, MKV (max 500MB)
               </p>
             </label>
           )}
@@ -370,7 +402,7 @@ export function ClipUploadForm() {
         </button>
         <button
           type="submit"
-          disabled={!blobUrl || isUploading || isSubmitting}
+          disabled={!uploadedUrl || isUploading || isSubmitting}
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting && <Icons.Loader2 className="h-4 w-4 animate-spin" />}
