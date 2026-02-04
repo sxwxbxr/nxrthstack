@@ -82,12 +82,12 @@ Create a `.env` file in the `nxrthstack-bot` folder:
 ```env
 # Discord Bot Configuration
 DISCORD_BOT_TOKEN=your_bot_token_here
-DISCORD_CLIENT_ID=1468315439309262981
-DISCORD_CLIENT_SECRET=DQ6QM6oiO3Ew5nFVrMAuqId0Kaf52VMY
-DISCORD_GUILD_ID=1468298232042881288
+DISCORD_CLIENT_ID=your_client_id_here
+DISCORD_CLIENT_SECRET=your_client_secret_here
+DISCORD_GUILD_ID=your_guild_id_here
 
 # Database
-DATABASE_URL=postgresql://neondb_owner:npg_14lkmyuPGApJ@ep-proud-surf-ag200kcr-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 
 # Website URL
 NXRTH_API_URL=https://nxrthstack.vercel.app
