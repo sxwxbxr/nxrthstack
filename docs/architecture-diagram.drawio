@@ -1,0 +1,352 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="Claude" version="22.1.0" type="device">
+  <diagram name="NxrthStack Architecture" id="nxrthstack-arch">
+    <mxGraphModel dx="1434" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="NxrthStack Infrastructure Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#6801ff;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud Section Label -->
+        <mxCell id="cloud-label" value="☁️ CLOUD SERVICES" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0066CC;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud Background -->
+        <mxCell id="cloud-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="30" y="100" width="740" height="280" as="geometry" />
+        </mxCell>
+
+        <!-- Vercel -->
+        <mxCell id="vercel" value="&lt;b&gt;Vercel&lt;/b&gt;&lt;br&gt;nxrthstack.vercel.app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;fontColor=#FFFFFF;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="130" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Next.js App -->
+        <mxCell id="nextjs" value="&lt;b&gt;Next.js 16 App&lt;/b&gt;&lt;br&gt;React 19 + Tailwind 4&lt;br&gt;&lt;br&gt;• Shop / Dashboard&lt;br&gt;• Admin Panel&lt;br&gt;• GameHub&lt;br&gt;• API Routes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a2e;fontColor=#FFFFFF;strokeColor=#6801ff;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="210" width="160" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Neon Database -->
+        <mxCell id="neon" value="&lt;b&gt;Neon PostgreSQL&lt;/b&gt;&lt;br&gt;Serverless Database&lt;br&gt;&lt;br&gt;• Users &amp; Auth&lt;br&gt;• Products &amp; Orders&lt;br&gt;• GameHub Data&lt;br&gt;• Achievements&lt;br&gt;• Sessions &amp; Rivalries" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00e5a0;fontColor=#000000;strokeColor=#00b377;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="130" width="180" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Stripe -->
+        <mxCell id="stripe" value="&lt;b&gt;Stripe&lt;/b&gt;&lt;br&gt;Payments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#635bff;fontColor=#FFFFFF;strokeColor=#4b44c9;" vertex="1" parent="1">
+          <mxGeometry x="560" y="130" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Vercel Blob -->
+        <mxCell id="blob" value="&lt;b&gt;Vercel Blob&lt;/b&gt;&lt;br&gt;File Storage&lt;br&gt;&lt;br&gt;• Product Files&lt;br&gt;• Images" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;fontColor=#FFFFFF;strokeColor=#333333;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="210" width="120" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Cloudflare -->
+        <mxCell id="cloudflare" value="&lt;b&gt;Cloudflare&lt;/b&gt;&lt;br&gt;Tunnel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f38020;fontColor=#FFFFFF;strokeColor=#d46a10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="310" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Discord Cloud -->
+        <mxCell id="discord-cloud" value="&lt;b&gt;Discord&lt;/b&gt;&lt;br&gt;Gateway &amp; API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5865F2;fontColor=#FFFFFF;strokeColor=#4752c4;" vertex="1" parent="1">
+          <mxGeometry x="560" y="320" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Home Network Section Label -->
+        <mxCell id="home-label" value="🏠 HOME NETWORK" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#00AA00;" vertex="1" parent="1">
+          <mxGeometry x="40" y="400" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Home Network Background -->
+        <mxCell id="home-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="30" y="430" width="740" height="320" as="geometry" />
+        </mxCell>
+
+        <!-- Home PC -->
+        <mxCell id="home-pc" value="&lt;b&gt;🖥️ Home PC (24/7)&lt;/b&gt;&lt;br&gt;Business Server" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2d3436;fontColor=#FFFFFF;strokeColor=#636e72;" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Discord Bot -->
+        <mxCell id="discord-bot" value="&lt;b&gt;NxrthStack Discord Bot&lt;/b&gt;&lt;br&gt;discord.js 14 + Drizzle&lt;br&gt;&lt;br&gt;• Slash Commands&lt;br&gt;• Webhook API (:3001)&lt;br&gt;• Notifications&lt;br&gt;• PM2 Managed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5865F2;fontColor=#FFFFFF;strokeColor=#4752c4;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="530" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Minecraft Server -->
+        <mxCell id="minecraft" value="&lt;b&gt;Minecraft Server&lt;/b&gt;&lt;br&gt;:25565" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8B4513;fontColor=#FFFFFF;strokeColor=#5D3A1A;" vertex="1" parent="1">
+          <mxGeometry x="60" y="670" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Paperless-ngx -->
+        <mxCell id="paperless" value="&lt;b&gt;Paperless-ngx&lt;/b&gt;&lt;br&gt;Document Management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#17a2b8;fontColor=#FFFFFF;strokeColor=#117a8b;" vertex="1" parent="1">
+          <mxGeometry x="240" y="670" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Raspberry Pi -->
+        <mxCell id="rpi" value="&lt;b&gt;🍓 Raspberry Pi&lt;/b&gt;&lt;br&gt;NAS Controller" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c51a4a;fontColor=#FFFFFF;strokeColor=#8b1235;" vertex="1" parent="1">
+          <mxGeometry x="480" y="460" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- NAS -->
+        <mxCell id="nas" value="&lt;b&gt;📁 NAS Storage&lt;/b&gt;&lt;br&gt;Network Attached Storage&lt;br&gt;&lt;br&gt;• Private Files&lt;br&gt;• Documents&lt;br&gt;• Media&lt;br&gt;• Backups" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4a4a4a;fontColor=#FFFFFF;strokeColor=#2d2d2d;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="480" y="530" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Users Section -->
+        <mxCell id="users-label" value="👥 USERS" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#AA0000;" vertex="1" parent="1">
+          <mxGeometry x="850" y="70" width="100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Users Background -->
+        <mxCell id="users-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="840" y="100" width="200" height="650" as="geometry" />
+        </mxCell>
+
+        <!-- Web Users -->
+        <mxCell id="web-users" value="&lt;b&gt;🌐 Web Users&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Browse Shop&lt;br&gt;• Purchase Products&lt;br&gt;• Dashboard&lt;br&gt;• GameHub Features" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;fontColor=#333333;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="870" y="130" width="140" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Discord Users -->
+        <mxCell id="discord-users" value="&lt;b&gt;💬 Discord Users&lt;/b&gt;&lt;br&gt;&lt;br&gt;• /link account&lt;br&gt;• /profile &amp; /stats&lt;br&gt;• /session create/join&lt;br&gt;• /rivalry challenge&lt;br&gt;• /achievements&lt;br&gt;• /leaderboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;fontColor=#333333;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="870" y="280" width="140" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Admin -->
+        <mxCell id="admin-user" value="&lt;b&gt;👑 Admin&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Product Mgmt&lt;br&gt;• User Mgmt&lt;br&gt;• Announcements&lt;br&gt;• Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;fontColor=#333333;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="870" y="450" width="140" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Gamers -->
+        <mxCell id="gamers" value="&lt;b&gt;🎮 Gamers&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Minecraft&lt;br&gt;• R6 Tournaments&lt;br&gt;• Pokemon ROM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;fontColor=#333333;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="870" y="590" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- CONNECTION ARROWS -->
+
+        <!-- Vercel to Next.js -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="vercel" target="nextjs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Next.js to Neon -->
+        <mxCell id="conn2" value="Drizzle ORM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00e5a0;strokeWidth=2;fontColor=#00b377;" edge="1" parent="1" source="nextjs" target="neon">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Next.js to Stripe -->
+        <mxCell id="conn3" value="Payments" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#635bff;strokeWidth=2;fontColor=#635bff;" edge="1" parent="1" source="nextjs" target="stripe">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Next.js to Blob -->
+        <mxCell id="conn4" value="Files" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="nextjs" target="blob">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Next.js to Cloudflare (webhook) -->
+        <mxCell id="conn5" value="Webhook" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#f38020;strokeWidth=2;fontColor=#f38020;dashed=1;" edge="1" parent="1" source="nextjs" target="cloudflare">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Cloudflare to Discord Bot -->
+        <mxCell id="conn6" value="Tunnel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#f38020;strokeWidth=2;fontColor=#f38020;" edge="1" parent="1" source="cloudflare" target="discord-bot">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="390" y="400" />
+              <mxPoint x="140" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Discord Bot to Neon -->
+        <mxCell id="conn7" value="Drizzle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00e5a0;strokeWidth=2;fontColor=#00b377;" edge="1" parent="1" source="discord-bot" target="neon">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="270" y="590" />
+              <mxPoint x="270" y="400" />
+              <mxPoint x="390" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Discord Bot to Discord Cloud -->
+        <mxCell id="conn8" value="WebSocket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#5865F2;strokeWidth=2;fontColor=#5865F2;" edge="1" parent="1" source="discord-bot" target="discord-cloud">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="550" />
+              <mxPoint x="420" y="550" />
+              <mxPoint x="420" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Home PC contains -->
+        <mxCell id="conn9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2d3436;strokeWidth=1;dashed=1;" edge="1" parent="1" source="home-pc" target="discord-bot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="conn10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2d3436;strokeWidth=1;dashed=1;" edge="1" parent="1" source="home-pc" target="minecraft">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="140" y="510" />
+              <mxPoint x="140" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="conn11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2d3436;strokeWidth=1;dashed=1;" edge="1" parent="1" source="home-pc" target="paperless">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="320" y="510" />
+              <mxPoint x="320" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Raspberry Pi to NAS -->
+        <mxCell id="conn12" value="USB/SATA" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#c51a4a;strokeWidth=2;fontColor=#c51a4a;" edge="1" parent="1" source="rpi" target="nas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Paperless to NAS -->
+        <mxCell id="conn13" value="SMB/NFS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#17a2b8;strokeWidth=2;fontColor=#17a2b8;" edge="1" parent="1" source="paperless" target="nas">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="695" />
+              <mxPoint x="400" y="590" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- User Connections -->
+        <mxCell id="conn14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=1;" edge="1" parent="1" source="web-users" target="vercel">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="195" />
+              <mxPoint x="800" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="conn15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#5865F2;strokeWidth=1;" edge="1" parent="1" source="discord-users" target="discord-cloud">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="355" />
+              <mxPoint x="800" y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="conn16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=1;" edge="1" parent="1" source="admin-user" target="vercel">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="510" />
+              <mxPoint x="800" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="conn17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#8B4513;strokeWidth=1;" edge="1" parent="1" source="gamers" target="minecraft">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="640" />
+              <mxPoint x="800" y="695" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="100" width="200" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend-title" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="105" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend1" value="Database Connection" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#00b377;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="130" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend1-line" value="" style="endArrow=none;html=1;strokeColor=#00e5a0;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="140" as="sourcePoint" />
+            <mxPoint x="1115" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend2" value="Discord Connection" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#5865F2;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="155" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend2-line" value="" style="endArrow=none;html=1;strokeColor=#5865F2;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="165" as="sourcePoint" />
+            <mxPoint x="1115" y="165" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend3" value="Cloudflare Tunnel" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#f38020;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="180" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend3-line" value="" style="endArrow=none;html=1;strokeColor=#f38020;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="190" as="sourcePoint" />
+            <mxPoint x="1115" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend4" value="Payment Flow" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#635bff;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="205" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend4-line" value="" style="endArrow=none;html=1;strokeColor=#635bff;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="215" as="sourcePoint" />
+            <mxPoint x="1115" y="215" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend5" value="Local Network" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="230" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend5-line" value="" style="endArrow=none;html=1;strokeColor=#666666;strokeWidth=1;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="240" as="sourcePoint" />
+            <mxPoint x="1115" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend6" value="NAS Connection" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#c51a4a;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="255" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend6-line" value="" style="endArrow=none;html=1;strokeColor=#c51a4a;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="265" as="sourcePoint" />
+            <mxPoint x="1115" y="265" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Tech Stack Box -->
+        <mxCell id="tech-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="320" width="200" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tech-title" value="&lt;b&gt;Tech Stack&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="325" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tech-list" value="&lt;b&gt;Frontend:&lt;/b&gt; Next.js 16, React 19&lt;br&gt;&lt;b&gt;Styling:&lt;/b&gt; Tailwind CSS 4&lt;br&gt;&lt;b&gt;Database:&lt;/b&gt; Neon PostgreSQL&lt;br&gt;&lt;b&gt;ORM:&lt;/b&gt; Drizzle&lt;br&gt;&lt;b&gt;Auth:&lt;/b&gt; NextAuth.js v5&lt;br&gt;&lt;b&gt;Payments:&lt;/b&gt; Stripe&lt;br&gt;&lt;b&gt;Bot:&lt;/b&gt; discord.js 14&lt;br&gt;&lt;b&gt;Process:&lt;/b&gt; PM2&lt;br&gt;&lt;b&gt;Tunnel:&lt;/b&gt; Cloudflare" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="350" width="180" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- Data Flow Note -->
+        <mxCell id="flow-note" value="&lt;b&gt;Data Flow:&lt;/b&gt;&lt;br&gt;1. Users interact via Web/Discord&lt;br&gt;2. Both connect to shared Neon DB&lt;br&gt;3. Website sends webhooks to Bot&lt;br&gt;4. Bot broadcasts to Discord channels&lt;br&gt;5. NAS stores private documents" style="text;html=1;strokeColor=#666666;fillColor=#fff2cc;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=10;spacingLeft=5;spacingTop=5;spacingRight=5;spacingBottom=5;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="520" width="200" height="100" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
