@@ -19,7 +19,19 @@ INSTALL_DIR="/opt/nas-storage-server"
 STORAGE_PATH="/mnt/nas/clips"           # Where clips will be stored
 CLOUDFLARE_HOSTNAME="clips.sweber.dev"  # Your subdomain
 SERVER_PORT=3001
-API_KEY="NTFPaBdAz2SvF7uCSnWAVeafnGzO7bd+1lpMyvUshic="
+
+# API Key - must be provided via environment variable or prompt
+if [ -z "$NAS_API_KEY" ]; then
+    echo -e "${YELLOW}No API key provided via NAS_API_KEY environment variable.${NC}"
+    echo -e "${YELLOW}You can generate a secure key with: openssl rand -base64 32${NC}"
+    read -p "Enter your API key: " API_KEY
+    if [ -z "$API_KEY" ]; then
+        echo -e "${RED}Error: API key is required${NC}"
+        exit 1
+    fi
+else
+    API_KEY="$NAS_API_KEY"
+fi
 
 # Detect architecture
 ARCH=$(uname -m)
