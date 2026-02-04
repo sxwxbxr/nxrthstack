@@ -119,8 +119,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   // Add profile URL
   const profileUrl = profile?.usernameSlug
-    ? `${process.env.NXRTH_API_URL || "https://nxrth.dev"}/u/${profile.usernameSlug}`
-    : `${process.env.NXRTH_API_URL || "https://nxrth.dev"}/dashboard/gamehub/passport`;
+    ? `${process.env.NXRTH_API_URL || "https://nxrthstack.vercel.app"}/u/${profile.usernameSlug}`
+    : `${process.env.NXRTH_API_URL || "https://nxrthstack.vercel.app"}/dashboard/gamehub/passport`;
 
   embed.setFooter({ text: `View full profile at ${profileUrl}` });
 

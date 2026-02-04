@@ -3,6 +3,7 @@ import { readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { client, type Command } from "./client.js";
+import { startApiServer } from "./api/server.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -84,6 +85,10 @@ async function main() {
   // Load commands and events
   await loadCommands();
   await loadEvents();
+
+  // Start API server for webhook notifications
+  const apiPort = parseInt(process.env.API_PORT || "3001", 10);
+  startApiServer(apiPort);
 
   // Login to Discord
   await client.login(process.env.DISCORD_BOT_TOKEN);

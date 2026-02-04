@@ -43,7 +43,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   // Generate link URL
-  const linkUrl = `${process.env.NXRTH_API_URL || "https://nxrth.dev"}/dashboard/settings?link_discord=${discordId}`;
+  const linkUrl = `${process.env.NXRTH_API_URL || "https://nxrthstack.vercel.app"}/dashboard/settings?link_discord=${discordId}`;
 
   const embed = new EmbedBuilder()
     .setColor(0x6801ff)
@@ -67,7 +67,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           "1. Click the button below\n2. Log in to NxrthStack (or create an account)\n3. Your accounts will be linked automatically",
       }
     )
-    .setFooter({ text: "nxrth.dev" });
+    .setFooter({ text: "nxrthstack.vercel.app" });
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()

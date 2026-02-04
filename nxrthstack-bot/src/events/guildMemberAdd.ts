@@ -30,7 +30,7 @@ export async function execute(member: GuildMember) {
           ].join("\n"),
         }
       )
-      .setFooter({ text: "nxrth.dev" });
+      .setFooter({ text: "nxrthstack.vercel.app" });
 
     await member.send({ embeds: [embed] });
   } catch (error) {
