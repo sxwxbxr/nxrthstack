@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { authClient } from "@/lib/auth/client";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
@@ -100,7 +100,10 @@ export function AdminSidebar() {
             </motion.div>
           </Link>
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={async () => {
+              await authClient.signOut();
+              window.location.href = "/";
+            }}
             className="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           >
             <Icons.LogOut className="h-5 w-5" />

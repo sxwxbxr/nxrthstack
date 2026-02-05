@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useExtendedSession } from "@/lib/auth/hooks";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
@@ -17,7 +17,7 @@ interface PricingTableProps {
 
 export function PricingTable({ productId, productType, prices, isOwned = false }: PricingTableProps) {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { isAuthenticated } = useExtendedSession();
   const [selectedPrice, setSelectedPrice] = useState(prices[0]?.id);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -48,7 +48,7 @@ export function PricingTable({ productId, productType, prices, isOwned = false }
   }
 
   const handleCheckout = async (priceId: string) => {
-    if (status === "unauthenticated") {
+    if (!isAuthenticated) {
       router.push(`/login?callbackUrl=/shop`);
       return;
     }
@@ -81,7 +81,7 @@ export function PricingTable({ productId, productType, prices, isOwned = false }
   };
 
   const handleClaimFree = async () => {
-    if (status === "unauthenticated") {
+    if (!isAuthenticated) {
       router.push(`/login?callbackUrl=/shop`);
       return;
     }
