@@ -80,7 +80,11 @@ echo ""
 echo -e "${GREEN}Step 4/4: Retrieving connection info...${NC}"
 
 TS_IP=$(tailscale ip -4 2>/dev/null || echo "unknown")
-TS_HOSTNAME=$(tailscale status --self --json 2>/dev/null | grep -o '"DNSName":"[^"]*"' | cut -d'"' -f4 | sed 's/\.$//' || echo "unknown")
+TS_HOSTNAME=$(tailscale status --json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['Self']['DNSName'].rstrip('.'))" 2>/dev/null || echo "")
+if [ -z "$TS_HOSTNAME" ]; then
+    # Fallback: parse from tailscale serve output or cert list
+    TS_HOSTNAME=$(tailscale cert 2>&1 | grep -oP '[\w.-]+\.ts\.net' | head -n1 || echo "unknown")
+fi
 TS_SERVE_URL="https://${TS_HOSTNAME}"
 
 echo ""
