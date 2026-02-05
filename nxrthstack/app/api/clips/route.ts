@@ -176,7 +176,8 @@ export async function POST(request: Request) {
       // For large files, route through Tailscale to bypass Cloudflare's 100MB limit
       let uploadUrl = data.uploadUrl;
       if (fileSize > LARGE_FILE_THRESHOLD && NAS_TAILSCALE_URL) {
-        uploadUrl = `${NAS_TAILSCALE_URL}/upload/direct`;
+        const original = new URL(data.uploadUrl);
+        uploadUrl = `${NAS_TAILSCALE_URL}${original.pathname}${original.search}`;
       }
 
       return NextResponse.json({

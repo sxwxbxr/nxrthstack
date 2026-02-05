@@ -145,9 +145,10 @@ app.post("/token", authenticate, express.json(), (req, res) => {
     allowedTypes: allowedTypes || null,
   }, expiresIn || 3600);
 
+  const folderParam = folder ? `?folder=${encodeURIComponent(folder)}` : "";
   res.json({
     token,
-    uploadUrl: `${PUBLIC_URL}/upload/direct`,
+    uploadUrl: `${PUBLIC_URL}/upload/direct${folderParam}`,
     expiresIn: expiresIn || 3600,
   });
 });
