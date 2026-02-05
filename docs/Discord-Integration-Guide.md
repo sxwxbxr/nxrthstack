@@ -42,7 +42,7 @@ public void OpenDiscordSettings()
     // Open the NxrthStack settings page in user's browser
     Process.Start(new ProcessStartInfo
     {
-        FileName = "https://nxrthstack.vercel.app/dashboard/settings",
+        FileName = "https://nxrthstack.sweber.dev/dashboard/settings",
         UseShellExecute = true
     });
 }
@@ -51,7 +51,7 @@ public void OpenDiscordSettings()
 ```typescript
 // TypeScript/JavaScript Example
 const openDiscordSettings = () => {
-  window.open("https://nxrthstack.vercel.app/dashboard/settings", "_blank");
+  window.open("https://nxrthstack.sweber.dev/dashboard/settings", "_blank");
 };
 ```
 
@@ -76,7 +76,7 @@ public async Task<DiscordInfo?> GetDiscordInfo(string accessToken)
         new AuthenticationHeaderValue("Bearer", accessToken);
 
     var response = await client.GetAsync(
-        "https://nxrthstack.vercel.app/api/v1/user/profile"
+        "https://nxrthstack.sweber.dev/api/v1/user/profile"
     );
 
     if (response.IsSuccessStatusCode)
@@ -238,7 +238,7 @@ public async Task<bool> SyncDiscordWithNxrthStack(
     );
 
     var response = await client.PostAsync(
-        "https://nxrthstack.vercel.app/api/v1/user/discord/sync",
+        "https://nxrthstack.sweber.dev/api/v1/user/discord/sync",
         content
     );
 
@@ -289,7 +289,7 @@ Initiates Discord OAuth flow. Redirect users here to connect Discord.
 
 **Example:**
 ```
-https://nxrthstack.vercel.app/api/auth/discord?redirect=/dashboard
+https://nxrthstack.sweber.dev/api/auth/discord?redirect=/dashboard
 ```
 
 ### POST /api/auth/discord/disconnect
@@ -334,7 +334,7 @@ export function DiscordConnection({ accessToken }: DiscordConnectionProps) {
   const fetchDiscordStatus = async () => {
     try {
       const response = await fetch(
-        "https://nxrthstack.vercel.app/api/v1/user/profile",
+        "https://nxrthstack.sweber.dev/api/v1/user/profile",
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
@@ -358,12 +358,12 @@ export function DiscordConnection({ accessToken }: DiscordConnectionProps) {
   const handleConnect = () => {
     // Redirect to NxrthStack Discord OAuth
     window.location.href =
-      "https://nxrthstack.vercel.app/api/auth/discord";
+      "https://nxrthstack.sweber.dev/api/auth/discord";
   };
 
   const handleDisconnect = async () => {
     const response = await fetch(
-      "https://nxrthstack.vercel.app/api/auth/discord/disconnect",
+      "https://nxrthstack.sweber.dev/api/auth/discord/disconnect",
       {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },

@@ -13,7 +13,7 @@
         <mxCell id="cloud-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;opacity=30;" parent="1" vertex="1">
           <mxGeometry x="30" y="90" width="740" height="290" as="geometry" />
         </mxCell>
-        <mxCell id="vercel" value="&lt;b&gt;Vercel&lt;/b&gt;&lt;br&gt;nxrthstack.vercel.app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;fontColor=#FFFFFF;strokeColor=#333333;" parent="1" vertex="1">
+        <mxCell id="vercel" value="&lt;b&gt;Vercel&lt;/b&gt;&lt;br&gt;nxrthstack.sweber.dev" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;fontColor=#FFFFFF;strokeColor=#333333;" parent="1" vertex="1">
           <mxGeometry x="60" y="130" width="160" height="60" as="geometry" />
         </mxCell>
         <mxCell id="nextjs" value="&lt;b&gt;Next.js 16 App&lt;/b&gt;&lt;br&gt;React 19 + Tailwind 4&lt;br&gt;&lt;br&gt;• Shop / Dashboard&lt;br&gt;• Admin Panel&lt;br&gt;• GameHub&lt;br&gt;• API Routes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a1a2e;fontColor=#FFFFFF;strokeColor=#6801ff;align=left;spacingLeft=10;" parent="1" vertex="1">

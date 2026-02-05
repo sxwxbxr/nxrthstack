@@ -35,7 +35,7 @@ PORT=3001
 NAS_API_KEY=your-secure-key-here  # Generate: openssl rand -base64 32
 STORAGE_PATH=/volume1/clips       # Your NAS storage path
 PUBLIC_URL=https://clips.yourdomain.com
-ALLOWED_ORIGINS=https://nxrthstack.vercel.app
+ALLOWED_ORIGINS=https://nxrthstack.sweber.dev
 ```
 
 ### 4. Start the server
@@ -214,4 +214,4 @@ Requires auth. Returns total files, size, etc.
 | `STORAGE_PATH` | ./uploads | Where files are stored |
 | `PUBLIC_URL` | http://localhost:3001 | Public URL for file access |
 | `MAX_FILE_SIZE` | 104857600 | Max upload size (100MB) |
-| `ALLOWED_ORIGINS` | localhost:3000,nxrthstack.vercel.app | CORS origins |
+| `ALLOWED_ORIGINS` | localhost:3000,nxrthstack.sweber.dev | CORS origins |

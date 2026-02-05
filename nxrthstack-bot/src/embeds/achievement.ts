@@ -102,7 +102,7 @@ export function buildAchievementUnlockEmbed(data: AchievementUnlockData): EmbedB
         inline: true,
       }
     )
-    .setFooter({ text: "nxrthstack.vercel.app/dashboard/gamehub/achievements" })
+    .setFooter({ text: "nxrthstack.sweber.dev/dashboard/gamehub/achievements" })
     .setTimestamp();
 
   if (data.avatarUrl) {
@@ -141,5 +141,5 @@ export function buildAchievementListEmbed(
       { name: "Total Points", value: formatNumber(totalPoints), inline: true },
       { name: "Unlocked", value: `${unlocked}/${total}`, inline: true }
     )
-    .setFooter({ text: "View all at nxrthstack.vercel.app/dashboard/gamehub/achievements" });
+    .setFooter({ text: "View all at nxrthstack.sweber.dev/dashboard/gamehub/achievements" });
 }

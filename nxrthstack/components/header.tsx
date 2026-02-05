@@ -34,6 +34,7 @@ export function Header() {
             <span className="text-xl font-bold tracking-tight">
               Nxrth<span className="text-primary">Stack</span>
             </span>
+            <span className="text-[10px] text-muted-foreground self-end mb-0.5">by sweber.dev</span>
           </motion.a>
 
           <div className="hidden md:flex md:items-center md:gap-8">

@@ -343,7 +343,7 @@ NAS_API_KEY=$API_KEY
 STORAGE_PATH=$STORAGE_PATH
 PUBLIC_URL=https://$CLOUDFLARE_HOSTNAME
 MAX_FILE_SIZE=524288000
-ALLOWED_ORIGINS=http://localhost:3000,https://nxrthstack.vercel.app
+ALLOWED_ORIGINS=http://localhost:3000,https://nxrthstack.sweber.dev
 ENVFILE
 
 # Install dependencies

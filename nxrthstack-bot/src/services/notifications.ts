@@ -97,7 +97,7 @@ export async function broadcastAchievementUnlock(data: {
         inline: true,
       }
     )
-    .setFooter({ text: "nxrthstack.vercel.app/dashboard/gamehub/achievements" })
+    .setFooter({ text: "nxrthstack.sweber.dev/dashboard/gamehub/achievements" })
     .setTimestamp();
 
   // Get configured channels
@@ -253,7 +253,7 @@ export async function broadcastAnnouncement(data: {
     .setColor(0x6801ff)
     .setTitle(`${categoryEmoji[announcement.category || "general"] || "📢"} ${announcement.title}`)
     .setDescription(announcement.content || "No content")
-    .setFooter({ text: "nxrthstack.vercel.app • GameHub Announcement" })
+    .setFooter({ text: "nxrthstack.sweber.dev • GameHub Announcement" })
     .setTimestamp(announcement.createdAt || new Date());
 
   if (announcement.isPinned) {

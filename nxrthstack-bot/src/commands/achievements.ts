@@ -161,7 +161,7 @@ async function handleList(interaction: ChatInputCommandInteraction) {
       }
     )
     .setFooter({
-      text: `View all achievements at nxrthstack.vercel.app/dashboard/gamehub/achievements`,
+      text: `View all achievements at nxrthstack.sweber.dev/dashboard/gamehub/achievements`,
     });
 
   await interaction.editReply({ embeds: [embed] });

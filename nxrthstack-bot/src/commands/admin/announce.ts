@@ -141,7 +141,7 @@ async function handleCreate(
     .setColor(0x6801ff)
     .setTitle(`${categoryEmoji[category]} ${title}`)
     .setDescription(content)
-    .setFooter({ text: "nxrthstack.vercel.app • GameHub Announcement" })
+    .setFooter({ text: "nxrthstack.sweber.dev • GameHub Announcement" })
     .setTimestamp();
 
   if (isPinned) {
@@ -223,7 +223,7 @@ async function handleBroadcast(interaction: ChatInputCommandInteraction) {
       `${categoryEmoji[announcement.category || "general"]} ${announcement.title}`
     )
     .setDescription(announcement.content || "")
-    .setFooter({ text: "nxrthstack.vercel.app • GameHub Announcement" })
+    .setFooter({ text: "nxrthstack.sweber.dev • GameHub Announcement" })
     .setTimestamp(announcement.createdAt || new Date());
 
   if (announcement.isPinned) {

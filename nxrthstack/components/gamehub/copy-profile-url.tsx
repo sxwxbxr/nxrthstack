@@ -25,7 +25,7 @@ export function CopyProfileUrl({ usernameSlug }: CopyProfileUrlProps) {
         <div className="flex-1">
           <p className="text-sm text-muted-foreground">Your profile URL</p>
           <p className="font-mono text-foreground">
-            {typeof window !== "undefined" ? window.location.origin : "https://nxrthstack.vercel.app"}
+            {typeof window !== "undefined" ? window.location.origin : "https://nxrthstack.sweber.dev"}
             /u/{usernameSlug || "your-username"}
           </p>
         </div>

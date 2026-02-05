@@ -140,7 +140,7 @@ NAS_API_KEY=NTFPaBdAz2SvF7uCSnWAVeafnGzO7bd+1lpMyvUshic=
 STORAGE_PATH=/mnt/nas/clips
 PUBLIC_URL=https://clips.sweber.dev
 MAX_FILE_SIZE=524288000
-ALLOWED_ORIGINS=http://localhost:3000,https://nxrthstack.vercel.app
+ALLOWED_ORIGINS=http://localhost:3000,https://nxrthstack.sweber.dev
 EOF
 ```
 

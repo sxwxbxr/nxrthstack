@@ -11,7 +11,7 @@ const API_KEY = process.env.NAS_API_KEY || "change-me-to-a-secure-key";
 const STORAGE_PATH = process.env.STORAGE_PATH || "./uploads";
 const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || "524288000"); // 500MB default
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:3000,https://nxrthstack.vercel.app").split(",");
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:3000,https://nxrthstack.sweber.dev").split(",");
 const TOKEN_SECRET = process.env.NAS_API_KEY || "change-me"; // Reuse API key for signing tokens
 
 // Simple token signing/verification

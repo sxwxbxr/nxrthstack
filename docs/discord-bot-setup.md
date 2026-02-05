@@ -90,7 +90,7 @@ DISCORD_GUILD_ID=your_guild_id_here
 DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 
 # Website URL
-NXRTH_API_URL=https://nxrthstack.vercel.app
+NXRTH_API_URL=https://nxrthstack.sweber.dev
 
 # API Port
 API_PORT=3001
@@ -476,7 +476,7 @@ npm start
 | `DISCORD_CLIENT_SECRET` | Shared secret (same as Vercel) |
 | `DISCORD_GUILD_ID` | Your Discord server ID |
 | `DATABASE_URL` | Neon PostgreSQL connection string |
-| `NXRTH_API_URL` | Website URL (https://nxrthstack.vercel.app) |
+| `NXRTH_API_URL` | Website URL (https://nxrthstack.sweber.dev) |
 | `API_PORT` | Webhook API port (default: 3001) |
 
 ### Vercel

@@ -73,16 +73,16 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ].join("\n"),
       }
     )
-    .setFooter({ text: "nxrthstack.vercel.app • Link your account to get started!" });
+    .setFooter({ text: "nxrthstack.sweber.dev • Link your account to get started!" });
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setLabel("NxrthStack Website")
-      .setURL("https://nxrthstack.vercel.app")
+      .setURL("https://nxrthstack.sweber.dev")
       .setStyle(ButtonStyle.Link),
     new ButtonBuilder()
       .setLabel("GameHub")
-      .setURL("https://nxrthstack.vercel.app/dashboard/gamehub")
+      .setURL("https://nxrthstack.sweber.dev/dashboard/gamehub")
       .setStyle(ButtonStyle.Link)
   );
 
