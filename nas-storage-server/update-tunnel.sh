@@ -17,7 +17,6 @@ NC='\033[0m'
 
 INSTALL_DIR="/opt/nas-storage-server"
 TUNNEL_ID="74d5e8c6-e78a-43a1-95b0-ea126afb7801"
-CONNECTOR_ID="aac45b32-6a44-466b-ae9b-1314dc3c1e2f"
 NEW_HOSTNAME="nxrthstore.sweber.dev"
 ALLOWED_ORIGINS="http://localhost:3000,https://nxrthstack.sweber.dev"
 
@@ -29,7 +28,6 @@ echo -e "${NC}"
 
 echo -e "${YELLOW}Migration details:${NC}"
 echo "  Tunnel ID:    $TUNNEL_ID"
-echo "  Connector ID: $CONNECTOR_ID"
 echo "  New hostname: $NEW_HOSTNAME"
 echo ""
 
@@ -189,7 +187,6 @@ echo -e "${GREEN}═════════════════════
 echo ""
 echo "  Public URL:  https://$NEW_HOSTNAME"
 echo "  Tunnel ID:   $TUNNEL_ID"
-echo "  Connector:   $CONNECTOR_ID"
 echo ""
 echo "  Test externally:  curl https://$NEW_HOSTNAME/health"
 echo "  View logs:        sudo journalctl -u cloudflared-nas -f"
