@@ -104,6 +104,8 @@ export async function GET(request: Request) {
 
 const NAS_STORAGE_URL = process.env.NAS_STORAGE_URL;
 const NAS_API_KEY = process.env.NAS_API_KEY;
+const NAS_TAILSCALE_URL = process.env.NAS_TAILSCALE_URL;
+const LARGE_FILE_THRESHOLD = 95 * 1024 * 1024; // 95MB — buffer below Cloudflare's 100MB limit
 
 export async function POST(request: Request) {
   try {
@@ -129,6 +131,15 @@ export async function POST(request: Request) {
           { error: "Storage not configured" },
           { status: 500 }
         );
+      }
+
+      // Parse file size for upload routing decision
+      let fileSize = 0;
+      try {
+        const body = await request.json();
+        fileSize = body.fileSize || 0;
+      } catch {
+        // No body provided, default to Cloudflare path
       }
 
       // Request upload token from NAS server
@@ -162,9 +173,15 @@ export async function POST(request: Request) {
 
       const data = await response.json();
 
+      // For large files, route through Tailscale to bypass Cloudflare's 100MB limit
+      let uploadUrl = data.uploadUrl;
+      if (fileSize > LARGE_FILE_THRESHOLD && NAS_TAILSCALE_URL) {
+        uploadUrl = `${NAS_TAILSCALE_URL}/upload/direct`;
+      }
+
       return NextResponse.json({
         token: data.token,
-        uploadUrl: data.uploadUrl,
+        uploadUrl,
         expiresIn: data.expiresIn,
       });
     }
