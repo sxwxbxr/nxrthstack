@@ -44,16 +44,16 @@ The NxrthStack platform domain was changed from `nxrthstack.vercel.app` to `nxrt
 
 ## Manual Steps Required
 
-### 1. Vercel Dashboard - Custom Domain
+### 1. Vercel Dashboard - Custom Domain DONE
 - Go to **Vercel Project Settings > Domains**
 - Add `nxrthstack.sweber.dev` as a custom domain
 - Vercel will provide a CNAME record to add in DNS
 
-### 2. DNS Configuration (sweber.dev registrar / Cloudflare)
+### 2. DNS Configuration (sweber.dev registrar / Cloudflare) DONE
 - Add a **CNAME** record: `nxrthstack` -> `cname.vercel-dns.com` (Vercel will confirm the exact value)
 - Wait for DNS propagation
 
-### 3. Bot Server `.env` (Home PC)
+### 3. Bot Server `.env` (Home PC) HOME PC DOESNT EXIST YET -> STILL WAITING FOR DELIVERY
 - SSH into your home PC and update the live `.env`:
   ```
   NXRTH_API_URL=https://nxrthstack.sweber.dev

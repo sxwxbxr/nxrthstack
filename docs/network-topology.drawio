@@ -1,0 +1,514 @@
+<mxfile host="app.diagrams.net" modified="2026-02-04T12:00:00.000Z" agent="Claude Code" version="21.0.0" etag="nxrthstack-topology">
+  <diagram id="home-network" name="Home Network">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title1" value="&lt;b&gt;Home Network Topology&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="300" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Internet Cloud -->
+        <mxCell id="internet" value="&lt;b&gt;Internet&lt;/b&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="480" y="70" width="140" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Router/Gateway -->
+        <mxCell id="router" value="&lt;b&gt;Fritz!Box Router&lt;/b&gt;&lt;br&gt;192.168.1.1&lt;br&gt;DC-F5-1B-7C-32-B0" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/mscae/Router.svg;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="510" y="180" width="80" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: Internet to Router -->
+        <mxCell id="edge1" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="internet" target="router">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Network Switch/LAN Group -->
+        <mxCell id="lan-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="1080" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="lan-label" value="&lt;b&gt;LAN: 192.168.1.0/24&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#7F6000;" vertex="1" parent="1">
+          <mxGeometry x="50" y="285" width="150" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: Router to LAN -->
+        <mxCell id="edge-router-lan" value="" style="endArrow=none;html=1;strokeWidth=3;strokeColor=#82b366;" edge="1" parent="1" source="router" target="lan-box">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Main Workstation (This PC) -->
+        <mxCell id="main-pc" value="&lt;b&gt;Main Workstation&lt;/b&gt;&lt;br&gt;192.168.1.128&lt;br&gt;Windows 11&lt;br&gt;10-FF-E0-B6-F2-5D" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/mscae/VM_runningwindows.svg;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- NAS Server -->
+        <mxCell id="nas" value="&lt;b&gt;NAS Storage&lt;/b&gt;&lt;br&gt;192.168.1.107&lt;br&gt;Clips Server (Port 3001)&lt;br&gt;58-96-0A-5E-B4-35" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/mscae/Storage_Azure_Files.svg;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="200" y="340" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Apple Devices Group -->
+        <mxCell id="apple-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="330" y="320" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="apple-label" value="&lt;b&gt;Apple Devices&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="380" y="325" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="apple1" value="&lt;b&gt;iPhone/iPad&lt;/b&gt;&lt;br&gt;192.168.1.50&lt;br&gt;2C-CF-67-1F-05-1D" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Cell_Phone_Generic.svg;" vertex="1" parent="1">
+          <mxGeometry x="350" y="355" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="apple2" value="&lt;b&gt;Apple Device&lt;/b&gt;&lt;br&gt;192.168.1.144&lt;br&gt;2C-CF-67-1F-05-1E" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Tablet.svg;" vertex="1" parent="1">
+          <mxGeometry x="440" y="355" width="60" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Sony Devices Group -->
+        <mxCell id="sony-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="320" width="270" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="sony-label" value="&lt;b&gt;Sony Entertainment (PlayStation/TV)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="590" y="325" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="sony1" value="&lt;b&gt;PlayStation&lt;/b&gt;&lt;br&gt;192.168.1.103&lt;br&gt;50-4F-94-A2-94-C2" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Console.svg;" vertex="1" parent="1">
+          <mxGeometry x="580" y="355" width="60" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="sony2" value="&lt;b&gt;Sony Device&lt;/b&gt;&lt;br&gt;192.168.1.111&lt;br&gt;50-4F-94-F0-A0-7B" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/TV.svg;" vertex="1" parent="1">
+          <mxGeometry x="660" y="355" width="60" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="sony3" value="&lt;b&gt;Sony Device&lt;/b&gt;&lt;br&gt;192.168.1.112-114" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Devices.svg;" vertex="1" parent="1">
+          <mxGeometry x="740" y="355" width="60" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- TP-Link Smart Devices -->
+        <mxCell id="tplink-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="320" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="tplink-label" value="&lt;b&gt;TP-Link Smart Home&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="910" y="325" width="140" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tplink1" value="&lt;b&gt;Smart Plug&lt;/b&gt;&lt;br&gt;192.168.1.109&lt;br&gt;78-28-CA-93-64-10" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/IoT_Device.svg;" vertex="1" parent="1">
+          <mxGeometry x="880" y="355" width="50" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="tplink2" value="&lt;b&gt;Smart Device&lt;/b&gt;&lt;br&gt;192.168.1.110&lt;br&gt;78-28-CA-5B-C0-2B" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/IoT_Device.svg;" vertex="1" parent="1">
+          <mxGeometry x="950" y="355" width="50" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="tplink3" value="&lt;b&gt;Smart Device&lt;/b&gt;&lt;br&gt;192.168.1.120" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/IoT_Device.svg;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="355" width="50" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Other Devices -->
+        <mxCell id="other1" value="&lt;b&gt;Device&lt;/b&gt;&lt;br&gt;192.168.1.161&lt;br&gt;28-94-01-74-EE-52" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Device.svg;" vertex="1" parent="1">
+          <mxGeometry x="60" y="480" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="other2" value="&lt;b&gt;Device&lt;/b&gt;&lt;br&gt;192.168.1.175&lt;br&gt;26-A6-5C-E1-E0-DC" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Device.svg;" vertex="1" parent="1">
+          <mxGeometry x="150" y="480" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- VPN Network -->
+        <mxCell id="vpn-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="580" width="250" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="vpn-label" value="&lt;b&gt;Radmin VPN Network&lt;/b&gt;&lt;br&gt;26.0.0.0/8" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="120" y="590" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="vpn-ip" value="Main PC VPN: 26.109.63.55&lt;br&gt;Gateway: 26.0.0.1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="110" y="630" width="150" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Connection from Main PC to VPN -->
+        <mxCell id="edge-pc-vpn" value="VPN" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#d79b00;dashed=1;" edge="1" parent="1" source="main-pc" target="vpn-box">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="480" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="870" y="485" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend1" value="Fritz!Box Router (Gateway)" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="870" y="510" width="140" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend2" value="NAS Storage Server" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="870" y="530" width="140" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend3" value="Workstation/PC" style="text;html=1;strokeColor=none;fillColor=#e1d5e7;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="870" y="550" width="140" height="18" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="nxrthstack-arch" name="NxrthStack Architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="arch-title" value="&lt;b&gt;NxrthStack Architecture&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="300" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Users/Clients -->
+        <mxCell id="users" value="&lt;b&gt;Users&lt;/b&gt;&lt;br&gt;Web Browsers / Discord" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/mscae/Users.svg;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="510" y="70" width="80" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Cloudflare -->
+        <mxCell id="cloudflare" value="&lt;b&gt;Cloudflare&lt;/b&gt;&lt;br&gt;DNS / CDN / Tunnel" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/mscae/CDN_Profile.svg;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="510" y="160" width="80" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Edge to Cloudflare -->
+        <mxCell id="edge-user-cf" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="users" target="cloudflare">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Vercel Box -->
+        <mxCell id="vercel-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="200" y="250" width="350" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="vercel-label" value="&lt;b&gt;Vercel Cloud&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="210" y="255" width="100" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Next.js App -->
+        <mxCell id="nextjs" value="&lt;b&gt;Next.js 16 App&lt;/b&gt;&lt;br&gt;nxrthstack.vercel.app&lt;br&gt;&lt;br&gt;- React 19 Frontend&lt;br&gt;- API Routes (80+)&lt;br&gt;- NextAuth.js v5&lt;br&gt;- Server Components" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;strokeColor=#333333;fontColor=#ffffff;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="220" y="290" width="150" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Vercel Blob -->
+        <mxCell id="vercel-blob" value="&lt;b&gt;Vercel Blob&lt;/b&gt;&lt;br&gt;Product Files&lt;br&gt;Images" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="220" y="430" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- App Features -->
+        <mxCell id="features" value="&lt;b&gt;Features:&lt;/b&gt;&lt;br&gt;- E-commerce Shop&lt;br&gt;- GameHub Dashboard&lt;br&gt;- R6 Siege Tools&lt;br&gt;- Pokemon Tools (WASM)&lt;br&gt;- Clip Gallery&lt;br&gt;- Admin Panel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="390" y="290" width="140" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- API Badge -->
+        <mxCell id="api-badge" value="&lt;b&gt;API Routes&lt;/b&gt;&lt;br&gt;/api/auth/*&lt;br&gt;/api/gamehub/*&lt;br&gt;/api/clips/*&lt;br&gt;/api/stripe/*&lt;br&gt;/api/admin/*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="390" y="430" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- External Services Box -->
+        <mxCell id="external-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="250" width="200" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="external-label" value="&lt;b&gt;External Services&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#7F6000;" vertex="1" parent="1">
+          <mxGeometry x="610" y="255" width="130" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Neon Database -->
+        <mxCell id="neon-db" value="&lt;b&gt;Neon PostgreSQL&lt;/b&gt;&lt;br&gt;Serverless DB&lt;br&gt;eu-central-1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="620" y="290" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Stripe -->
+        <mxCell id="stripe" value="&lt;b&gt;Stripe&lt;/b&gt;&lt;br&gt;Payments&lt;br&gt;Subscriptions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#635BFF;strokeColor=#333333;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="620" y="390" width="80" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Discord API -->
+        <mxCell id="discord-api" value="&lt;b&gt;Discord API&lt;/b&gt;&lt;br&gt;OAuth2&lt;br&gt;Webhooks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5865F2;strokeColor=#333333;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="710" y="390" width="80" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Neon Auth -->
+        <mxCell id="neon-auth" value="&lt;b&gt;Neon Auth&lt;/b&gt;&lt;br&gt;Built-in Auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="300" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Self-Hosted Box -->
+        <mxCell id="selfhost-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="850" y="250" width="200" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="selfhost-label" value="&lt;b&gt;Self-Hosted (Home)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="860" y="255" width="140" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- NAS Server -->
+        <mxCell id="nas-server" value="&lt;b&gt;NAS Storage Server&lt;/b&gt;&lt;br&gt;clips.sweber.dev&lt;br&gt;192.168.1.107:3001&lt;br&gt;&lt;br&gt;Express.js API&lt;br&gt;- Direct Upload (500MB)&lt;br&gt;- Video Streaming&lt;br&gt;- Token Auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="870" y="290" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Discord Bot -->
+        <mxCell id="discord-bot" value="&lt;b&gt;Discord Bot&lt;/b&gt;&lt;br&gt;Discord.js 14&lt;br&gt;&lt;br&gt;- Slash Commands&lt;br&gt;- Notifications&lt;br&gt;- Leaderboards&lt;br&gt;- Webhook Listener" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5865F2;strokeColor=#333333;fontColor=#ffffff;fontSize=9;align=left;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="870" y="430" width="160" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Cloudflare Tunnel -->
+        <mxCell id="cf-tunnel" value="Cloudflare Tunnel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="620" y="480" width="100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Connections -->
+        <mxCell id="edge-cf-vercel" value="HTTPS" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="cloudflare" target="vercel-box">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="460" y="180" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge-cf-nas" value="Tunnel" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;dashed=1;strokeColor=#d79b00;" edge="1" parent="1" source="cloudflare" target="selfhost-box">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge-next-neon" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="nextjs" target="neon-db">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge-next-stripe" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#635BFF;" edge="1" parent="1" source="api-badge" target="stripe">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge-next-discord" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#5865F2;" edge="1" parent="1" source="api-badge" target="discord-api">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge-nas-tunnel" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#d79b00;dashed=1;" edge="1" parent="1" source="nas-server" target="cf-tunnel">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge-bot-neon" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=1;strokeColor=#82b366;" edge="1" parent="1" source="discord-bot" target="neon-db">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge-bot-discord" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=1;strokeColor=#5865F2;" edge="1" parent="1" source="discord-bot" target="discord-api">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Data Flow Labels -->
+        <mxCell id="flow1" value="PostgreSQL" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="560" y="320" width="60" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="arch-legend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="350" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-legend-title" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="50" y="625" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-leg1" value="Vercel (Cloud)" style="text;html=1;strokeColor=none;fillColor=#f5f5f5;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="50" y="648" width="80" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-leg2" value="External APIs" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="140" y="648" width="70" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-leg3" value="Self-Hosted" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="220" y="648" width="70" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-leg4" value="Database" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="300" y="648" width="60" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-leg5" value="— Cloudflare Tunnel (secure)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;fontColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="50" y="670" width="150" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="arch-leg6" value="— Direct connection" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="220" y="670" width="120" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- Tech Stack Summary -->
+        <mxCell id="tech-stack" value="&lt;b&gt;Tech Stack Summary&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Frontend:&lt;/b&gt; Next.js 16, React 19, Tailwind CSS 4&lt;br&gt;&lt;b&gt;Backend:&lt;/b&gt; Next.js API Routes, Express.js (NAS)&lt;br&gt;&lt;b&gt;Database:&lt;/b&gt; Neon PostgreSQL (Serverless), Drizzle ORM&lt;br&gt;&lt;b&gt;Auth:&lt;/b&gt; NextAuth.js v5, Discord OAuth2, Neon Auth&lt;br&gt;&lt;b&gt;Payments:&lt;/b&gt; Stripe (Checkout, Subscriptions)&lt;br&gt;&lt;b&gt;Storage:&lt;/b&gt; Vercel Blob, Self-hosted NAS&lt;br&gt;&lt;b&gt;Bot:&lt;/b&gt; Discord.js 14&lt;br&gt;&lt;b&gt;Tunnel:&lt;/b&gt; Cloudflare Tunnel (cloudflared)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;fontSize=9;align=left;spacingLeft=10;verticalAlign=top;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="440" y="610" width="300" height="160" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="combined" name="Combined Overview">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="combined-title" value="&lt;b&gt;Complete Infrastructure Overview: Home Network + NxrthStack&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;" vertex="1" parent="1">
+          <mxGeometry x="450" y="20" width="500" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Internet -->
+        <mxCell id="c-internet" value="&lt;b&gt;Internet&lt;/b&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="650" y="70" width="160" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud Services Region -->
+        <mxCell id="cloud-region" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=3;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="540" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud-label" value="&lt;b&gt;☁️ CLOUD SERVICES&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontColor=#1565C0;" vertex="1" parent="1">
+          <mxGeometry x="55" y="208" width="180" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Vercel -->
+        <mxCell id="c-vercel" value="&lt;b&gt;Vercel&lt;/b&gt;&lt;br&gt;nxrthstack.vercel.app&lt;br&gt;&lt;br&gt;Next.js 16 App&lt;br&gt;80+ API Routes&lt;br&gt;Blob Storage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#000000;strokeColor=#333333;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="150" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Neon -->
+        <mxCell id="c-neon" value="&lt;b&gt;Neon PostgreSQL&lt;/b&gt;&lt;br&gt;eu-central-1&lt;br&gt;&lt;br&gt;Serverless DB&lt;br&gt;Drizzle ORM&lt;br&gt;Neon Auth" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="240" y="260" width="130" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Stripe -->
+        <mxCell id="c-stripe" value="&lt;b&gt;Stripe&lt;/b&gt;&lt;br&gt;Payments&lt;br&gt;Subscriptions&lt;br&gt;Webhooks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#635BFF;strokeColor=#333333;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="400" y="260" width="120" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Discord API -->
+        <mxCell id="c-discord-api" value="&lt;b&gt;Discord API&lt;/b&gt;&lt;br&gt;OAuth2&lt;br&gt;Bot Gateway&lt;br&gt;Webhooks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5865F2;strokeColor=#333333;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="400" y="380" width="120" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Cloudflare -->
+        <mxCell id="c-cloudflare" value="&lt;b&gt;Cloudflare&lt;/b&gt;&lt;br&gt;DNS / CDN&lt;br&gt;Tunnel Service&lt;br&gt;clips.sweber.dev" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="420" width="150" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Vercel Blob -->
+        <mxCell id="c-blob" value="&lt;b&gt;Blob Storage&lt;/b&gt;&lt;br&gt;Product Files" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="420" width="90" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud connections -->
+        <mxCell id="c-edge1" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;" edge="1" parent="1" source="c-vercel" target="c-neon">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-edge2" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#635BFF;" edge="1" parent="1" source="c-vercel" target="c-stripe">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-edge3" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#5865F2;" edge="1" parent="1" source="c-vercel" target="c-discord-api">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Home Network Region -->
+        <mxCell id="home-region" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=3;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="200" width="540" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="home-label" value="&lt;b&gt;🏠 HOME NETWORK (192.168.1.0/24)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontColor=#C62828;" vertex="1" parent="1">
+          <mxGeometry x="835" y="208" width="280" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Fritz!Box Router -->
+        <mxCell id="c-router" value="&lt;b&gt;Fritz!Box Router&lt;/b&gt;&lt;br&gt;192.168.1.1&lt;br&gt;Gateway" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=11;image=img/lib/mscae/Router.svg;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="250" width="100" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Main Workstation -->
+        <mxCell id="c-workstation" value="&lt;b&gt;Main Workstation&lt;/b&gt;&lt;br&gt;192.168.1.128&lt;br&gt;Windows 11&lt;br&gt;Development" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/mscae/VM_runningwindows.svg;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="850" y="360" width="120" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- NAS Server -->
+        <mxCell id="c-nas" value="&lt;b&gt;NAS Storage Server&lt;/b&gt;&lt;br&gt;192.168.1.107:3001&lt;br&gt;&lt;br&gt;Express.js API&lt;br&gt;Clip Storage (500MB)&lt;br&gt;Video Streaming" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/mscae/Storage_Azure_Files.svg;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="360" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Discord Bot Server -->
+        <mxCell id="c-bot-server" value="&lt;b&gt;Discord Bot&lt;/b&gt;&lt;br&gt;Discord.js 14&lt;br&gt;&lt;br&gt;Notifications&lt;br&gt;Commands&lt;br&gt;Webhooks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5865F2;strokeColor=#333333;fontColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="360" width="120" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Consumer Devices Group -->
+        <mxCell id="consumer-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="850" y="500" width="440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="consumer-label" value="&lt;b&gt;Consumer Devices&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="860" y="505" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c-apple" value="&lt;b&gt;Apple&lt;/b&gt;&lt;br&gt;.50, .144" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Cell_Phone_Generic.svg;" vertex="1" parent="1">
+          <mxGeometry x="870" y="535" width="50" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c-sony" value="&lt;b&gt;Sony/PS&lt;/b&gt;&lt;br&gt;.103, .111-114" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Console.svg;" vertex="1" parent="1">
+          <mxGeometry x="950" y="535" width="60" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c-tplink" value="&lt;b&gt;TP-Link&lt;/b&gt;&lt;br&gt;Smart Home&lt;br&gt;.109, .110, .120" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/IoT_Device.svg;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="535" width="60" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c-other" value="&lt;b&gt;Other&lt;/b&gt;&lt;br&gt;.161, .175" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/mscae/Device.svg;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="535" width="50" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- VPN -->
+        <mxCell id="c-vpn" value="&lt;b&gt;Radmin VPN&lt;/b&gt;&lt;br&gt;26.109.63.55" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="850" y="650" width="100" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Home network connections -->
+        <mxCell id="c-home-edge1" value="" style="endArrow=none;html=1;strokeWidth=2;" edge="1" parent="1" source="c-router" target="c-workstation">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-home-edge2" value="" style="endArrow=none;html=1;strokeWidth=2;" edge="1" parent="1" source="c-router" target="c-nas">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-home-edge3" value="" style="endArrow=none;html=1;strokeWidth=2;" edge="1" parent="1" source="c-router" target="c-bot-server">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-home-edge4" value="" style="endArrow=none;html=1;strokeWidth=1;dashed=1;" edge="1" parent="1" source="c-router" target="consumer-group">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Internet Connections -->
+        <mxCell id="c-inet-cloud" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=3;strokeColor=#6c8ebf;" edge="1" parent="1" source="c-internet" target="cloud-region">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-inet-home" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=3;strokeColor=#C62828;" edge="1" parent="1" source="c-internet" target="c-router">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Cloudflare Tunnel Connection -->
+        <mxCell id="tunnel-line" value="&lt;b&gt;Cloudflare Tunnel&lt;/b&gt;&lt;br&gt;(Secure Reverse Proxy)" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=3;strokeColor=#FF9800;dashed=1;dashPattern=8 8;curved=1;" edge="1" parent="1" source="c-cloudflare" target="c-nas">
+          <mxGeometry x="0.1" y="20" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="580" y="500" as="sourcePoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Data Flow Annotations -->
+        <mxCell id="flow-vercel-nas" value="Clip uploads/streams" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;fontColor=#FF9800;" vertex="1" parent="1">
+          <mxGeometry x="580" y="480" width="100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Bot connections to cloud -->
+        <mxCell id="c-bot-neon" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#82b366;dashed=1;curved=1;" edge="1" parent="1" source="c-bot-server" target="c-neon">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-bot-discord" value="" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#5865F2;dashed=1;curved=1;" edge="1" parent="1" source="c-bot-server" target="c-discord-api">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="c-legend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="540" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="c-legend-title" value="&lt;b&gt;Legend &amp;amp; Data Flow&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="55" y="628" width="150" height="25" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg-cloud" value="☁️ Cloud Services (Vercel, Neon, Stripe)" style="text;html=1;strokeColor=none;fillColor=#E3F2FD;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="55" y="660" width="220" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-home" value="🏠 Home Network (Self-hosted)" style="text;html=1;strokeColor=none;fillColor=#FFEBEE;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="290" y="660" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-tunnel" value="--- Cloudflare Tunnel (secure ingress)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#FF9800;" vertex="1" parent="1">
+          <mxGeometry x="55" y="690" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-db" value="Database connection" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="290" y="690" width="130" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg-flow" value="&lt;b&gt;Request Flow:&lt;/b&gt; User → Cloudflare → Vercel (web) OR Cloudflare Tunnel → NAS (clips)&lt;br&gt;&lt;b&gt;Data Flow:&lt;/b&gt; All services → Neon PostgreSQL (shared database)&lt;br&gt;&lt;b&gt;Bot Flow:&lt;/b&gt; Discord Bot ↔ Discord API ↔ Neon DB" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="55" y="720" width="500" height="60" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

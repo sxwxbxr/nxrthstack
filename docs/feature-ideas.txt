@@ -108,8 +108,8 @@ STORAGE MIGRATION - Information Needed:
 To switch from Vercel Blob to local NAS storage, I need:
 
 1. NAS Access Details:
-   - Port-forwarded IP address (or Cloudflare Tunnel URL when ready)
-   - Authentication method (API key, basic auth, or custom)
+   - Port-forwarded IP address (or Cloudflare Tunnel URL when ready) [smb.sweber.dev]
+   - Authentication method (API key, basic auth, or custom) 
    - Protocol preference (HTTP API, WebDAV, S3-compatible, etc.)
 
 2. Storage API Endpoints:
