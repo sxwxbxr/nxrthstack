@@ -69,6 +69,7 @@ export function ClipGallery({ currentUserId }: ClipGalleryProps) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showMyClips, setShowMyClips] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "feed">("grid");
 
   const fetchClips = async () => {
     setIsLoading(true);
@@ -174,22 +175,72 @@ export function ClipGallery({ currentUserId }: ClipGalleryProps) {
           >
             My Clips
           </button>
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center rounded-lg border border-input overflow-hidden">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "p-2 transition-colors",
+                viewMode === "grid"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-background text-muted-foreground hover:text-foreground"
+              )}
+              title="Grid view"
+            >
+              <Icons.LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("feed")}
+              className={cn(
+                "p-2 transition-colors",
+                viewMode === "feed"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-background text-muted-foreground hover:text-foreground"
+              )}
+              title="Feed view"
+            >
+              <Icons.List className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Clips Grid */}
+      {/* Clips */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-border bg-card overflow-hidden animate-pulse">
-              <div className="aspect-video bg-muted" />
-              <div className="p-4 space-y-2">
-                <div className="h-4 bg-muted rounded w-3/4" />
-                <div className="h-3 bg-muted rounded w-1/2" />
+        viewMode === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-border bg-card overflow-hidden animate-pulse">
+                <div className="aspect-video bg-muted" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="max-w-2xl mx-auto space-y-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-border bg-card overflow-hidden animate-pulse">
+                <div className="flex items-center gap-3 p-4">
+                  <div className="h-10 w-10 rounded-full bg-muted" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3.5 bg-muted rounded w-1/4" />
+                    <div className="h-3 bg-muted rounded w-1/6" />
+                  </div>
+                </div>
+                <div className="aspect-video bg-muted" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-full" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       ) : clips.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-12 text-center">
           <Icons.Tv className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -209,7 +260,7 @@ export function ClipGallery({ currentUserId }: ClipGalleryProps) {
             Upload a Clip
           </Link>
         </div>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {clips.map((clip) => (
             <Link
@@ -280,6 +331,113 @@ export function ClipGallery({ currentUserId }: ClipGalleryProps) {
                   </span>
                   <span className="flex items-center gap-1">
                     <Icons.MessageCircle className="h-3 w-3" />
+                    {clip.commentCount}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        /* Feed View */
+        <div className="max-w-2xl mx-auto space-y-6">
+          {clips.map((clip) => (
+            <Link
+              key={clip.id}
+              href={`/dashboard/gamehub/clips/${clip.id}`}
+              className="group block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 transition-colors"
+            >
+              {/* User Info Header */}
+              <div className="flex items-center gap-3 p-4">
+                {clip.userDiscordAvatar ? (
+                  <img
+                    src={clip.userDiscordAvatar}
+                    alt={clip.userName || "User"}
+                    className="h-10 w-10 rounded-full"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Icons.User className="h-5 w-5 text-primary" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground text-sm">
+                    {clip.userName || "Anonymous"}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-xs font-medium px-1.5 py-0.5 rounded",
+                        gameColors[clip.game] || gameColors.other
+                      )}
+                    >
+                      {clip.game.toUpperCase()}
+                    </span>
+                    {clip.category && (
+                      <span className="text-xs text-muted-foreground">
+                        {clip.category.charAt(0).toUpperCase() + clip.category.slice(1)}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(clip.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                {clip.isFeatured && (
+                  <div className="px-2 py-0.5 rounded-full bg-yellow-500/90 text-black text-xs font-medium flex items-center gap-1">
+                    <Icons.Star className="h-3 w-3" />
+                    Featured
+                  </div>
+                )}
+              </div>
+
+              {/* Thumbnail */}
+              <div className="relative aspect-video bg-muted">
+                {clip.thumbnailUrl ? (
+                  <img
+                    src={clip.thumbnailUrl}
+                    alt={clip.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Icons.Tv className="h-16 w-16 text-muted-foreground/50" />
+                  </div>
+                )}
+                {clip.durationSeconds && (
+                  <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 text-white text-xs font-medium">
+                    {formatDuration(clip.durationSeconds)}
+                  </div>
+                )}
+                {/* Play Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+                  <div className="h-14 w-14 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Icons.Tv className="h-6 w-6 text-primary-foreground ml-0.5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="p-4">
+                <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
+                  {clip.title}
+                </h3>
+                {clip.description && (
+                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                    {clip.description}
+                  </p>
+                )}
+                <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Icons.Eye className="h-4 w-4" />
+                    {clip.viewCount.toLocaleString()}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Icons.Heart className="h-4 w-4" />
+                    {clip.likeCount}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Icons.MessageCircle className="h-4 w-4" />
                     {clip.commentCount}
                   </span>
                 </div>

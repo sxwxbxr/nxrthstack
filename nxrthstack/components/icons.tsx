@@ -92,6 +92,8 @@ import {
   Send,
   Activity,
   MessageCircle,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 
 export const Icons = {
@@ -192,6 +194,8 @@ export const Icons = {
   Send,
   Activity,
   MessageCircle,
+  LayoutGrid,
+  List,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

@@ -72,12 +72,6 @@ async function getClip(id: string, userId?: string) {
     .orderBy(desc(clipComments.createdAt))
     .limit(20);
 
-  // Increment view count
-  await db
-    .update(clips)
-    .set({ viewCount: sql`${clips.viewCount} + 1` })
-    .where(eq(clips.id, id));
-
   return { ...clip, hasLiked, comments };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,13 @@ export function ClipPlayer({
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const hasCountedView = useRef(false);
+
+  const handlePlay = () => {
+    if (hasCountedView.current) return;
+    hasCountedView.current = true;
+    fetch(`/api/clips/${clipId}/view`, { method: "POST" }).catch(() => {});
+  };
 
   const handleLike = async () => {
     if (isLiking) return;
@@ -86,6 +93,7 @@ export function ClipPlayer({
           controls
           className="h-full w-full"
           playsInline
+          onPlay={handlePlay}
         />
       </div>
 

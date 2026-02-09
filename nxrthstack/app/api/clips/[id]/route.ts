@@ -68,12 +68,6 @@ export async function GET(request: Request, { params }: RouteParams) {
       hasLiked = !!like;
     }
 
-    // Increment view count (don't await to not slow down response)
-    db.update(clips)
-      .set({ viewCount: sql`${clips.viewCount} + 1` })
-      .where(eq(clips.id, id))
-      .execute();
-
     return NextResponse.json({
       clip: {
         ...clipData,
