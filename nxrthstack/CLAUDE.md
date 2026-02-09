@@ -88,5 +88,6 @@ NEXTAUTH_URL=           # App URL (http://localhost:3000 for dev)
 STRIPE_SECRET_KEY=      # Stripe secret key (sk_...)
 STRIPE_PUBLISHABLE_KEY= # Stripe publishable key (pk_...)
 STRIPE_WEBHOOK_SECRET=  # Stripe webhook secret (whsec_...)
-BLOB_READ_WRITE_TOKEN=  # Vercel Blob token (for file uploads)
+NAS_STORAGE_URL=        # NAS storage URL (https://clips.sweber.dev)
+NAS_API_KEY=            # NAS storage API key
 ```

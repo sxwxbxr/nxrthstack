@@ -92,7 +92,7 @@ export const productFiles = pgTable("product_files", {
     onDelete: "set null",
   }), // NULL = available for all tiers
   name: varchar("name", { length: 255 }).notNull(),
-  fileKey: varchar("file_key", { length: 500 }).notNull(), // Vercel Blob key
+  fileKey: varchar("file_key", { length: 500 }).notNull(), // NAS storage URL
   fileSizeBytes: bigint("file_size_bytes", { mode: "number" }),
   fileType: varchar("file_type", { length: 100 }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
@@ -631,7 +631,7 @@ export const storedRoms = pgTable("stored_roms", {
   id: uuid("id").defaultRandom().primaryKey(),
   gameCode: varchar("game_code", { length: 20 }).notNull(), // Links to romConfigs.gameCode
   displayName: varchar("display_name", { length: 100 }).notNull(),
-  fileKey: varchar("file_key", { length: 500 }).notNull(), // Vercel Blob key
+  fileKey: varchar("file_key", { length: 500 }).notNull(), // NAS storage URL
   fileSizeBytes: bigint("file_size_bytes", { mode: "number" }).notNull(),
   checksum: varchar("checksum", { length: 64 }), // SHA-256 for verification
   uploadedBy: uuid("uploaded_by").references(() => users.id, { onDelete: "set null" }),

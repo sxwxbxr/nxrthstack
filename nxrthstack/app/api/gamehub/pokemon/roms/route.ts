@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db, storedRoms, romConfigs, users } from "@/lib/db";
 import { eq, and, desc } from "drizzle-orm";
-import { put } from "@vercel/blob";
+const NAS_STORAGE_URL = process.env.NAS_STORAGE_URL;
+const NAS_API_KEY = process.env.NAS_API_KEY;
 
 // GET - List stored ROMs
 export async function GET() {
@@ -143,11 +144,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to Vercel Blob
-    const blob = await put(`pokemon-roms/${gameCode}/${Date.now()}_${file.name}`, file, {
-      access: "public",
-      addRandomSuffix: true,
+    // Upload to NAS storage
+    if (!NAS_STORAGE_URL || !NAS_API_KEY) {
+      return NextResponse.json(
+        { error: "Storage not configured" },
+        { status: 500 }
+      );
+    }
+
+    const nasFormData = new FormData();
+    nasFormData.append("file", new Blob([arrayBuffer], { type: file.type || "application/octet-stream" }), file.name);
+
+    const uploadResponse = await fetch(`${NAS_STORAGE_URL}/upload?folder=pokemon-roms`, {
+      method: "POST",
+      headers: {
+        "X-API-Key": NAS_API_KEY,
+      },
+      body: nasFormData,
     });
+
+    if (!uploadResponse.ok) {
+      const uploadError = await uploadResponse.json().catch(() => ({ error: "Upload failed" }));
+      console.error("NAS upload error:", uploadError);
+      return NextResponse.json(
+        { error: uploadError.error || "Failed to upload ROM" },
+        { status: uploadResponse.status }
+      );
+    }
+
+    const uploadResult = await uploadResponse.json();
 
     // Save to database
     const [newRom] = await db
@@ -155,7 +180,7 @@ export async function POST(request: NextRequest) {
       .values({
         gameCode,
         displayName,
-        fileKey: blob.url,
+        fileKey: uploadResult.url,
         fileSizeBytes: file.size,
         checksum,
         uploadedBy: session.user.id,

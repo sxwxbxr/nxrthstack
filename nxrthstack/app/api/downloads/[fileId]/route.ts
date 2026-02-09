@@ -72,7 +72,6 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     // Return the file URL
-    // In production with Vercel Blob, this would return a signed URL
     return NextResponse.json({
       url: file.fileKey,
       filename: file.name,

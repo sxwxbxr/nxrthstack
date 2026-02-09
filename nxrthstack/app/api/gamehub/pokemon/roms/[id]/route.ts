@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db, storedRoms, romConfigs, users } from "@/lib/db";
 import { eq, and } from "drizzle-orm";
-import { del } from "@vercel/blob";
+const NAS_STORAGE_URL = process.env.NAS_STORAGE_URL;
+const NAS_API_KEY = process.env.NAS_API_KEY;
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       where: eq(romConfigs.gameCode, rom.gameCode),
     });
 
-    // Fetch the ROM data from Vercel Blob
+    // Fetch the ROM data from storage
     const response = await fetch(rom.fileKey);
     if (!response.ok) {
       return NextResponse.json(
@@ -100,11 +101,24 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "ROM not found" }, { status: 404 });
     }
 
-    // Delete from Vercel Blob
+    // Delete from NAS storage
     try {
-      await del(rom.fileKey);
-    } catch (blobError) {
-      console.error("Error deleting blob:", blobError);
+      if (NAS_STORAGE_URL && NAS_API_KEY) {
+        const fileUrl = new URL(rom.fileKey);
+        const pathParts = fileUrl.pathname.replace("/files/", "").split("/");
+        const filename = pathParts.pop();
+        const folder = pathParts.join("/");
+
+        await fetch(
+          `${NAS_STORAGE_URL}/files/${filename}${folder ? `?folder=${encodeURIComponent(folder)}` : ""}`,
+          {
+            method: "DELETE",
+            headers: { "X-API-Key": NAS_API_KEY },
+          }
+        );
+      }
+    } catch (storageError) {
+      console.error("Error deleting from NAS:", storageError);
       // Continue anyway - the DB record can still be deleted
     }
 

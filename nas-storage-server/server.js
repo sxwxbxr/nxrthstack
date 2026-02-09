@@ -103,7 +103,7 @@ const upload = multer({
     fileSize: MAX_FILE_SIZE,
   },
   fileFilter: (req, file, cb) => {
-    // Allowed video and image types
+    // Allowed file types
     const allowedMimes = [
       // Videos
       "video/mp4",
@@ -116,6 +116,12 @@ const upload = multer({
       "image/png",
       "image/gif",
       "image/webp",
+      // Documents & archives (for product files)
+      "application/pdf",
+      "application/zip",
+      "application/x-zip-compressed",
+      // Generic binary (ROM files, etc.)
+      "application/octet-stream",
     ];
 
     if (allowedMimes.includes(file.mimetype)) {
