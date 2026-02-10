@@ -1,4 +1,5 @@
 const express = require("express");
+const https = require("https");
 const multer = require("multer");
 const cors = require("cors");
 const path = require("path");
@@ -10,9 +11,12 @@ const PORT = process.env.PORT || 3001;
 const API_KEY = process.env.NAS_API_KEY || "change-me-to-a-secure-key";
 const STORAGE_PATH = process.env.STORAGE_PATH || "./uploads";
 const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
-const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || "524288000"); // 500MB default
+const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || "5368709120"); // 5GB default
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:3000,https://nxrthstack.sweber.dev").split(",");
 const TOKEN_SECRET = process.env.NAS_API_KEY || "change-me"; // Reuse API key for signing tokens
+const HTTPS_PORT = parseInt(process.env.HTTPS_PORT || "3443");
+const TLS_CERT_PATH = process.env.TLS_CERT_PATH || "";
+const TLS_KEY_PATH = process.env.TLS_KEY_PATH || "";
 
 // Simple token signing/verification
 function createUploadToken(data, expiresInSeconds = 3600) {
@@ -395,7 +399,7 @@ app.use((req, res) => {
   res.status(404).json({ error: "Not found" });
 });
 
-// Start server
+// Start HTTP server
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`
 ╔════════════════════════════════════════════════════════════╗
@@ -417,3 +421,18 @@ Endpoints:
   GET  /stats               - Storage statistics (auth required)
   `);
 });
+
+// Start HTTPS server for direct Tailscale uploads (bypasses tailscale serve proxy)
+if (TLS_CERT_PATH && TLS_KEY_PATH) {
+  try {
+    const cert = fs.readFileSync(TLS_CERT_PATH);
+    const key = fs.readFileSync(TLS_KEY_PATH);
+    https.createServer({ cert, key }, app).listen(HTTPS_PORT, "0.0.0.0", () => {
+      console.log(`  HTTPS server listening on port ${HTTPS_PORT} (Tailscale TLS)`);
+    });
+  } catch (err) {
+    console.error("Failed to start HTTPS server:", err.message);
+    console.error("  Large file uploads via Tailscale will not work.");
+    console.error("  Generate certs: sudo tailscale cert --cert-file tls.crt --key-file tls.key <hostname>");
+  }
+}

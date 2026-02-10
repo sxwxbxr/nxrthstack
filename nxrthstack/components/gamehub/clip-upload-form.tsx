@@ -59,9 +59,9 @@ export function ClipUploadForm() {
       return;
     }
 
-    // Validate file size (500MB max)
-    if (file.size > 500 * 1024 * 1024) {
-      setError("Video must be less than 500MB");
+    // Validate file size (5GB max)
+    if (file.size > 5 * 1024 * 1024 * 1024) {
+      setError("Video must be less than 5GB");
       return;
     }
 
@@ -221,7 +221,7 @@ export function ClipUploadForm() {
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="text-lg font-semibold text-foreground">Video File</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Upload your gaming clip (MP4, WebM, MOV - max 500MB)
+          Upload your gaming clip (MP4, WebM, MOV - max 5GB)
         </p>
 
         <div className="mt-4">
@@ -297,7 +297,7 @@ export function ClipUploadForm() {
                 Click to upload a video
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                MP4, WebM, MOV, AVI, MKV (max 500MB)
+                MP4, WebM, MOV, AVI, MKV (max 5GB)
               </p>
             </label>
           )}

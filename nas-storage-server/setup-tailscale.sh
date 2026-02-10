@@ -31,7 +31,7 @@ fi
 # ──────────────────────────────────────────────
 # Step 1: Install Tailscale
 # ──────────────────────────────────────────────
-echo -e "${GREEN}Step 1/4: Installing Tailscale...${NC}"
+echo -e "${GREEN}Step 1/5: Installing Tailscale...${NC}"
 if command -v tailscale &> /dev/null; then
     TS_VERSION=$(tailscale version 2>&1 | head -n1)
     echo "  Tailscale already installed: $TS_VERSION"
@@ -44,7 +44,7 @@ fi
 # Step 2: Authenticate
 # ──────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}Step 2/4: Authenticating with Tailscale...${NC}"
+echo -e "${GREEN}Step 2/5: Authenticating with Tailscale...${NC}"
 
 TS_STATUS=$(tailscale status --json 2>/dev/null | grep -o '"BackendState":"[^"]*"' | cut -d'"' -f4 || echo "NeedsLogin")
 
@@ -60,32 +60,70 @@ else
 fi
 
 # ──────────────────────────────────────────────
-# Step 3: Enable HTTPS serve (auto-TLS)
+# Step 3: Generate TLS certificates
 # ──────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}Step 3/4: Enabling HTTPS serve for port $SERVER_PORT...${NC}"
+echo -e "${GREEN}Step 3/5: Generating Tailscale TLS certificates...${NC}"
 
-# Enable HTTPS certificates in Tailscale
 tailscale set --auto-update
 
-# Serve the storage server over HTTPS on the Tailscale hostname
-# This provides auto-TLS so browsers don't block mixed content
-tailscale serve --bg $SERVER_PORT
-echo "  HTTPS serve enabled (auto-TLS via Tailscale)"
-
-# ──────────────────────────────────────────────
-# Step 4: Display results
-# ──────────────────────────────────────────────
-echo ""
-echo -e "${GREEN}Step 4/4: Retrieving connection info...${NC}"
+# Stop tailscale serve if running (we use direct HTTPS instead)
+tailscale serve off 2>/dev/null || true
 
 TS_IP=$(tailscale ip -4 2>/dev/null || echo "unknown")
 TS_HOSTNAME=$(tailscale status --json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['Self']['DNSName'].rstrip('.'))" 2>/dev/null || echo "")
 if [ -z "$TS_HOSTNAME" ]; then
-    # Fallback: parse from tailscale serve output or cert list
     TS_HOSTNAME=$(tailscale cert 2>&1 | grep -oP '[\w.-]+\.ts\.net' | head -n1 || echo "unknown")
 fi
-TS_SERVE_URL="https://${TS_HOSTNAME}"
+
+CERT_DIR="/opt/nas-storage-server"
+CERT_FILE="$CERT_DIR/tls.crt"
+KEY_FILE="$CERT_DIR/tls.key"
+
+tailscale cert --cert-file "$CERT_FILE" --key-file "$KEY_FILE" "$TS_HOSTNAME"
+chown "$ACTUAL_USER:$ACTUAL_USER" "$CERT_FILE" "$KEY_FILE"
+chmod 600 "$KEY_FILE"
+chmod 644 "$CERT_FILE"
+echo "  TLS cert generated for $TS_HOSTNAME"
+
+# ──────────────────────────────────────────────
+# Step 4: Update .env with TLS config
+# ──────────────────────────────────────────────
+echo ""
+echo -e "${GREEN}Step 4/5: Updating .env with TLS config...${NC}"
+
+ENV_FILE="$CERT_DIR/.env"
+if [ -f "$ENV_FILE" ]; then
+    # Add or update TLS config
+    for VAR in "HTTPS_PORT=3443" "TLS_CERT_PATH=$CERT_FILE" "TLS_KEY_PATH=$KEY_FILE"; do
+        KEY="${VAR%%=*}"
+        if grep -q "^$KEY=" "$ENV_FILE"; then
+            sed -i "s|^$KEY=.*|$VAR|" "$ENV_FILE"
+        else
+            echo "$VAR" >> "$ENV_FILE"
+        fi
+    done
+    echo "  .env updated with TLS config"
+else
+    echo -e "${RED}  Warning: $ENV_FILE not found. Add manually:${NC}"
+    echo "    HTTPS_PORT=3443"
+    echo "    TLS_CERT_PATH=$CERT_FILE"
+    echo "    TLS_KEY_PATH=$KEY_FILE"
+fi
+
+# ──────────────────────────────────────────────
+# Step 5: Set up cert auto-renewal (every 60 days)
+# ──────────────────────────────────────────────
+echo ""
+echo -e "${GREEN}Step 5/5: Setting up cert auto-renewal...${NC}"
+
+CRON_CMD="tailscale cert --cert-file $CERT_FILE --key-file $KEY_FILE $TS_HOSTNAME && systemctl restart nas-storage"
+CRON_LINE="0 3 1 */2 * $CRON_CMD"
+
+(crontab -l 2>/dev/null | grep -v "tailscale cert.*tls"; echo "$CRON_LINE") | crontab -
+echo "  Cron job added (renews every 2 months)"
+
+TS_UPLOAD_URL="https://${TS_HOSTNAME}:3443"
 
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
@@ -94,18 +132,21 @@ echo -e "${GREEN}═════════════════════
 echo ""
 echo "  Tailscale IP:    $TS_IP"
 echo "  Hostname:        $TS_HOSTNAME"
-echo "  HTTPS URL:       $TS_SERVE_URL"
+echo "  Upload URL:      $TS_UPLOAD_URL"
+echo "  TLS Cert:        $CERT_FILE"
+echo "  TLS Key:         $KEY_FILE"
 echo ""
 echo -e "${YELLOW}  Add this to your Vercel environment variables:${NC}"
-echo -e "${BLUE}    NAS_TAILSCALE_URL=${TS_SERVE_URL}${NC}"
+echo -e "${BLUE}    NAS_TAILSCALE_URL=${TS_UPLOAD_URL}${NC}"
 echo ""
 echo "  Test from a Tailscale-connected device:"
-echo "    curl ${TS_SERVE_URL}/health"
+echo "    curl ${TS_UPLOAD_URL}/health"
 echo ""
 echo -e "${YELLOW}  Prerequisites for uploads >100MB:${NC}"
 echo "    1. Tailscale installed on your admin machine"
 echo "    2. NAS_TAILSCALE_URL set in Vercel env vars"
 echo "    3. Redeploy on Vercel to pick up the new env var"
+echo "    4. Restart NAS: sudo systemctl restart nas-storage"
 echo ""
 echo "  The presign endpoint will automatically route large"
 echo "  files (>95MB) through Tailscale instead of Cloudflare."

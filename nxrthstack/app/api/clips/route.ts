@@ -151,7 +151,7 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           folder: "clips",
-          maxSize: 500 * 1024 * 1024, // 500MB
+          maxSize: 5 * 1024 * 1024 * 1024, // 5GB
           allowedTypes: [
             "video/mp4",
             "video/webm",
