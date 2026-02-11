@@ -37,10 +37,10 @@ const gameCategories = [
   },
   {
     title: "Minecraft",
-    description: "Server tools and utilities for Minecraft",
+    description: "Manage and monitor your Minecraft servers",
     href: "/dashboard/gamehub/minecraft",
     icon: Icons.Package,
-    features: ["Server Checker", "Enchantment Planner"],
+    features: ["Server Dashboard", "Console", "File Manager"],
   },
 ];
 

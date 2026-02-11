@@ -1323,6 +1323,199 @@ export const webhookConfigs = pgTable("webhook_configs", {
 // Webhook Config Relations
 export const webhookConfigsRelations = relations(webhookConfigs, () => ({}));
 
+// ============================================================================
+// Minecraft Server Dashboard
+// ============================================================================
+
+// Server registry (multi-server ready)
+export const mcServers = pgTable("mc_servers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 50 }).notNull().unique(),
+  agentUrl: varchar("agent_url", { length: 500 }).notNull(),
+  agentSecret: varchar("agent_secret", { length: 255 }).notNull(),
+  gamePort: integer("game_port").default(25565).notNull(),
+  rconPort: integer("rcon_port").default(25575).notNull(),
+  maxPlayers: integer("max_players").default(20),
+  serverType: varchar("server_type", { length: 20 }).default("paper").notNull(),
+  iconUrl: varchar("icon_url", { length: 500 }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Invitation codes for server access
+export const mcAccessCodes = pgTable("mc_access_codes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serverId: uuid("server_id")
+    .notNull()
+    .references(() => mcServers.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 20 }).notNull().unique(),
+  label: varchar("label", { length: 100 }),
+  defaultRole: varchar("default_role", { length: 20 })
+    .default("viewer")
+    .notNull(),
+  maxUses: integer("max_uses"),
+  currentUses: integer("current_uses").default(0).notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
+  createdById: uuid("created_by_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Per-user per-server access grants with roles
+export const mcAccessGrants = pgTable("mc_access_grants", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serverId: uuid("server_id")
+    .notNull()
+    .references(() => mcServers.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: varchar("role", { length: 20 }).default("viewer").notNull(),
+  grantedViaCodeId: uuid("granted_via_code_id").references(
+    () => mcAccessCodes.id,
+    { onDelete: "set null" }
+  ),
+  grantedById: uuid("granted_by_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Per-user per-page widget layouts (JSONB for react-grid-layout)
+export const mcDashboardLayouts = pgTable("mc_dashboard_layouts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  serverId: uuid("server_id")
+    .notNull()
+    .references(() => mcServers.id, { onDelete: "cascade" }),
+  page: varchar("page", { length: 50 }).notNull(),
+  layouts: jsonb("layouts").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Per-user dashboard preferences (theme, console settings)
+export const mcDashboardPreferences = pgTable("mc_dashboard_preferences", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  theme: varchar("theme", { length: 30 }).default("gamehub").notNull(),
+  sidebarCollapsed: boolean("sidebar_collapsed").default(false).notNull(),
+  consoleFontSize: integer("console_font_size").default(14).notNull(),
+  consoleTimestamps: boolean("console_timestamps").default(true).notNull(),
+  consoleAutoScroll: boolean("console_auto_scroll").default(true).notNull(),
+  customColors: jsonb("custom_colors"),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Audit log for all server actions
+export const mcServerEvents = pgTable("mc_server_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serverId: uuid("server_id")
+    .notNull()
+    .references(() => mcServers.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 50 }).notNull(),
+  category: varchar("category", { length: 30 }).notNull(),
+  details: jsonb("details").default({}),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Minecraft Dashboard Relations
+export const mcServersRelations = relations(mcServers, ({ many }) => ({
+  accessCodes: many(mcAccessCodes),
+  accessGrants: many(mcAccessGrants),
+  layouts: many(mcDashboardLayouts),
+  events: many(mcServerEvents),
+}));
+
+export const mcAccessCodesRelations = relations(
+  mcAccessCodes,
+  ({ one, many }) => ({
+    server: one(mcServers, {
+      fields: [mcAccessCodes.serverId],
+      references: [mcServers.id],
+    }),
+    createdBy: one(users, {
+      fields: [mcAccessCodes.createdById],
+      references: [users.id],
+    }),
+    grants: many(mcAccessGrants),
+  })
+);
+
+export const mcAccessGrantsRelations = relations(
+  mcAccessGrants,
+  ({ one }) => ({
+    server: one(mcServers, {
+      fields: [mcAccessGrants.serverId],
+      references: [mcServers.id],
+    }),
+    user: one(users, {
+      fields: [mcAccessGrants.userId],
+      references: [users.id],
+      relationName: "mcGrantUser",
+    }),
+    grantedViaCode: one(mcAccessCodes, {
+      fields: [mcAccessGrants.grantedViaCodeId],
+      references: [mcAccessCodes.id],
+    }),
+    grantedBy: one(users, {
+      fields: [mcAccessGrants.grantedById],
+      references: [users.id],
+      relationName: "mcGrantGrantedBy",
+    }),
+  })
+);
+
+export const mcDashboardLayoutsRelations = relations(
+  mcDashboardLayouts,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [mcDashboardLayouts.userId],
+      references: [users.id],
+    }),
+    server: one(mcServers, {
+      fields: [mcDashboardLayouts.serverId],
+      references: [mcServers.id],
+    }),
+  })
+);
+
+export const mcDashboardPreferencesRelations = relations(
+  mcDashboardPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [mcDashboardPreferences.userId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const mcServerEventsRelations = relations(
+  mcServerEvents,
+  ({ one }) => ({
+    server: one(mcServers, {
+      fields: [mcServerEvents.serverId],
+      references: [mcServers.id],
+    }),
+    user: one(users, {
+      fields: [mcServerEvents.userId],
+      references: [users.id],
+    }),
+  })
+);
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -1444,3 +1637,18 @@ export type NewClipComment = typeof clipComments.$inferInsert;
 // Discord Bot Types
 export type WebhookConfig = typeof webhookConfigs.$inferSelect;
 export type NewWebhookConfig = typeof webhookConfigs.$inferInsert;
+
+// Minecraft Dashboard Types
+export type McServer = typeof mcServers.$inferSelect;
+export type NewMcServer = typeof mcServers.$inferInsert;
+export type McAccessCode = typeof mcAccessCodes.$inferSelect;
+export type NewMcAccessCode = typeof mcAccessCodes.$inferInsert;
+export type McAccessGrant = typeof mcAccessGrants.$inferSelect;
+export type NewMcAccessGrant = typeof mcAccessGrants.$inferInsert;
+export type McDashboardLayout = typeof mcDashboardLayouts.$inferSelect;
+export type NewMcDashboardLayout = typeof mcDashboardLayouts.$inferInsert;
+export type McDashboardPreferences = typeof mcDashboardPreferences.$inferSelect;
+export type NewMcDashboardPreferences =
+  typeof mcDashboardPreferences.$inferInsert;
+export type McServerEvent = typeof mcServerEvents.$inferSelect;
+export type NewMcServerEvent = typeof mcServerEvents.$inferInsert;

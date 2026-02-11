@@ -33,6 +33,11 @@ const navItems = [
     href: "/admin/gamehub",
     icon: Icons.Gamepad,
   },
+  {
+    title: "Minecraft",
+    href: "/admin/gamehub/minecraft",
+    icon: Icons.Server,
+  },
 ];
 
 export function AdminSidebar() {

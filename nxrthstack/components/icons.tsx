@@ -94,6 +94,10 @@ import {
   MessageCircle,
   LayoutGrid,
   List,
+  KeyRound,
+  Terminal,
+  History,
+  Sliders,
 } from "lucide-react";
 
 export const Icons = {
@@ -196,6 +200,10 @@ export const Icons = {
   MessageCircle,
   LayoutGrid,
   List,
+  Key: KeyRound,
+  Terminal,
+  History,
+  Sliders,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,
