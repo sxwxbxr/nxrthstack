@@ -33,6 +33,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     description: product?.description ?? "",
     shortDescription: product?.shortDescription ?? "",
     productType: product?.productType ?? "paid",
+    availability: product?.availability ?? "available",
   });
 
   // Image gallery state
@@ -560,6 +561,68 @@ export function ProductForm({ product, mode }: ProductFormProps) {
               <p className="mt-3 font-medium text-foreground">{type.label}</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {type.description}
+              </p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground">
+          Availability
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Controls how this product is displayed and whether customers can purchase it
+        </p>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {[
+            {
+              value: "available",
+              label: "Available",
+              description: "Can be downloaded or purchased normally",
+              icon: Icons.Check,
+              color: "text-green-500",
+            },
+            {
+              value: "coming_soon",
+              label: "Coming Soon",
+              description: "Visible but not yet purchasable. Customers can sign up for notifications",
+              icon: Icons.Clock,
+              color: "text-amber-500",
+            },
+            {
+              value: "discontinued",
+              label: "No Longer Available",
+              description: "Can't be bought anymore. Customers are directed to contact you",
+              icon: Icons.XCircle,
+              color: "text-red-500",
+            },
+          ].map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, availability: option.value }))
+              }
+              className={cn(
+                "flex flex-col items-start rounded-lg border p-4 text-left transition-colors",
+                formData.availability === option.value
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-muted-foreground"
+              )}
+            >
+              <option.icon
+                className={cn(
+                  "h-5 w-5",
+                  formData.availability === option.value
+                    ? option.color
+                    : "text-muted-foreground"
+                )}
+              />
+              <p className="mt-3 font-medium text-foreground">{option.label}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {option.description}
               </p>
             </button>
           ))}

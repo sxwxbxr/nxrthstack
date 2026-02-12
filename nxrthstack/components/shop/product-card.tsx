@@ -37,7 +37,21 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     }
   };
 
+  const getAvailabilityBadge = () => {
+    switch (product.availability) {
+      case "coming_soon":
+        return { label: "Coming Soon", className: "bg-amber-500/10 text-amber-500" };
+      case "discontinued":
+        return { label: "No Longer Available", className: "bg-red-500/10 text-red-500" };
+      default:
+        return null;
+    }
+  };
+
   const badge = getProductTypeBadge();
+  const availabilityBadge = getAvailabilityBadge();
+  const isComingSoon = product.availability === "coming_soon";
+  const isDiscontinued = product.availability === "discontinued";
 
   return (
     <motion.div
@@ -48,10 +62,18 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
       <Link href={`/shop/${product.slug}`}>
         <motion.div
           whileHover={{ y: -4 }}
-          className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/50"
+          className={cn(
+            "group relative overflow-hidden rounded-2xl border bg-card transition-colors",
+            isDiscontinued
+              ? "border-border/50 opacity-75 hover:opacity-100 hover:border-border"
+              : "border-border hover:border-primary/50"
+          )}
         >
           {/* Image */}
-          <div className="aspect-[16/10] overflow-hidden bg-muted">
+          <div className={cn(
+            "aspect-[16/10] overflow-hidden bg-muted",
+            isDiscontinued && "grayscale-[50%]"
+          )}>
             {product.imageUrl ? (
               <img
                 src={product.imageUrl}
@@ -65,9 +87,19 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             )}
           </div>
 
-          {/* Badge */}
-          {badge && (
-            <div className="absolute right-4 top-4">
+          {/* Badges */}
+          <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
+            {availabilityBadge && (
+              <span
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-medium",
+                  availabilityBadge.className
+                )}
+              >
+                {availabilityBadge.label}
+              </span>
+            )}
+            {badge && !isDiscontinued && (
               <span
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-medium",
@@ -76,8 +108,8 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               >
                 {badge.label}
               </span>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Content */}
           <div className="p-6">
@@ -91,16 +123,27 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             )}
 
             <div className="mt-4 flex items-center justify-between">
-              <span className="text-lg font-bold text-foreground">
-                {getLowestPrice()}
-                {product.productType === "subscription" && (
-                  <span className="text-sm font-normal text-muted-foreground">
-                    /mo
-                  </span>
-                )}
-              </span>
+              {isComingSoon ? (
+                <span className="flex items-center gap-1.5 text-sm font-medium text-amber-500">
+                  <Icons.Bell className="h-4 w-4" />
+                  Get Notified
+                </span>
+              ) : isDiscontinued ? (
+                <span className="text-sm font-medium text-muted-foreground">
+                  Discontinued
+                </span>
+              ) : (
+                <span className="text-lg font-bold text-foreground">
+                  {getLowestPrice()}
+                  {product.productType === "subscription" && (
+                    <span className="text-sm font-normal text-muted-foreground">
+                      /mo
+                    </span>
+                  )}
+                </span>
+              )}
               <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                View Details
+                {isComingSoon ? "Learn More" : isDiscontinued ? "Details" : "View Details"}
                 <Icons.ArrowRight className="h-4 w-4" />
               </span>
             </div>

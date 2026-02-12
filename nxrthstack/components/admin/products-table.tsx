@@ -110,6 +110,9 @@ export function ProductsTable({ products }: ProductsTableProps) {
               Price
             </th>
             <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
+              Availability
+            </th>
+            <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">
               Status
             </th>
             <th className="px-6 py-4 text-right text-sm font-medium text-muted-foreground">
@@ -167,6 +170,33 @@ export function ProductsTable({ products }: ProductsTableProps) {
                 </td>
                 <td className="px-6 py-4 text-foreground">
                   {getPriceRange(product.prices)}
+                </td>
+                <td className="px-6 py-4">
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      product.availability === "coming_soon" &&
+                        "bg-amber-500/10 text-amber-500",
+                      product.availability === "discontinued" &&
+                        "bg-red-500/10 text-red-500",
+                      (!product.availability || product.availability === "available") &&
+                        "bg-green-500/10 text-green-500"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 rounded-full",
+                        product.availability === "coming_soon" && "bg-amber-500",
+                        product.availability === "discontinued" && "bg-red-500",
+                        (!product.availability || product.availability === "available") && "bg-green-500"
+                      )}
+                    />
+                    {product.availability === "coming_soon"
+                      ? "Coming Soon"
+                      : product.availability === "discontinued"
+                      ? "Discontinued"
+                      : "Available"}
+                  </span>
                 </td>
                 <td className="px-6 py-4">
                   <button

@@ -43,6 +43,13 @@
       "when": 1770798324058,
       "tag": "0005_violet_proemial_gods",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1770910333814,
+      "tag": "0006_red_yellowjacket",
+      "breakpoints": true
     }
   ]
 }

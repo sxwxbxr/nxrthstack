@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { FadeIn } from "@/components/ui/fade-in";
 import { PricingTable } from "@/components/shop/pricing-table";
 import { ProductGallery } from "@/components/shop/product-gallery";
+import { NotifyMe } from "@/components/shop/notify-me";
 import { Icons } from "@/components/icons";
 import { Markdown } from "@/components/ui/markdown";
 
@@ -78,10 +79,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Check if user already owns this product
-  const isOwned = session?.user?.id
-    ? await checkOwnership(session.user.id, product.id)
-    : false;
+  const isComingSoon = product.availability === "coming_soon";
+  const isDiscontinued = product.availability === "discontinued";
+
+  // Check if user already owns this product (skip for coming_soon/discontinued)
+  const isOwned =
+    !isComingSoon && !isDiscontinued && session?.user?.id
+      ? await checkOwnership(session.user.id, product.id)
+      : false;
 
   const allFeatures = product.prices
     .flatMap((price) => (price.features as string[]) || [])
@@ -112,25 +117,35 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Details */}
             <div className="mt-8">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-3xl font-bold text-foreground">
                   {product.name}
                 </h1>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    product.productType === "free"
-                      ? "bg-green-500/10 text-green-500"
+                {isComingSoon ? (
+                  <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-500">
+                    Coming Soon
+                  </span>
+                ) : isDiscontinued ? (
+                  <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-medium text-red-500">
+                    No Longer Available
+                  </span>
+                ) : (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      product.productType === "free"
+                        ? "bg-green-500/10 text-green-500"
+                        : product.productType === "subscription"
+                        ? "bg-purple-500/10 text-purple-500"
+                        : "bg-blue-500/10 text-blue-500"
+                    }`}
+                  >
+                    {product.productType === "free"
+                      ? "Free"
                       : product.productType === "subscription"
-                      ? "bg-purple-500/10 text-purple-500"
-                      : "bg-blue-500/10 text-blue-500"
-                  }`}
-                >
-                  {product.productType === "free"
-                    ? "Free"
-                    : product.productType === "subscription"
-                    ? "Subscription"
-                    : "License"}
-                </span>
+                      ? "Subscription"
+                      : "License"}
+                  </span>
+                )}
               </div>
 
               {product.shortDescription && (
@@ -168,18 +183,55 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </FadeIn>
 
-        {/* Pricing */}
+        {/* Right Side: Pricing / Notify / Discontinued */}
         <FadeIn delay={0.2}>
           <div className="lg:sticky lg:top-24">
-            <h2 className="text-lg font-semibold text-foreground mb-6">
-              {product.productType === "free" ? "Get Started" : "Select a Plan"}
-            </h2>
-            <PricingTable
-              productId={product.id}
-              productType={product.productType}
-              prices={product.prices}
-              isOwned={isOwned}
-            />
+            {isComingSoon ? (
+              <>
+                <h2 className="text-lg font-semibold text-foreground mb-6">
+                  Get Notified
+                </h2>
+                <NotifyMe productId={product.id} />
+              </>
+            ) : isDiscontinued ? (
+              <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-8">
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
+                    <Icons.XCircle className="h-6 w-6 text-red-500" />
+                  </div>
+                  <p className="text-lg font-semibold text-foreground">
+                    No Longer Available
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    This product is no longer available for purchase and is no longer
+                    actively supported. If you need it for a special reason, feel free
+                    to reach out directly.
+                  </p>
+                </div>
+
+                <a
+                  href="mailto:contact@sweber.dev"
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  <Icons.Mail className="h-4 w-4" />
+                  Contact Me
+                </a>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-lg font-semibold text-foreground mb-6">
+                  {product.productType === "free"
+                    ? "Get Started"
+                    : "Select a Plan"}
+                </h2>
+                <PricingTable
+                  productId={product.id}
+                  productType={product.productType}
+                  prices={product.prices}
+                  isOwned={isOwned}
+                />
+              </>
+            )}
           </div>
         </FadeIn>
       </div>

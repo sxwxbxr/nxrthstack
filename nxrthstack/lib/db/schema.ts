@@ -46,6 +46,7 @@ export const products = pgTable("products", {
   shortDescription: varchar("short_description", { length: 500 }),
   imageUrl: varchar("image_url", { length: 500 }),
   productType: varchar("product_type", { length: 20 }).notNull(), // 'free' | 'paid' | 'subscription'
+  availability: varchar("availability", { length: 20 }).default("available").notNull(), // 'available' | 'coming_soon' | 'discontinued'
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
@@ -139,6 +140,18 @@ export const subscriptions = pgTable("subscriptions", {
   cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Product notification requests (for "Coming Soon" products)
+export const productNotifyRequests = pgTable("product_notify_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  email: varchar("email", { length: 255 }).notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  notifiedAt: timestamp("notified_at", { mode: "date" }), // Set when availability changes to 'available'
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
 // NxrthGuard Licenses
@@ -299,6 +312,7 @@ export const productsRelations = relations(products, ({ many }) => ({
   files: many(productFiles),
   purchases: many(purchases),
   subscriptions: many(subscriptions),
+  notifyRequests: many(productNotifyRequests),
 }));
 
 export const productPricesRelations = relations(
@@ -329,6 +343,17 @@ export const productFilesRelations = relations(productFiles, ({ one }) => ({
   price: one(productPrices, {
     fields: [productFiles.priceId],
     references: [productPrices.id],
+  }),
+}));
+
+export const productNotifyRequestsRelations = relations(productNotifyRequests, ({ one }) => ({
+  product: one(products, {
+    fields: [productNotifyRequests.productId],
+    references: [products.id],
+  }),
+  user: one(users, {
+    fields: [productNotifyRequests.userId],
+    references: [users.id],
   }),
 }));
 
@@ -1633,6 +1658,10 @@ export type ClipLike = typeof clipLikes.$inferSelect;
 export type NewClipLike = typeof clipLikes.$inferInsert;
 export type ClipComment = typeof clipComments.$inferSelect;
 export type NewClipComment = typeof clipComments.$inferInsert;
+
+// Product Notify Request Types
+export type ProductNotifyRequest = typeof productNotifyRequests.$inferSelect;
+export type NewProductNotifyRequest = typeof productNotifyRequests.$inferInsert;
 
 // Discord Bot Types
 export type WebhookConfig = typeof webhookConfigs.$inferSelect;

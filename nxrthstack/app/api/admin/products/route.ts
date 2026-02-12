@@ -10,6 +10,7 @@ const createProductSchema = z.object({
   description: z.string().optional(),
   shortDescription: z.string().optional(),
   productType: z.enum(["free", "paid", "subscription"]),
+  availability: z.enum(["available", "coming_soon", "discontinued"]).optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
 });
 
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, slug, description, shortDescription, productType, imageUrl } =
+    const { name, slug, description, shortDescription, productType, availability, imageUrl } =
       parsed.data;
 
     // Check if slug already exists
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
         description: description || null,
         shortDescription: shortDescription || null,
         productType,
+        availability: availability || "available",
         imageUrl: imageUrl || null,
         isActive: true,
       })

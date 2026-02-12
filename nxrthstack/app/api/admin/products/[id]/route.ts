@@ -10,6 +10,7 @@ const updateProductSchema = z.object({
   description: z.string().optional(),
   shortDescription: z.string().optional(),
   productType: z.enum(["free", "paid", "subscription"]).optional(),
+  availability: z.enum(["available", "coming_soon", "discontinued"]).optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
   isActive: z.boolean().optional(),
 });
