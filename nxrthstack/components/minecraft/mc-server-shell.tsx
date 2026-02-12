@@ -6,6 +6,10 @@ import useSWR from "swr";
 import { McProvider } from "@/components/minecraft/mc-context";
 import { McSidebar } from "@/components/minecraft/mc-sidebar";
 import { Icons } from "@/components/icons";
+import {
+  MobileSidebarProvider,
+  MobileMenuButton,
+} from "@/components/ui/mobile-sidebar";
 import type { McRole } from "@/lib/gamehub/minecraft-roles";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -71,12 +75,21 @@ function McServerShellInner({
       serverName={grant.serverName}
       userRole={grant.role}
     >
-      <div className="flex min-h-screen">
-        <McSidebar />
-        <main className="flex-1 pl-56">
-          <div className="p-6">{children}</div>
-        </main>
-      </div>
+      <MobileSidebarProvider>
+        <div className="flex min-h-screen">
+          <McSidebar />
+          <main className="flex-1 md:pl-56">
+            {/* Mobile header for MC server */}
+            <div className="fixed top-0 right-0 left-0 md:left-56 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm md:hidden">
+              <MobileMenuButton />
+              <span className="truncate text-sm font-medium text-foreground">
+                {grant.serverName}
+              </span>
+            </div>
+            <div className="pt-14 md:pt-0 p-4 md:p-6">{children}</div>
+          </main>
+        </div>
+      </MobileSidebarProvider>
     </McProvider>
   );
 }

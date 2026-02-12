@@ -39,7 +39,7 @@ export function GameHubNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-2 border-b border-border pb-4">
+    <nav className="flex gap-2 border-b border-border pb-4 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
       {gameHubNavItems.map((item) => {
         const isActive = item.exact
           ? pathname === item.href
@@ -51,7 +51,7 @@ export function GameHubNav() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                "flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground hover:bg-accent hover:text-foreground"

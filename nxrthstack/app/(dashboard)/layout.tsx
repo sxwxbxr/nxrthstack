@@ -1,5 +1,6 @@
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { NotificationBell } from "@/components/notifications";
+import { MobileSidebarProvider, MobileMenuButton } from "@/components/ui/mobile-sidebar";
 
 export default function DashboardLayout({
   children,
@@ -8,13 +9,17 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="dark min-h-screen bg-background">
-      <DashboardNav />
-      <main className="pl-64">
-        <div className="fixed top-0 right-0 left-64 z-30 flex h-16 items-center justify-end border-b border-border bg-background/80 px-8 backdrop-blur-sm">
-          <NotificationBell />
-        </div>
-        <div className="pt-16 p-8">{children}</div>
-      </main>
+      <MobileSidebarProvider>
+        <DashboardNav />
+        <main className="md:pl-64">
+          {/* Header */}
+          <div className="fixed top-0 right-0 left-0 md:left-64 z-30 flex h-14 md:h-16 items-center justify-between md:justify-end border-b border-border bg-background/80 px-4 md:px-8 backdrop-blur-sm">
+            <MobileMenuButton />
+            <NotificationBell />
+          </div>
+          <div className="pt-14 md:pt-16 p-4 md:p-8">{children}</div>
+        </main>
+      </MobileSidebarProvider>
     </div>
   );
 }

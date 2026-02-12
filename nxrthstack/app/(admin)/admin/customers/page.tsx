@@ -67,7 +67,7 @@ export default async function CustomersPage() {
         </FadeIn>
       ) : (
         <FadeIn delay={0.1}>
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="rounded-xl border border-border bg-card overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">

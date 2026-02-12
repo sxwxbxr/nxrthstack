@@ -117,13 +117,13 @@ export function Hero() {
           </FadeIn>
 
           <FadeIn delay={0.8}>
-            <div className="mt-16 grid grid-cols-3 gap-8 border-t border-border pt-8">
+            <div className="mt-16 grid grid-cols-3 gap-4 sm:gap-8 border-t border-border pt-8">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="cursor-default"
               >
                 <div className="text-3xl font-bold text-primary">
-                  <AnimatedCounter value={5} suffix="+" />
+                  <AnimatedCounter value={1} suffix="+" />
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Years Experience
@@ -134,7 +134,7 @@ export function Hero() {
                 className="cursor-default"
               >
                 <div className="text-3xl font-bold text-primary">
-                  <AnimatedCounter value={50} suffix="+" />
+                  <AnimatedCounter value={10} suffix="+" />
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Projects Delivered

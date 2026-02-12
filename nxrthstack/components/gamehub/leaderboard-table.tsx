@@ -56,7 +56,7 @@ export function LeaderboardTable({
       )}
 
       {/* Leaderboard */}
-      <div className="rounded-lg border border-border overflow-hidden">
+      <div className="rounded-lg border border-border overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-muted/50">
