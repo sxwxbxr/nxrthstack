@@ -157,7 +157,9 @@ try {
     exit 1
 }
 
+$ErrorActionPreference = "SilentlyContinue"
 & npm install -g pm2 pm2-windows-startup tsx 2>&1 | Out-Null
+$ErrorActionPreference = "Stop"
 Refresh-Path
 
 Write-Success "PM2, pm2-windows-startup, and tsx installed globally."
@@ -229,8 +231,10 @@ Copy-Item -Path "$REPO_DIR\nxrthstack\package.json" -Destination "$WEBAPP_DIR\pa
 # Install drizzle-orm in the webapp dir so the schema import resolves
 Write-Info "Installing shared schema dependencies..."
 Push-Location $WEBAPP_DIR
+$ErrorActionPreference = "SilentlyContinue"
 & npm init -y 2>&1 | Out-Null
 & npm install drizzle-orm @neondatabase/serverless pg 2>&1 | Out-Null
+$ErrorActionPreference = "Stop"
 Pop-Location
 
 Write-Success "All services copied to $INSTALL_DIR"
@@ -325,6 +329,8 @@ Write-Success "All .env files written."
 # ============================================================================
 Write-Step "Installing npm dependencies for each service"
 
+$ErrorActionPreference = "SilentlyContinue"
+
 Write-Info "Installing Discord Bot dependencies..."
 Push-Location $BOT_DIR
 & npm install 2>&1 | ForEach-Object { if ($_ -match "added") { Write-Info $_ } }
@@ -340,6 +346,8 @@ Push-Location $AGENT_DIR
 & npm install 2>&1 | ForEach-Object { if ($_ -match "added") { Write-Info $_ } }
 Pop-Location
 
+$ErrorActionPreference = "Stop"
+
 Write-Success "All dependencies installed."
 
 # ============================================================================
@@ -353,7 +361,9 @@ Write-Info "Discord Bot: using tsx (no build needed)."
 # MC Agent: Build with tsc
 Write-Info "Building Minecraft Agent..."
 Push-Location $AGENT_DIR
+$ErrorActionPreference = "SilentlyContinue"
 & npm run build 2>&1 | Out-Null
+$ErrorActionPreference = "Stop"
 Pop-Location
 
 if (Test-Path "$AGENT_DIR\dist\index.js") {
@@ -375,7 +385,9 @@ Write-Step "Deploying Discord slash commands"
 if (-not [string]::IsNullOrWhiteSpace($DISCORD_BOT_TOKEN)) {
     Push-Location $BOT_DIR
     try {
+        $ErrorActionPreference = "SilentlyContinue"
         & npx tsx src/deploy-commands.ts 2>&1
+        $ErrorActionPreference = "Stop"
         Write-Success "Slash commands deployed to Discord."
     } catch {
         Write-Warn "Failed to deploy commands: $($_.Exception.Message)"
@@ -455,12 +467,14 @@ Write-EnvFile $ecosystemPath $ecosystemContent
 Write-Info "Ecosystem config written to $ecosystemPath"
 
 # Stop any existing PM2 processes
+$ErrorActionPreference = "SilentlyContinue"
 & pm2 kill 2>&1 | Out-Null
 
 # Start all services
 Write-Info "Starting PM2 services..."
 & pm2 start $ecosystemPath
 & pm2 save
+$ErrorActionPreference = "Stop"
 
 Write-Success "PM2 services started."
 
@@ -472,7 +486,9 @@ Write-Step "Setting up PM2 auto-start on boot"
 # Method 1: pm2-windows-startup
 try {
     Write-Info "Trying pm2-windows-startup..."
+    $ErrorActionPreference = "SilentlyContinue"
     & pm2-startup install 2>&1 | Out-Null
+    $ErrorActionPreference = "Stop"
     Write-Success "pm2-windows-startup installed."
 } catch {
     Write-Warn "pm2-windows-startup failed. Setting up Scheduled Task fallback."
@@ -522,7 +538,9 @@ if (-not [string]::IsNullOrWhiteSpace($CF_TUNNEL_TOKEN)) {
     }
 
     Write-Info "Installing cloudflared as Windows service with tunnel token..."
+    $ErrorActionPreference = "SilentlyContinue"
     & cloudflared service install $CF_TUNNEL_TOKEN 2>&1
+    $ErrorActionPreference = "Stop"
 
     # Give it a moment to register
     Start-Sleep -Seconds 2
