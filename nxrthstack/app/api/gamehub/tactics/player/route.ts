@@ -7,6 +7,7 @@ import { ALL_PRESETS, DEFAULT_PRESET_FOR_CLASS } from "@/lib/gamehub/tactics/beh
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
 import { getTodayString, wasYesterday, getStreakReward } from "@/lib/gamehub/tactics/login-streaks";
 import type { Squad, SquadUnit } from "@/lib/gamehub/tactics/types";
+import { checkAndUnlockAchievements, addCurrencySpent } from "@/lib/gamehub/tactics/progression";
 
 function createStarterSquad(): Squad {
   const units: SquadUnit[] = STARTER_UNIT_IDS.map((id, i) => {
@@ -159,6 +160,10 @@ export async function PATCH(request: Request) {
         })
         .where(eq(tacticsPlayers.userId, session.user.id))
         .returning();
+
+      // Spending & achievements
+      await addCurrencySpent(player.id, template.unlockCost);
+      await checkAndUnlockAchievements(player.id);
 
       return NextResponse.json({ player: updated });
     }

@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSellPrice } from "@/lib/gamehub/tactics/equipment";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
+import { incrementQuestProgress, checkAndUnlockAchievements } from "@/lib/gamehub/tactics/progression";
 
 /** PATCH - Equip/unequip an item (set unitInstanceId) */
 export async function PATCH(
@@ -81,6 +82,12 @@ export async function PATCH(
       .set({ unitInstanceId })
       .where(eq(tacticsEquipment.id, id))
       .returning();
+
+    // Quest progress (only when equipping, not unequipping)
+    if (unitInstanceId) {
+      await incrementQuestProgress(player.id, "equip_item");
+    }
+    await checkAndUnlockAchievements(player.id);
 
     return NextResponse.json({ equipment: updated });
   } catch (error) {

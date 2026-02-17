@@ -9,6 +9,7 @@ import { computeUnitStats } from "@/lib/gamehub/tactics/stats";
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
 import type { Squad, UnitInstance, EquipmentItem, EquipmentStat } from "@/lib/gamehub/tactics/types";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
+import { incrementQuestProgress, checkAndUnlockAchievements } from "@/lib/gamehub/tactics/progression";
 
 const TICK_RATE = 4;
 const MAX_TICKS = 240; // 60 seconds for warfare (larger battles)
@@ -182,6 +183,12 @@ export async function POST() {
       defenderId: defender.userId,
       expiresAt: new Date(now.getTime() + COOLDOWN_MINUTES * 60 * 1000),
     });
+
+    // Quest progress
+    await incrementQuestProgress(attacker.id, "warfare_battle");
+
+    // Achievement checks
+    await checkAndUnlockAchievements(attacker.id);
 
     return NextResponse.json({
       match: {

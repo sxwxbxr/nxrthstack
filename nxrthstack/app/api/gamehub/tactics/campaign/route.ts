@@ -9,6 +9,7 @@ import { getMilestonePerks } from "@/lib/gamehub/tactics/milestones";
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
 import type { Squad, UnitInstance, EquipmentItem, EquipmentStat } from "@/lib/gamehub/tactics/types";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
+import { incrementQuestProgress, checkAndUnlockAchievements } from "@/lib/gamehub/tactics/progression";
 
 const TICK_RATE = 4;
 const MAX_TICKS = 160;
@@ -142,6 +143,17 @@ export async function POST() {
       currencyEarned,
       durationTicks: result.durationTicks,
     });
+
+    // Quest progress
+    if (won) {
+      await incrementQuestProgress(player.id, "campaign_clear");
+      if (stars >= 3) {
+        await incrementQuestProgress(player.id, "campaign_3star");
+      }
+    }
+
+    // Achievement checks
+    await checkAndUnlockAchievements(player.id);
 
     return NextResponse.json({
       level,

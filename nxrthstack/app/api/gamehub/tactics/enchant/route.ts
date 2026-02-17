@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { attemptEnchant, getEnchantCost, getSuccessRate, MAX_ENCHANT_LEVEL } from "@/lib/gamehub/tactics/enchanting";
 import type { EquipmentItem, EquipmentStat } from "@/lib/gamehub/tactics/types";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
+import { incrementQuestProgress, checkAndUnlockAchievements, addCurrencySpent } from "@/lib/gamehub/tactics/progression";
 
 /** POST - Attempt to enchant equipment */
 export async function POST(request: Request) {
@@ -128,6 +129,11 @@ export async function POST(request: Request) {
         enchantLevel: result.newEnchantLevel,
       },
     });
+
+    // Quest progress & spending
+    await incrementQuestProgress(player.id, "enchant_item");
+    await addCurrencySpent(player.id, cost);
+    await checkAndUnlockAchievements(player.id);
 
     // Fetch updated equipment
     const [updated] = await db

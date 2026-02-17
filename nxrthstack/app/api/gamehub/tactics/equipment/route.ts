@@ -6,6 +6,7 @@ import { generateEquipment, EQUIPMENT_SHOP_PRICES, BUYABLE_RARITIES } from "@/li
 import type { EquipmentSlot } from "@/lib/gamehub/tactics/types";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
 import { ALL_EQUIPMENT_SLOTS } from "@/lib/gamehub/tactics/types";
+import { incrementQuestProgress, checkAndUnlockAchievements, addCurrencySpent } from "@/lib/gamehub/tactics/progression";
 
 /** GET - Fetch all equipment for player */
 export async function GET() {
@@ -94,6 +95,11 @@ export async function POST(request: Request) {
         curseStats: [],
       })
       .returning();
+
+    // Quest progress & spending
+    await incrementQuestProgress(player.id, "buy_equipment");
+    await addCurrencySpent(player.id, price);
+    await checkAndUnlockAchievements(player.id);
 
     return NextResponse.json({
       equipment: newEquip,

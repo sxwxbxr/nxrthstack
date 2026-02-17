@@ -1575,6 +1575,8 @@ export const tacticsPlayers = pgTable("tactics_players", {
   warfareRating: integer("warfare_rating").default(1000).notNull(),
   warfareWins: integer("warfare_wins").default(0).notNull(),
   warfareLosses: integer("warfare_losses").default(0).notNull(),
+  // Spending tracking
+  totalCurrencySpent: integer("total_currency_spent").default(0).notNull(),
   // Login streaks
   loginStreak: integer("login_streak").default(0).notNull(),
   lastLoginDate: varchar("last_login_date", { length: 10 }),

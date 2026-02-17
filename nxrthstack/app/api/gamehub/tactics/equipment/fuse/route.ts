@@ -6,6 +6,7 @@ import { generateEquipment } from "@/lib/gamehub/tactics/equipment";
 import { canFuseRarity, getFusionCost, getNextRarity } from "@/lib/gamehub/tactics/fusion";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
 import type { EquipmentSlot } from "@/lib/gamehub/tactics/types";
+import { checkAndUnlockAchievements, addCurrencySpent } from "@/lib/gamehub/tactics/progression";
 
 /** POST - Fuse 3 same-rarity equipment into 1 of next rarity */
 export async function POST(request: Request) {
@@ -97,6 +98,10 @@ export async function POST(request: Request) {
         curseStats: [],
       })
       .returning();
+
+    // Spending & achievements
+    await addCurrencySpent(player.id, cost);
+    await checkAndUnlockAchievements(player.id);
 
     return NextResponse.json({
       equipment: newEquip,

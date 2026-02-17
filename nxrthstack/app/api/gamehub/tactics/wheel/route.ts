@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { spinWheel, getWheelCost, getDuplicateCompensation } from "@/lib/gamehub/tactics/wheel";
 import { UNIT_MAP } from "@/lib/gamehub/tactics/units";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
+import { incrementQuestProgress, checkAndUnlockAchievements, addCurrencySpent } from "@/lib/gamehub/tactics/progression";
 
 /** POST - Spin the lucky wheel */
 export async function POST() {
@@ -77,6 +78,14 @@ export async function POST() {
       resultRarity: result.rarity,
       compensationCurrency: compensation,
     });
+
+    // Quest progress & spending
+    await incrementQuestProgress(player.id, "spin_wheel");
+    if (!isDuplicate) {
+      await incrementQuestProgress(player.id, "collect_unit");
+    }
+    await addCurrencySpent(player.id, cost);
+    await checkAndUnlockAchievements(player.id);
 
     const unitTemplate = UNIT_MAP[result.templateId];
 

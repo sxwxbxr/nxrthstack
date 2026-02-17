@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { rerollStats, getRerollCost } from "@/lib/gamehub/tactics/equipment";
 import type { EquipmentItem, EquipmentStat } from "@/lib/gamehub/tactics/types";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
+import { incrementQuestProgress, checkAndUnlockAchievements, addCurrencySpent } from "@/lib/gamehub/tactics/progression";
 
 /** POST - Reroll equipment stats (with optional locked indices) */
 export async function POST(request: Request) {
@@ -76,6 +77,11 @@ export async function POST(request: Request) {
       .set({ stats: newStats })
       .where(eq(tacticsEquipment.id, equipmentId))
       .returning();
+
+    // Quest progress & spending
+    await incrementQuestProgress(player.id, "reroll_item");
+    await addCurrencySpent(player.id, cost);
+    await checkAndUnlockAchievements(player.id);
 
     return NextResponse.json({
       equipment: updated,

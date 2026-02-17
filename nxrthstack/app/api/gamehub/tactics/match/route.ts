@@ -11,6 +11,7 @@ import { xpForLevel, RARITY_MAX_LEVEL } from "@/lib/gamehub/tactics/rarities";
 import { EQUIPMENT_MAX_LEVEL, equipmentXpForLevel, getEquipmentXpReward } from "@/lib/gamehub/tactics/equipment-levels";
 import type { Squad, UnitInstance, EquipmentItem, EquipmentStat } from "@/lib/gamehub/tactics/types";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
+import { incrementQuestProgress, checkAndUnlockAchievements } from "@/lib/gamehub/tactics/progression";
 
 const TICK_RATE = 4;
 const COOLDOWN_MINUTES = 30;
@@ -213,12 +214,24 @@ export async function POST() {
 
     // Award XP to participating unit instances
     const ratingDiff = Math.abs(attacker.rating - defender.rating);
-    await awardXp(attacker.id, attackSquad, attackerWon, ratingDiff, true);
+    const attackerLevelUps = await awardXp(attacker.id, attackSquad, attackerWon, ratingDiff, true);
     await awardXp(defender.id, defenseSquad, !attackerWon, ratingDiff, false);
 
     // Award XP to equipped equipment
     await awardEquipmentXp(attacker.id, attackSquad, attackerWon, true);
     await awardEquipmentXp(defender.id, defenseSquad, !attackerWon, false);
+
+    // Quest progress
+    await incrementQuestProgress(attacker.id, "play_battles");
+    if (attackerWon) {
+      await incrementQuestProgress(attacker.id, "win_battles");
+    }
+    if (attackerLevelUps > 0) {
+      await incrementQuestProgress(attacker.id, "level_up_unit", attackerLevelUps);
+    }
+
+    // Achievement checks
+    await checkAndUnlockAchievements(attacker.id);
 
     return NextResponse.json({
       match: {
@@ -331,19 +344,19 @@ async function computeSquadStats(
   }
 }
 
-/** Award XP to all unit instances in a squad after battle */
+/** Award XP to all unit instances in a squad after battle. Returns number of level-ups. */
 async function awardXp(
   playerId: string,
   squad: Squad,
   won: boolean,
   ratingDiff: number,
   isAttacker: boolean
-): Promise<void> {
+): Promise<number> {
   const instanceIds = squad.units
     .map((u) => u.unitInstanceId)
     .filter((id): id is string => !!id);
 
-  if (instanceIds.length === 0) return;
+  if (instanceIds.length === 0) return 0;
 
   const instances = await db
     .select()
@@ -356,6 +369,7 @@ async function awardXp(
     );
 
   let totalXpAwarded = 0;
+  let totalLevelUps = 0;
 
   for (const inst of instances) {
     // Base XP: winners get more
@@ -385,6 +399,9 @@ async function awardXp(
     }
 
     totalXpAwarded += xpGain;
+    if (newLevel > inst.level) {
+      totalLevelUps += newLevel - inst.level;
+    }
 
     await db
       .update(tacticsUnitInstances)
@@ -401,6 +418,8 @@ async function awardXp(
       })
       .where(eq(tacticsPlayers.id, playerId));
   }
+
+  return totalLevelUps;
 }
 
 /** Award XP to all equipped equipment on units in a squad after battle */
