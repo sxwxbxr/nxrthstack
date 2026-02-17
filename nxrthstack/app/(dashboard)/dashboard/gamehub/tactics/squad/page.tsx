@@ -7,10 +7,20 @@ import { SquadBuilder } from "@/components/gamehub/tactics/squad-builder";
 import { Icons } from "@/components/icons";
 import type { Squad } from "@/lib/gamehub/tactics/types";
 
+export interface UnitInstanceData {
+  id: string;
+  templateId: string;
+  rarity: string;
+  level: number;
+  xp: number;
+  equipment: { id: string; slot: string; name: string; rarity: string }[];
+}
+
 interface SquadData {
   attackSquad: Squad | null;
   defenseSquad: Squad | null;
   unlockedUnitIds: string[];
+  unitInstances: UnitInstanceData[];
 }
 
 export default function SquadManagementPage() {
@@ -24,13 +34,18 @@ export default function SquadManagementPage() {
         // Ensure player profile exists
         await fetch("/api/gamehub/tactics/player");
 
-        const res = await fetch("/api/gamehub/tactics/squad");
-        if (!res.ok) throw new Error("Failed to load squads");
-        const json = await res.json();
+        const [squadRes, unitsRes] = await Promise.all([
+          fetch("/api/gamehub/tactics/squad"),
+          fetch("/api/gamehub/tactics/units"),
+        ]);
+        if (!squadRes.ok) throw new Error("Failed to load squads");
+        const squadJson = await squadRes.json();
+        const unitsJson = unitsRes.ok ? await unitsRes.json() : { units: [] };
         setData({
-          attackSquad: json.attackSquad as Squad | null,
-          defenseSquad: json.defenseSquad as Squad | null,
-          unlockedUnitIds: json.unlockedUnitIds as string[],
+          attackSquad: squadJson.attackSquad as Squad | null,
+          defenseSquad: squadJson.defenseSquad as Squad | null,
+          unlockedUnitIds: squadJson.unlockedUnitIds as string[],
+          unitInstances: unitsJson.units ?? [],
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
@@ -85,6 +100,7 @@ export default function SquadManagementPage() {
           attackSquad={data.attackSquad}
           defenseSquad={data.defenseSquad}
           unlockedUnitIds={data.unlockedUnitIds}
+          unitInstances={data.unitInstances}
           onSave={handleSave}
         />
       </FadeIn>

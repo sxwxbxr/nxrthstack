@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
-import { db, tacticsPlayers } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { db, tacticsPlayers, tacticsUnitInstances } from "@/lib/db";
+import { eq, and, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
 import type { Squad, SquadUnit } from "@/lib/gamehub/tactics/types";
@@ -51,9 +51,47 @@ function validateSquad(
     }
     positionSet.add(posKey);
 
-    // Check behavior rules (max 5)
-    if (unit.behaviorRules && unit.behaviorRules.length > 5) {
-      return `Too many behavior rules for ${unit.templateId} (max 5)`;
+    // Check behavior rules (max 10 for advanced mode)
+    if (unit.behaviorRules && unit.behaviorRules.length > 10) {
+      return `Too many behavior rules for ${unit.templateId} (max 10)`;
+    }
+  }
+
+  return null;
+}
+
+/** Validate that all unitInstanceIds in the squad belong to the player */
+async function validateUnitInstances(
+  squad: Squad,
+  playerId: string
+): Promise<string | null> {
+  const instanceIds = squad.units
+    .map((u) => u.unitInstanceId)
+    .filter((id): id is string => !!id);
+
+  if (instanceIds.length === 0) return null;
+
+  const instances = await db
+    .select({ id: tacticsUnitInstances.id, templateId: tacticsUnitInstances.templateId })
+    .from(tacticsUnitInstances)
+    .where(
+      and(
+        eq(tacticsUnitInstances.playerId, playerId),
+        inArray(tacticsUnitInstances.id, instanceIds)
+      )
+    );
+
+  const foundIds = new Set(instances.map((i) => i.id));
+
+  for (const unit of squad.units) {
+    if (!unit.unitInstanceId) continue;
+    if (!foundIds.has(unit.unitInstanceId)) {
+      return `Unit instance not found: ${unit.unitInstanceId}`;
+    }
+    // Verify instance matches the template
+    const inst = instances.find((i) => i.id === unit.unitInstanceId);
+    if (inst && inst.templateId !== unit.templateId) {
+      return `Unit instance ${unit.unitInstanceId} is a ${inst.templateId}, not ${unit.templateId}`;
     }
   }
 
@@ -114,6 +152,12 @@ export async function PUT(request: Request) {
     const validationError = validateSquad(squad, unlockedIds, type);
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    // Validate unit instances belong to player
+    const instanceError = await validateUnitInstances(squad, player.id);
+    if (instanceError) {
+      return NextResponse.json({ error: instanceError }, { status: 400 });
     }
 
     const updateData = type === "attack"

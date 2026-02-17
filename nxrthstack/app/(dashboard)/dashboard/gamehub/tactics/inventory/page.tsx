@@ -7,8 +7,8 @@ import { GradientText } from "@/components/ui/gradient-text";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { EquipmentCard } from "@/components/gamehub/tactics/equipment-card";
-import { getRerollCost, getStatRange, BUYABLE_SLOTS, STAT_RANGES_BY_RARITY, SLOT_TEMPLATES } from "@/lib/gamehub/tactics/equipment";
-import { RARITY_LABELS, RARITY_COLORS, type Rarity } from "@/lib/gamehub/tactics/rarities";
+import { getRerollCost, BUYABLE_SLOTS, STAT_RANGES_BY_RARITY, SLOT_TEMPLATES } from "@/lib/gamehub/tactics/equipment";
+import { RARITY_LABELS, RARITY_COLORS, RARITY_BORDERS, RARITY_BG_COLORS, type Rarity } from "@/lib/gamehub/tactics/rarities";
 import type { EquipmentStat, EquipmentSlot } from "@/lib/gamehub/tactics/types";
 import { getSellPrice } from "@/lib/gamehub/tactics/equipment";
 import { UNIT_MAP } from "@/lib/gamehub/tactics/units";
@@ -30,20 +30,27 @@ interface EquipmentRow {
   curseStats: EquipmentStat[]; unitInstanceId: string | null;
 }
 
+interface UnitRow {
+  id: string; templateId: string; rarity: string; level: number;
+  equipment: { id: string; slot: string; name: string; rarity: string }[];
+}
+
 export default function InventoryPage() {
-  const { data: playerData } = useSWR("/api/gamehub/tactics/player", fetcher);
+  const { data: playerData, mutate: mutatePlayer } = useSWR("/api/gamehub/tactics/player", fetcher);
   const { data: equipData, mutate: mutateEquip } = useSWR("/api/gamehub/tactics/equipment", fetcher);
-  const { data: unitsData } = useSWR("/api/gamehub/tactics/units", fetcher);
+  const { data: unitsData, mutate: mutateUnits } = useSWR("/api/gamehub/tactics/units", fetcher);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterSlot, setFilterSlot] = useState<string>("all");
   const [lockedStats, setLockedStats] = useState<Set<number>>(new Set());
   const [rerolling, setRerolling] = useState(false);
   const [selling, setSelling] = useState(false);
+  const [equipping, setEquipping] = useState(false);
+  const [showEquipPicker, setShowEquipPicker] = useState(false);
 
   const currency = playerData?.player?.currency ?? 0;
   const equipment: EquipmentRow[] = equipData?.equipment ?? [];
-  const units: { id: string; templateId: string; rarity: string; level: number }[] = unitsData?.units ?? [];
+  const units: UnitRow[] = unitsData?.units ?? [];
 
   const filtered = filterSlot === "all"
     ? equipment
@@ -54,7 +61,10 @@ export default function InventoryPage() {
   const unitNameMap: Record<string, string> = {};
   for (const u of units) {
     const tmpl = UNIT_MAP[u.templateId];
-    unitNameMap[u.id] = tmpl ? `${tmpl.name} (Lv.${u.level})` : u.templateId;
+    const r = u.rarity as Rarity;
+    unitNameMap[u.id] = tmpl
+      ? `${RARITY_LABELS[r]} ${tmpl.name} (Lv.${u.level})`
+      : u.templateId;
   }
 
   async function handleReroll() {
@@ -88,9 +98,47 @@ export default function InventoryPage() {
       if (res.ok) {
         setSelectedId(null);
         mutateEquip();
+        mutatePlayer();
       }
     } finally {
       setSelling(false);
+    }
+  }
+
+  async function handleEquip(unitInstanceId: string) {
+    if (!selected) return;
+    setEquipping(true);
+    try {
+      const res = await fetch(`/api/gamehub/tactics/equipment/${selected.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unitInstanceId }),
+      });
+      if (res.ok) {
+        setShowEquipPicker(false);
+        mutateEquip();
+        mutateUnits();
+      }
+    } finally {
+      setEquipping(false);
+    }
+  }
+
+  async function handleUnequip() {
+    if (!selected) return;
+    setEquipping(true);
+    try {
+      const res = await fetch(`/api/gamehub/tactics/equipment/${selected.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unitInstanceId: null }),
+      });
+      if (res.ok) {
+        mutateEquip();
+        mutateUnits();
+      }
+    } finally {
+      setEquipping(false);
     }
   }
 
@@ -174,6 +222,7 @@ export default function InventoryPage() {
                   onClick={() => {
                     setSelectedId(equip.id);
                     setLockedStats(new Set());
+                    setShowEquipPicker(false);
                   }}
                 />
               ))}
@@ -196,6 +245,11 @@ export default function InventoryPage() {
                     {RARITY_LABELS[selected.rarity as Rarity]}
                   </span>
                 </p>
+                {selected.unitInstanceId && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Equipped on <span className="text-foreground font-medium">{unitNameMap[selected.unitInstanceId]}</span>
+                  </p>
+                )}
               </div>
 
               {/* Stats with lock toggles */}
@@ -254,6 +308,37 @@ export default function InventoryPage() {
 
               {/* Actions */}
               <div className="space-y-2 pt-2 border-t border-border">
+                {/* Equip / Unequip */}
+                {selected.unitInstanceId ? (
+                  <button
+                    onClick={handleUnequip}
+                    disabled={equipping}
+                    className="flex items-center justify-center gap-2 w-full rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-400 transition-colors hover:bg-orange-500/20 disabled:opacity-50"
+                  >
+                    <Icons.ArrowRight className="h-4 w-4" />
+                    {equipping ? "Unequipping..." : "Unequip"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowEquipPicker(!showEquipPicker)}
+                    disabled={equipping || units.length === 0}
+                    className="flex items-center justify-center gap-2 w-full rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-400 transition-colors hover:bg-green-500/20 disabled:opacity-50"
+                  >
+                    <Icons.Shield className="h-4 w-4" />
+                    Equip to Unit
+                  </button>
+                )}
+
+                {/* Unit Picker for Equipping */}
+                {showEquipPicker && !selected.unitInstanceId && (
+                  <EquipUnitPicker
+                    units={units}
+                    equipmentSlot={selected.slot}
+                    onSelect={handleEquip}
+                    equipping={equipping}
+                  />
+                )}
+
                 {/* Reroll */}
                 <button
                   onClick={handleReroll}
@@ -283,6 +368,78 @@ export default function InventoryPage() {
             </div>
           )}
         </FadeIn>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Equip Unit Picker - Choose which unit instance to equip an item to
+// ============================================================================
+
+function EquipUnitPicker({
+  units,
+  equipmentSlot,
+  onSelect,
+  equipping,
+}: {
+  units: UnitRow[];
+  equipmentSlot: string;
+  onSelect: (unitInstanceId: string) => void;
+  equipping: boolean;
+}) {
+  const RARITY_ORDER = ["secret", "mythic", "legendary", "epic", "rare", "uncommon", "common"];
+  const sorted = [...units].sort((a, b) => {
+    const ra = RARITY_ORDER.indexOf(a.rarity);
+    const rb = RARITY_ORDER.indexOf(b.rarity);
+    if (ra !== rb) return ra - rb;
+    return b.level - a.level;
+  });
+
+  return (
+    <div className="rounded-lg border border-border bg-background p-3 space-y-2">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        Choose unit to equip
+      </p>
+      <div className="max-h-48 overflow-y-auto space-y-1.5">
+        {sorted.map((unit) => {
+          const tmpl = UNIT_MAP[unit.templateId];
+          const r = unit.rarity as Rarity;
+          const currentInSlot = unit.equipment.find((e) => e.slot === equipmentSlot);
+          return (
+            <button
+              key={unit.id}
+              type="button"
+              onClick={() => onSelect(unit.id)}
+              disabled={equipping}
+              className={cn(
+                "flex items-center justify-between w-full rounded-md border p-2 text-left text-sm transition-colors",
+                RARITY_BORDERS[r],
+                RARITY_BG_COLORS[r],
+                "hover:ring-1 hover:ring-primary/50 disabled:opacity-50"
+              )}
+            >
+              <div>
+                <span className={cn("font-semibold", RARITY_COLORS[r])}>
+                  {RARITY_LABELS[r]} {tmpl?.name ?? unit.templateId}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">Lv.{unit.level}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {currentInSlot ? (
+                  <span className="text-yellow-400">Replace: {currentInSlot.name}</span>
+                ) : (
+                  <span>Empty slot</span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+        {sorted.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-2">
+            No units available. Spin the Lucky Wheel to get units!
+          </p>
+        )}
       </div>
     </div>
   );
