@@ -42,7 +42,7 @@ export async function POST() {
 
     // Get active cooldowns for this attacker
     const cooldowns = await db
-      .select({ defenderId: tacticsMatchCooldowns.defenderId })
+      .select({ defenderId: tacticsMatchCooldowns.defenderId, expiresAt: tacticsMatchCooldowns.expiresAt })
       .from(tacticsMatchCooldowns)
       .where(
         and(
@@ -53,7 +53,9 @@ export async function POST() {
     const cooldownIds = cooldowns.map((c) => c.defenderId);
 
     // Try expanding rating window to find an opponent
-    let defender = null;
+    type PlayerRow = typeof tacticsPlayers.$inferSelect;
+    let defender: PlayerRow | null = null;
+    let allValidCandidates: PlayerRow[] = [];
     for (let window = INITIAL_RATING_WINDOW; window <= MAX_RATING_WINDOW; window += 100) {
       const candidates = await db
         .select()
@@ -67,18 +69,36 @@ export async function POST() {
         )
         .limit(20);
 
-      // Filter out cooldowns and players without defense squads
-      const eligible = candidates.filter((c) => {
-        if (cooldownIds.includes(c.userId)) return false;
+      // Track all valid candidates (valid defense squad) for cooldown fallback
+      const valid = candidates.filter((c) => {
         const defSquad = c.defenseSquad as Squad | null;
         return defSquad?.units?.length && defSquad.units.length >= 3;
       });
+      if (valid.length > 0 && allValidCandidates.length === 0) {
+        allValidCandidates = valid;
+      }
+
+      // Filter out cooldowns
+      const eligible = valid.filter((c) => !cooldownIds.includes(c.userId));
 
       if (eligible.length > 0) {
         // Pick random defender from eligible
         defender = eligible[Math.floor(Math.random() * eligible.length)];
         break;
       }
+    }
+
+    // Fallback: if all opponents are on cooldown, pick the one whose cooldown expires soonest
+    if (!defender && allValidCandidates.length > 0) {
+      const cooldownMap = new Map(cooldowns.map((c) => [c.defenderId, c.expiresAt]));
+      const sorted = allValidCandidates
+        .filter((c) => cooldownMap.has(c.userId))
+        .sort((a, b) => {
+          const aExp = cooldownMap.get(a.userId)!.getTime();
+          const bExp = cooldownMap.get(b.userId)!.getTime();
+          return aExp - bExp; // soonest expiry first
+        });
+      defender = sorted[0] ?? allValidCandidates[0];
     }
 
     if (!defender) {
