@@ -18,6 +18,10 @@ export const QUEST_POOL: QuestDefinition[] = [
   { type: "spin_wheel", label: "Spin the Wheel", target: 1, reward: 100 },
   { type: "equip_item", label: "Equip 2 Items", target: 2, reward: 75 },
   { type: "level_up_unit", label: "Level Up a Unit", target: 1, reward: 125 },
+  { type: "campaign_clear", label: "Clear 2 Campaign Levels", target: 2, reward: 200 },
+  { type: "campaign_3star", label: "Get 3 Stars on a Campaign Level", target: 1, reward: 150 },
+  { type: "warfare_battle", label: "Play a Warfare Battle", target: 1, reward: 150 },
+  { type: "collect_unit", label: "Get a New Unit", target: 1, reward: 200 },
 ];
 
 /** Pick 3 random quests from the pool using a daily seed */

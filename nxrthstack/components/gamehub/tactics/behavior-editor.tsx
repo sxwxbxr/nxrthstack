@@ -168,7 +168,12 @@ export function BehaviorEditor({ templateId, rules, behaviorScript, onChange, on
         {mode === "advanced" && (
           <AdvancedBehaviorEditor
             initialScript={script || rulesToScript(localRules)}
-            unitAbilities={unit?.abilities.map((a) => ({ id: a.id, name: a.name })) ?? []}
+            unitAbilities={unit?.abilities.map((a) => ({
+              id: a.id,
+              name: a.name,
+              cooldownTicks: a.cooldownTicks,
+              description: a.description,
+            })) ?? []}
             onSave={handleAdvancedSave}
             onCancel={onClose}
           />
@@ -244,7 +249,7 @@ export function BehaviorEditor({ templateId, rules, behaviorScript, onChange, on
                 </select>
               </div>
 
-              {/* Condition Param */}
+              {/* Condition Param - HP Threshold */}
               {CONDITIONS_WITH_PARAM.includes(rule.condition) && (
                 <div className="mb-2">
                   <label className="text-xs text-muted-foreground">HP Threshold (%)</label>
@@ -256,6 +261,31 @@ export function BehaviorEditor({ templateId, rules, behaviorScript, onChange, on
                     onChange={(e) => updateRule(index, { conditionParam: parseInt(e.target.value) || 50 })}
                     className="mt-1 w-full rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground"
                   />
+                </div>
+              )}
+
+              {/* Condition Param - Ability selector for ABILITY_READY */}
+              {rule.condition === "ABILITY_READY" && unit && (
+                <div className="mb-2">
+                  <label className="text-xs text-muted-foreground">Which Ability?</label>
+                  <select
+                    value={rule.conditions?.[0]?.conditionStringParam ?? rule.actionParam ?? ""}
+                    onChange={(e) => {
+                      const abilityId = e.target.value || undefined;
+                      updateRule(index, {
+                        conditions: [{
+                          condition: "ABILITY_READY",
+                          conditionStringParam: abilityId,
+                        }],
+                      });
+                    }}
+                    className="mt-1 w-full rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground"
+                  >
+                    <option value="">Any ability</option>
+                    {unit.abilities.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
                 </div>
               )}
 

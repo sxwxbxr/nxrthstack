@@ -3,7 +3,7 @@
 // ============================================================================
 
 // --- Unit Classes ---
-export type UnitClass = "Tank" | "Ranger" | "Healer" | "Assassin";
+export type UnitClass = "Tank" | "Ranger" | "Healer" | "Assassin" | "Mage" | "Paladin" | "Berserker";
 
 export interface ClassInfo {
   tagline: string;
@@ -40,6 +40,27 @@ export const CLASS_DESCRIPTIONS: Record<UnitClass, ClassInfo> = {
       "Assassins are glass cannons that specialize in eliminating high-value targets. With the highest speed and damage, they strike fast and hard. Their abilities let them dash in and vanish from danger.",
     strengths: ["Highest speed", "Burst damage", "Evasion abilities"],
     weaknesses: ["Very low HP", "Low defense", "Abilities require close range"],
+  },
+  Mage: {
+    tagline: "Arcane Devastators",
+    description:
+      "Mages channel devastating magical energy from afar. Their spells can bypass armor and hit multiple targets. Fragile but deadly when protected by tanks and healers.",
+    strengths: ["Bypasses defense", "AoE magic damage", "Long cast range"],
+    weaknesses: ["Very fragile", "Slow movement", "Long cooldowns"],
+  },
+  Paladin: {
+    tagline: "Holy Warriors",
+    description:
+      "Paladins blend martial prowess with divine magic. They can tank damage, heal allies, and buff nearby units. Jack-of-all-trades who anchor any formation.",
+    strengths: ["Hybrid tank/healer", "Group buffs", "Self-sustain"],
+    weaknesses: ["Lower damage than pure DPS", "Short range", "Spread thin between roles"],
+  },
+  Berserker: {
+    tagline: "Raging Destroyers",
+    description:
+      "Berserkers grow stronger as they take damage. Their rage mechanic turns near-death into devastating power. High risk, high reward melee fighters.",
+    strengths: ["Damage scales with missing HP", "AoE melee", "Survive lethal damage"],
+    weaknesses: ["Must be low HP for max power", "No ranged options", "Moderate defense"],
   },
 };
 
@@ -122,11 +143,18 @@ export type BehaviorAction =
   | "HOLD_POSITION"
   | "MOVE_TO_COVER";
 
+export interface BehaviorConditionEntry {
+  condition: BehaviorCondition;
+  conditionParam?: number;        // HP threshold %
+  conditionStringParam?: string;  // Ability ID for ability_ready
+}
+
 export interface BehaviorRule {
   id: string;
   priority: number;
-  condition: BehaviorCondition;
-  conditionParam?: number; // e.g., HP threshold %
+  condition: BehaviorCondition;               // legacy single condition
+  conditionParam?: number;                    // legacy HP threshold %
+  conditions?: BehaviorConditionEntry[];      // compound conditions (AND logic)
   action: BehaviorAction;
   actionParam?: string; // e.g., ability ID
 }

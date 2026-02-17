@@ -13,7 +13,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false 
 
 interface AdvancedBehaviorEditorProps {
   initialScript: string;
-  unitAbilities: { id: string; name: string }[];
+  unitAbilities: { id: string; name: string; cooldownTicks?: number; description?: string }[];
   onSave: (rules: BehaviorRule[], script: string) => void;
   onCancel: () => void;
 }
@@ -40,9 +40,9 @@ export function AdvancedBehaviorEditor({
   function handleEditorMount(editor: unknown, monaco: typeof import("monaco-editor")) {
     monacoRef.current = monaco;
 
-    // Register language
+    // Register language with unit-specific ability suggestions
     import("@/lib/gamehub/tactics/tacticsscript/monaco-lang").then(({ registerTacticsScriptLanguage }) => {
-      registerTacticsScriptLanguage(monaco);
+      registerTacticsScriptLanguage(monaco, unitAbilities);
     });
   }
 

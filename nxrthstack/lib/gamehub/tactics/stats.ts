@@ -14,6 +14,9 @@ const CLASS_PRIMARY_STATS: Record<string, StatType[]> = {
   Ranger: ["attack", "critChance"],
   Healer: ["hp", "speed"],
   Assassin: ["attack", "speed"],
+  Mage: ["attack", "critDamage"],
+  Paladin: ["hp", "defense"],
+  Berserker: ["attack", "hp"],
 };
 
 // Level bonus: meaningful scaling that matters at higher levels

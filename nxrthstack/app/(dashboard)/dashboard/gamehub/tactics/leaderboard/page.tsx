@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useSWR from "swr";
+import Link from "next/link";
+import { motion } from "motion/react";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
 import { Icons } from "@/components/icons";
@@ -9,24 +11,37 @@ import { cn } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+type Tab = "pvp" | "campaign" | "warfare";
+
+const TABS: { id: Tab; label: string; icon: React.ReactNode; valueLabel: string }[] = [
+  { id: "pvp", label: "PvP", icon: <Icons.Swords className="h-4 w-4" />, valueLabel: "Rating" },
+  { id: "campaign", label: "Campaign", icon: <Icons.Map className="h-4 w-4" />, valueLabel: "Level" },
+  { id: "warfare", label: "Warfare", icon: <Icons.Shield className="h-4 w-4" />, valueLabel: "Rating" },
+];
+
 interface LeaderboardPlayer {
   rank: number;
   userId: string;
   name: string;
-  rating: number;
+  value: number;
   wins: number;
   losses: number;
+  campaignLevel: number;
   winRate: number;
 }
 
 export default function TacticsLeaderboardPage() {
-  const { data, isLoading } = useSWR("/api/gamehub/tactics/leaderboard", fetcher, {
-    refreshInterval: 30000,
-  });
+  const [tab, setTab] = useState<Tab>("pvp");
+  const { data, isLoading } = useSWR(
+    `/api/gamehub/tactics/leaderboard?tab=${tab}`,
+    fetcher,
+    { refreshInterval: 30000 }
+  );
 
   const leaderboard: LeaderboardPlayer[] = data?.leaderboard ?? [];
   const myRank: number | null = data?.myRank ?? null;
-  const myRating: number = data?.myRating ?? 1000;
+  const myValue: number = data?.myValue ?? (tab === "campaign" ? 0 : 1000);
+  const currentTab = TABS.find((t) => t.id === tab)!;
 
   return (
     <div className="space-y-8">
@@ -36,8 +51,37 @@ export default function TacticsLeaderboardPage() {
             <GradientText>Leaderboard</GradientText>
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Top 50 players ranked by rating. Climb the ladder!
+            Top 50 players. Click a name to view their profile.
           </p>
+        </div>
+      </FadeIn>
+
+      {/* Tab switcher */}
+      <FadeIn delay={0.05}>
+        <div className="flex gap-1 p-1 bg-muted/30 rounded-sm border-2 border-border w-fit">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={cn(
+                "relative flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-sm transition-colors",
+                tab === t.id
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab === t.id && (
+                <motion.div
+                  layoutId="leaderboard-tab"
+                  className="absolute inset-0 bg-primary/10 border-2 border-primary/30 rounded-sm"
+                />
+              )}
+              <span className="relative flex items-center gap-1.5">
+                {t.icon}
+                {t.label}
+              </span>
+            </button>
+          ))}
         </div>
       </FadeIn>
 
@@ -47,12 +91,14 @@ export default function TacticsLeaderboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 font-bold text-primary">
-                {myRank ? `#${myRank}` : "—"}
+                {myRank ? `#${myRank}` : "--"}
               </div>
               <div>
                 <p className="font-medium text-foreground">Your Position</p>
                 <p className="text-sm text-muted-foreground">
-                  {myRating.toLocaleString()} rating
+                  {tab === "campaign"
+                    ? `Level ${myValue}`
+                    : `${myValue.toLocaleString()} rating`}
                 </p>
               </div>
             </div>
@@ -92,18 +138,27 @@ export default function TacticsLeaderboardPage() {
                   <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground tactics-label">
                     Player
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 tactics-label">
-                    Rating
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell tactics-label">
-                    Wins
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell tactics-label">
-                    Losses
-                  </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-24 tactics-label">
-                    Win Rate
+                    {currentTab.valueLabel}
                   </th>
+                  {tab !== "campaign" && (
+                    <>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell tactics-label">
+                        Wins
+                      </th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell tactics-label">
+                        Losses
+                      </th>
+                      <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-24 tactics-label">
+                        Win Rate
+                      </th>
+                    </>
+                  )}
+                  {tab === "campaign" && (
+                    <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-24 hidden md:table-cell tactics-label">
+                      PvP Win Rate
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -125,28 +180,42 @@ export default function TacticsLeaderboardPage() {
                           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
                             {player.name[0]?.toUpperCase() ?? "?"}
                           </div>
-                          <p className="font-medium text-foreground">
+                          <Link
+                            href={`/dashboard/gamehub/tactics/profile/${player.userId}`}
+                            className="font-medium text-foreground hover:text-primary transition-colors"
+                          >
                             {player.name}
                             {isMe && (
                               <span className="ml-2 text-xs text-primary">(You)</span>
                             )}
-                          </p>
+                          </Link>
                         </div>
                       </td>
                       <td className="py-3 px-4 text-right">
                         <span className="font-semibold text-foreground">
-                          {player.rating.toLocaleString()}
+                          {tab === "campaign"
+                            ? `Lv.${player.value}`
+                            : player.value.toLocaleString()}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right hidden md:table-cell">
-                        <span className="text-green-400">{player.wins}</span>
-                      </td>
-                      <td className="py-3 px-4 text-right hidden md:table-cell">
-                        <span className="text-red-400">{player.losses}</span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-muted-foreground">{player.winRate}%</span>
-                      </td>
+                      {tab !== "campaign" && (
+                        <>
+                          <td className="py-3 px-4 text-right hidden md:table-cell">
+                            <span className="text-green-400">{player.wins}</span>
+                          </td>
+                          <td className="py-3 px-4 text-right hidden md:table-cell">
+                            <span className="text-red-400">{player.losses}</span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className="text-muted-foreground">{player.winRate}%</span>
+                          </td>
+                        </>
+                      )}
+                      {tab === "campaign" && (
+                        <td className="py-3 px-4 text-right hidden md:table-cell">
+                          <span className="text-muted-foreground">{player.winRate}%</span>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

@@ -1567,6 +1567,17 @@ export const tacticsPlayers = pgTable("tactics_players", {
   totalXpEarned: integer("total_xp_earned").default(0).notNull(),
   winStreak: integer("win_streak").default(0).notNull(),
   lastFirstWinAt: timestamp("last_first_win_at", { mode: "date" }),
+  // Campaign
+  campaignLevel: integer("campaign_level").default(0).notNull(),
+  // Warfare
+  warfareAttackSquad: jsonb("warfare_attack_squad"),
+  warfareDefenseSquad: jsonb("warfare_defense_squad"),
+  warfareRating: integer("warfare_rating").default(1000).notNull(),
+  warfareWins: integer("warfare_wins").default(0).notNull(),
+  warfareLosses: integer("warfare_losses").default(0).notNull(),
+  // Login streaks
+  loginStreak: integer("login_streak").default(0).notNull(),
+  lastLoginDate: varchar("last_login_date", { length: 10 }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
@@ -1593,6 +1604,21 @@ export const tacticsMatches = pgTable("tactics_matches", {
   durationSeconds: integer("duration_seconds").notNull(),
   stats: jsonb("stats").notNull(), // BattleStats JSON
   events: jsonb("events").notNull(), // BattleEvent[] JSON
+  matchType: varchar("match_type", { length: 20 }).default("standard").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Campaign attempts (PvE)
+export const tacticsCampaignAttempts = pgTable("tactics_campaign_attempts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => tacticsPlayers.id, { onDelete: "cascade" }),
+  level: integer("level").notNull(),
+  won: boolean("won").notNull(),
+  stars: integer("stars").default(0).notNull(), // 1-3
+  currencyEarned: integer("currency_earned").default(0).notNull(),
+  durationTicks: integer("duration_ticks").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
@@ -1970,3 +1996,15 @@ export type TacticsDailyQuest = typeof tacticsDailyQuests.$inferSelect;
 export type NewTacticsDailyQuest = typeof tacticsDailyQuests.$inferInsert;
 export type TacticsAchievement = typeof tacticsAchievements.$inferSelect;
 export type NewTacticsAchievement = typeof tacticsAchievements.$inferInsert;
+
+// Game config (admin-tunable key-value settings)
+export const tacticsGameConfig = pgTable("tactics_game_config", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: jsonb("value").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+export type TacticsGameConfig = typeof tacticsGameConfig.$inferSelect;
+export type NewTacticsGameConfig = typeof tacticsGameConfig.$inferInsert;

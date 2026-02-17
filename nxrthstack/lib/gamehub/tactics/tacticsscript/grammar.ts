@@ -13,6 +13,10 @@
  *   IF self_low_hp(30) THEN heal_lowest_ally
  *   IF ability_ready("shield_wall") THEN use_ability("shield_wall")
  *
+ * Compound conditions (AND logic):
+ *   IF ability_ready("fireball") AND enemy_in_range THEN use_ability("fireball")
+ *   IF self_low_hp(30) AND no_enemy_in_range THEN move_to_cover
+ *
  * Special rules:
  *   ELSE <action>           // Fallback if no other rule matched (same as IF always THEN ...)
  *

@@ -133,6 +133,42 @@ export default async function TacticsDashboardPage() {
         </div>
       </FadeIn>
 
+      {/* Login Streak & Campaign */}
+      <FadeIn delay={0.25}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Login Streak */}
+          <div className="rounded-sm border-2 border-border bg-card p-4 tactics-card">
+            <div className="flex items-center gap-2 mb-3">
+              <Icons.Flame className="h-5 w-5 text-orange-400" />
+              <h3 className="font-semibold text-foreground tactics-heading">Login Streak</h3>
+            </div>
+            <p className="text-2xl font-bold text-orange-400 mb-1">
+              Day {player?.loginStreak ?? 0}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Log in daily to earn bonus currency!
+            </p>
+          </div>
+
+          {/* Campaign Progress */}
+          <div className="rounded-sm border-2 border-border bg-card p-4 tactics-card">
+            <div className="flex items-center gap-2 mb-3">
+              <Icons.Map className="h-5 w-5 text-green-400" />
+              <h3 className="font-semibold text-foreground tactics-heading">Campaign</h3>
+            </div>
+            <p className="text-2xl font-bold text-green-400 mb-1">
+              Level {player?.campaignLevel ?? 0}
+            </p>
+            <Link
+              href="/dashboard/gamehub/tactics/campaign"
+              className="text-xs text-primary hover:underline"
+            >
+              Continue Campaign →
+            </Link>
+          </div>
+        </div>
+      </FadeIn>
+
       {/* Unit Roster Progress */}
       <FadeIn delay={0.3}>
         <div className="rounded-xl border border-border bg-card p-6">

@@ -38,6 +38,11 @@ const navItems = [
     icon: Icons.Gamepad,
   },
   {
+    title: "Tactics",
+    href: "/admin/gamehub/tactics",
+    icon: Icons.Swords,
+  },
+  {
     title: "Minecraft",
     href: "/admin/gamehub/minecraft",
     icon: Icons.Server,

@@ -4,6 +4,7 @@ import type {
   BattleStats,
   BattleUnit,
   BehaviorAction,
+  BehaviorConditionEntry,
   BehaviorRule,
   ComputedUnitStats,
   GameState,
@@ -17,8 +18,6 @@ import { selectMap } from "./maps";
 import { createRng, type SeededRng } from "./rng";
 import { findNextStep, tileDistance } from "./pathfinding";
 import { hasLineOfSight, isOnCover } from "./los";
-import { getMilestonePerks } from "./milestones";
-import type { UnitClass } from "./types";
 
 /** Optional pre-computed stats keyed by instanceId */
 export type StatsOverrideEntry = ComputedUnitStats & { perks?: string[] };
@@ -197,15 +196,18 @@ function processBuffs(state: GameState): void {
       const ability = ALL_ABILITIES[buff.abilityId];
       if (!ability) continue;
 
-      // Regeneration / Poison (heal or damage over time)
-      if (ability.id === "regeneration" && buff.effectType === "buff") {
-        unit.currentHp = Math.min(unit.maxHp, unit.currentHp + ability.effectValue);
-        state.events.push({
-          tick: state.tick,
-          type: "HEAL",
-          unitId: unit.instanceId,
-          value: ability.effectValue,
-        });
+      // Regeneration / Totem Pulse (heal over time)
+      if ((ability.id === "regeneration" || ability.id === "totem_pulse") && buff.effectType === "buff") {
+        const healAmount = Math.min(ability.effectValue, unit.maxHp - unit.currentHp);
+        if (healAmount > 0) {
+          unit.currentHp += healAmount;
+          state.events.push({
+            tick: state.tick,
+            type: "HEAL",
+            unitId: unit.instanceId,
+            value: healAmount,
+          });
+        }
       }
       if (ability.id === "poison_strike" && buff.effectType === "debuff") {
         unit.currentHp -= ability.effectValue;
@@ -252,7 +254,7 @@ function evaluateBehavior(
   const allies = getAllies(unit, state);
 
   for (const rule of rules) {
-    const match = checkCondition(unit, rule, enemies, allies, state);
+    const match = checkConditions(unit, rule, enemies, allies, state);
     if (match) {
       return resolveAction(unit, rule, enemies, allies, state, rng);
     }
@@ -262,16 +264,43 @@ function evaluateBehavior(
   return { action: "MOVE_TOWARDS_ENEMY" };
 }
 
-function checkCondition(
+/** Check all conditions for a rule (supports compound AND conditions) */
+function checkConditions(
   unit: BattleUnit,
   rule: BehaviorRule,
   enemies: BattleUnit[],
   allies: BattleUnit[],
   state: GameState
 ): boolean {
-  const threshold = rule.conditionParam ?? 50;
+  // Compound conditions: ALL must match (AND logic)
+  if (rule.conditions && rule.conditions.length > 0) {
+    return rule.conditions.every((entry) =>
+      checkSingleCondition(unit, entry, enemies, allies, state, rule.actionParam)
+    );
+  }
 
-  switch (rule.condition) {
+  // Legacy single condition
+  return checkSingleCondition(
+    unit,
+    { condition: rule.condition, conditionParam: rule.conditionParam },
+    enemies,
+    allies,
+    state,
+    rule.actionParam
+  );
+}
+
+function checkSingleCondition(
+  unit: BattleUnit,
+  entry: BehaviorConditionEntry,
+  enemies: BattleUnit[],
+  allies: BattleUnit[],
+  state: GameState,
+  actionParam?: string
+): boolean {
+  const threshold = entry.conditionParam ?? 50;
+
+  switch (entry.condition) {
     case "ENEMY_IN_RANGE": {
       return enemies.some(
         (e) =>
@@ -295,7 +324,8 @@ function checkCondition(
       );
     }
     case "ABILITY_READY": {
-      const abilityId = rule.actionParam;
+      // Use conditionStringParam first (new), fall back to actionParam (legacy)
+      const abilityId = entry.conditionStringParam ?? actionParam;
       if (!abilityId) return unit.abilities.some((a) => !unit.abilityCooldowns[a.id] || unit.abilityCooldowns[a.id] <= state.tick);
       return !unit.abilityCooldowns[abilityId] || unit.abilityCooldowns[abilityId] <= state.tick;
     }
@@ -343,6 +373,10 @@ function resolveAction(
       const abilityId = rule.actionParam ?? unit.abilities[0]?.id;
       const ability = ALL_ABILITIES[abilityId];
       if (ability) {
+        // Self-targeted abilities (range 0): rage, counter_stance, shadow_dodge, aoe_taunt, etc.
+        if (ability.range === 0) {
+          return { action: "USE_ABILITY", target: unit, abilityId };
+        }
         if (ability.effectType === "heal" || ability.effectType === "buff") {
           const target = findLowestHpAlly(unit, allies);
           return { action: "USE_ABILITY", target: target ?? undefined, abilityId };
@@ -462,7 +496,7 @@ function executeAction(
       const dist = tileDistance(unit.position, action.target.position);
 
       if (dist <= ability.range) {
-        performAbility(unit, action.target, ability.id, state, rng);
+        performAbility(unit, action.target, ability.id, state, rng, firstStrikeUsed);
         unit.abilityCooldowns[abilityId] = state.tick + ability.cooldownTicks;
       } else {
         moveTowards(unit, action.target.position, state, occupiedTiles);
@@ -483,7 +517,7 @@ function executeAction(
 
       const dist = tileDistance(unit.position, action.target.position);
       if (dist <= ability.range) {
-        performAbility(unit, action.target, ability.id, state, rng);
+        performAbility(unit, action.target, ability.id, state, rng, firstStrikeUsed);
         unit.abilityCooldowns[ability.id] = state.tick + ability.cooldownTicks;
       } else {
         moveTowards(unit, action.target.position, state, occupiedTiles);
@@ -526,13 +560,26 @@ function performAttack(
     return; // Can't target vanished units
   }
 
+  // Dodge check: shadow_dodge buff gives 50% dodge chance
+  if (target.buffs.some((b) => b.abilityId === "shadow_dodge")) {
+    if (rng.chance(0.5)) return; // Attack dodged
+  }
+
   // Piercing perk: ignore 25% of target defense
-  const effectiveDefense = attacker.perks.includes("piercing")
-    ? target.defense * 0.75
-    : target.defense;
+  // Spell pierce perk (Mage): ignore 50% of target defense
+  let defenseReduction = 1;
+  if (attacker.perks.includes("spell_pierce")) defenseReduction = 0.5;
+  else if (attacker.perks.includes("piercing")) defenseReduction = 0.75;
+  const effectiveDefense = target.defense * defenseReduction;
+
+  // Rage buff: add attack boost from rage ability
+  const attackBuff = attacker.buffs
+    .filter((b) => b.effectType === "buff" && b.abilityId === "rage")
+    .reduce((sum, b) => sum + b.value, 0);
+  const effectiveAttack = attacker.attack + attackBuff;
 
   const isCrit = rng.chance(attacker.critChance);
-  const baseDamage = Math.max(1, attacker.attack - effectiveDefense / 2);
+  const baseDamage = Math.max(1, effectiveAttack - effectiveDefense / 2);
 
   // Headshot perk: crits deal +50% bonus
   const critMult = isCrit
@@ -547,9 +594,15 @@ function performAttack(
     damage = Math.round(damage * 1.5);
   }
 
-  // Defense buffs
+  // Blood rage perk (Berserker): +30% damage when below 30% HP
+  if (attacker.perks.includes("blood_rage") && attacker.currentHp < attacker.maxHp * 0.3) {
+    damage = Math.round(damage * 1.3);
+  }
+
+  // Defense buffs (only actual defense-boosting abilities)
+  const DEFENSE_BUFF_IDS = new Set(["shield_wall", "natures_shield", "smoke_bomb", "holy_aura"]);
   const defenseBoost = target.buffs
-    .filter((b) => b.effectType === "buff" && b.abilityId !== "vanish")
+    .filter((b) => b.effectType === "buff" && DEFENSE_BUFF_IDS.has(b.abilityId))
     .reduce((sum, b) => sum + b.value, 0);
   if (defenseBoost > 0) {
     damage = Math.max(1, damage - defenseBoost);
@@ -565,6 +618,21 @@ function performAttack(
     damage = Math.max(1, Math.round(damage * 0.8));
   }
 
+  // Blessed aura perk (Paladin): nearby allies with this perk reduce damage by 10%
+  const nearbyPaladins = state.units.filter(
+    (u) => u.isAlive && u.side === target.side && u.instanceId !== target.instanceId &&
+      u.perks.includes("blessed_aura") && tileDistance(u.position, target.position) <= 2
+  );
+  if (nearbyPaladins.length > 0) {
+    damage = Math.max(1, Math.round(damage * 0.9));
+  }
+
+  // Divine shield perk (Paladin): absorb first hit completely
+  if (target.perks.includes("divine_shield") && !(firstStrikeUsed && firstStrikeUsed.has(target.instanceId + "_divine"))) {
+    if (firstStrikeUsed) firstStrikeUsed.add(target.instanceId + "_divine");
+    damage = 0;
+  }
+
   state.events.push({
     tick: state.tick,
     type: "ATTACK",
@@ -574,12 +642,18 @@ function performAttack(
     toPosition: { ...target.position },
   });
 
-  applyDamage(target, damage, state, isCrit);
+  applyDamage(target, damage, state, isCrit, firstStrikeUsed);
 
   // Thorns perk: reflect 15% melee damage
   if (target.isAlive && target.perks.includes("thorns") && attacker.attackRange <= 1) {
     const thornsDmg = Math.max(1, Math.round(damage * 0.15));
-    applyDamage(attacker, thornsDmg, state, false);
+    applyDamage(attacker, thornsDmg, state, false, firstStrikeUsed);
+  }
+
+  // Counter stance buff: reflect 50% melee damage
+  if (target.isAlive && target.buffs.some((b) => b.abilityId === "counter_stance") && attacker.attackRange <= 1) {
+    const reflectDmg = Math.max(1, Math.round(damage * 0.5));
+    applyDamage(attacker, reflectDmg, state, false, firstStrikeUsed);
   }
 }
 
@@ -588,7 +662,8 @@ function performAbility(
   target: BattleUnit,
   abilityId: string,
   state: GameState,
-  rng: SeededRng
+  rng: SeededRng,
+  firstStrikeUsed?: Set<string>
 ): void {
   const ability = ALL_ABILITIES[abilityId];
   if (!ability) return;
@@ -603,21 +678,38 @@ function performAbility(
     toPosition: { ...target.position },
   });
 
+  // Arcane mastery perk: abilities deal +25% damage
+  const masteryMult = caster.perks.includes("arcane_mastery") ? 1.25 : 1;
+
   switch (ability.effectType) {
     case "damage": {
       // AoE damage
       if (ability.aoe) {
         const targets = getUnitsInRadius(target.position, ability.aoeRadius, state, caster.side === "attacker" ? "defender" : "attacker");
         for (const t of targets) {
-          applyDamage(t, ability.effectValue, state, false);
+          const dmg = Math.round(ability.effectValue * masteryMult);
+          applyDamage(t, dmg, state, false, firstStrikeUsed);
         }
       } else {
-        // Piercing shot ignores defense
+        // Piercing shot ignores all defense
         if (abilityId === "piercing_shot") {
-          applyDamage(target, ability.effectValue, state, false);
+          const dmg = Math.round(ability.effectValue * masteryMult);
+          applyDamage(target, dmg, state, false, firstStrikeUsed);
+        }
+        // Arcane blast ignores 50% defense
+        else if (abilityId === "arcane_blast") {
+          const effectiveDef = target.defense * 0.5;
+          const dmg = Math.max(1, Math.round((ability.effectValue - effectiveDef / 2) * masteryMult));
+          applyDamage(target, dmg, state, false, firstStrikeUsed);
+        }
+        // Bolt shot ignores 25% defense
+        else if (abilityId === "bolt_shot") {
+          const effectiveDef = target.defense * 0.75;
+          const dmg = Math.max(1, Math.round((ability.effectValue - effectiveDef / 2) * masteryMult));
+          applyDamage(target, dmg, state, false, firstStrikeUsed);
         } else {
-          const dmg = Math.max(1, ability.effectValue - target.defense / 2);
-          applyDamage(target, Math.round(dmg), state, false);
+          const dmg = Math.max(1, Math.round((ability.effectValue - target.defense / 2) * masteryMult));
+          applyDamage(target, dmg, state, false, firstStrikeUsed);
         }
       }
       break;
@@ -625,11 +717,31 @@ function performAbility(
     case "heal": {
       if (ability.aoe) {
         const targets = getUnitsInRadius(caster.position, ability.aoeRadius, state, caster.side);
-        for (const t of targets) {
-          applyHeal(t, ability.effectValue, state);
+        if (ability.duration > 0) {
+          // AoE HoT (totem_pulse): apply heal-over-time buff to all allies in radius
+          for (const t of targets) {
+            t.buffs.push({
+              abilityId,
+              effectType: "buff",
+              value: ability.effectValue,
+              expiresAtTick: state.tick + ability.duration,
+            });
+            state.events.push({
+              tick: state.tick,
+              type: "BUFF",
+              unitId: t.instanceId,
+              abilityId,
+              value: ability.effectValue,
+            });
+          }
+        } else {
+          // Instant AoE heal (group_heal, divine_light)
+          for (const t of targets) {
+            applyHeal(t, ability.effectValue, state);
+          }
         }
       } else if (ability.duration > 0) {
-        // HoT (regeneration)
+        // Single-target HoT (regeneration)
         target.buffs.push({
           abilityId,
           effectType: "buff",
@@ -649,36 +761,93 @@ function performAbility(
       break;
     }
     case "buff": {
-      target.buffs.push({
-        abilityId,
-        effectType: "buff",
-        value: ability.effectValue,
-        expiresAtTick: state.tick + ability.duration,
-      });
-      state.events.push({
-        tick: state.tick,
-        type: "BUFF",
-        unitId: target.instanceId,
-        abilityId,
-        value: ability.effectValue,
-      });
-      break;
-    }
-    case "debuff": {
-      if (ability.duration > 0) {
-        target.buffs.push({
+      if (ability.aoe) {
+        // AoE buff: apply to all allies in radius (holy_aura, smoke_bomb)
+        const targets = getUnitsInRadius(caster.position, ability.aoeRadius, state, caster.side);
+        for (const t of targets) {
+          t.buffs.push({
+            abilityId,
+            effectType: "buff",
+            value: ability.effectValue,
+            expiresAtTick: state.tick + ability.duration,
+          });
+          state.events.push({
+            tick: state.tick,
+            type: "BUFF",
+            unitId: t.instanceId,
+            abilityId,
+            value: ability.effectValue,
+          });
+        }
+      } else if (ability.range === 0) {
+        // Self-buff: rage, counter_stance, shadow_dodge, vanish, shield_wall
+        caster.buffs.push({
           abilityId,
-          effectType: "debuff",
+          effectType: "buff",
           value: ability.effectValue,
           expiresAtTick: state.tick + ability.duration,
         });
         state.events.push({
           tick: state.tick,
-          type: "DEBUFF",
+          type: "BUFF",
+          unitId: caster.instanceId,
+          abilityId,
+          value: ability.effectValue,
+        });
+      } else {
+        // Targeted buff: natures_shield, etc.
+        target.buffs.push({
+          abilityId,
+          effectType: "buff",
+          value: ability.effectValue,
+          expiresAtTick: state.tick + ability.duration,
+        });
+        state.events.push({
+          tick: state.tick,
+          type: "BUFF",
           unitId: target.instanceId,
           abilityId,
           value: ability.effectValue,
         });
+      }
+      break;
+    }
+    case "debuff": {
+      if (ability.duration > 0) {
+        if (ability.aoe) {
+          // AoE debuff: apply to all enemies in radius (aoe_taunt)
+          const enemySide = caster.side === "attacker" ? "defender" : "attacker";
+          const targets = getUnitsInRadius(caster.position, ability.aoeRadius, state, enemySide);
+          for (const t of targets) {
+            t.buffs.push({
+              abilityId,
+              effectType: "debuff",
+              value: ability.effectValue,
+              expiresAtTick: state.tick + ability.duration,
+            });
+            state.events.push({
+              tick: state.tick,
+              type: "DEBUFF",
+              unitId: t.instanceId,
+              abilityId,
+              value: ability.effectValue,
+            });
+          }
+        } else {
+          target.buffs.push({
+            abilityId,
+            effectType: "debuff",
+            value: ability.effectValue,
+            expiresAtTick: state.tick + ability.duration,
+          });
+          state.events.push({
+            tick: state.tick,
+            type: "DEBUFF",
+            unitId: target.instanceId,
+            abilityId,
+            value: ability.effectValue,
+          });
+        }
       }
       break;
     }
@@ -695,7 +864,7 @@ function performAbility(
         });
         caster.position = adjPos;
       }
-      applyDamage(target, ability.effectValue, state, false);
+      applyDamage(target, ability.effectValue, state, false, firstStrikeUsed);
       break;
     }
   }
@@ -705,7 +874,8 @@ function applyDamage(
   target: BattleUnit,
   damage: number,
   state: GameState,
-  isCrit: boolean
+  isCrit: boolean,
+  firstStrikeUsed?: Set<string>
 ): void {
   const actualDamage = Math.min(target.currentHp, damage);
   target.currentHp -= actualDamage;
@@ -719,14 +889,31 @@ function applyDamage(
   });
 
   if (target.currentHp <= 0) {
-    target.currentHp = 0;
-    target.isAlive = false;
-    state.events.push({
-      tick: state.tick,
-      type: "DEATH",
-      unitId: target.instanceId,
-      toPosition: { ...target.position },
-    });
+    // Last stand perk (Berserker): survive one lethal hit at 1 HP per battle
+    if (
+      target.perks.includes("last_stand") &&
+      firstStrikeUsed &&
+      !firstStrikeUsed.has(target.instanceId + "_last_stand")
+    ) {
+      firstStrikeUsed.add(target.instanceId + "_last_stand");
+      target.currentHp = 1;
+      state.events.push({
+        tick: state.tick,
+        type: "BUFF",
+        unitId: target.instanceId,
+        abilityId: "last_stand",
+        value: 1,
+      });
+    } else {
+      target.currentHp = 0;
+      target.isAlive = false;
+      state.events.push({
+        tick: state.tick,
+        type: "DEATH",
+        unitId: target.instanceId,
+        toPosition: { ...target.position },
+      });
+    }
   }
 }
 

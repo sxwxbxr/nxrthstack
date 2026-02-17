@@ -242,10 +242,17 @@ export function SquadBuilder({ attackSquad, defenseSquad, unlockedUnitIds, unitI
                     type="button"
                     onClick={() => setEditingBehavior(index)}
                     className="rounded-md p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                    title="Edit behavior"
+                    title="Edit behavior (simple)"
                   >
                     <Icons.Settings className="h-4 w-4" />
                   </button>
+                  <a
+                    href={`/dashboard/gamehub/tactics/script/${unit.instanceId}`}
+                    className="rounded-md p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                    title="TacticsScript editor"
+                  >
+                    <Icons.Code className="h-4 w-4" />
+                  </a>
                   <button
                     type="button"
                     onClick={() => removeUnit(index)}

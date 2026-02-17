@@ -114,6 +114,16 @@ export function rarityIndex(rarity: Rarity): number {
   return RARITY_ORDER.indexOf(rarity);
 }
 
+/** Check if rarity A is strictly higher than rarity B */
+export function isRarityHigher(a: Rarity, b: Rarity): boolean {
+  return rarityIndex(a) > rarityIndex(b);
+}
+
+/** Get the higher of two rarities */
+export function higherRarity(a: Rarity, b: Rarity): Rarity {
+  return rarityIndex(a) >= rarityIndex(b) ? a : b;
+}
+
 // Equipment stat count per rarity
 export const RARITY_STAT_COUNT: Record<Rarity, [number, number]> = {
   common: [1, 1],

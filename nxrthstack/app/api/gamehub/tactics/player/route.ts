@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { STARTER_UNIT_IDS } from "@/lib/gamehub/tactics/units";
 import { ALL_PRESETS, DEFAULT_PRESET_FOR_CLASS } from "@/lib/gamehub/tactics/behaviors";
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
+import { getTodayString, wasYesterday, getStreakReward } from "@/lib/gamehub/tactics/login-streaks";
 import type { Squad, SquadUnit } from "@/lib/gamehub/tactics/types";
 
 function createStarterSquad(): Squad {
@@ -71,7 +72,40 @@ export async function GET() {
       player = created;
     }
 
-    return NextResponse.json({ player });
+    // Login streak check
+    let loginReward = null;
+    const today = getTodayString();
+    if (player.lastLoginDate !== today) {
+      // Calculate new streak
+      let newStreak: number;
+      if (player.lastLoginDate && wasYesterday(player.lastLoginDate)) {
+        newStreak = player.loginStreak + 1;
+      } else {
+        newStreak = 1; // Reset streak
+      }
+
+      const reward = getStreakReward(newStreak);
+
+      const [updated] = await db
+        .update(tacticsPlayers)
+        .set({
+          loginStreak: newStreak,
+          lastLoginDate: today,
+          currency: player.currency + reward.currency,
+          updatedAt: new Date(),
+        })
+        .where(eq(tacticsPlayers.userId, session.user.id))
+        .returning();
+
+      player = updated;
+      loginReward = {
+        day: newStreak,
+        currency: reward.currency,
+        bonusEquipment: reward.bonusEquipment,
+      };
+    }
+
+    return NextResponse.json({ player, loginReward });
   } catch (error) {
     console.error("Error fetching tactics player:", error);
     return NextResponse.json(

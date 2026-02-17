@@ -126,11 +126,51 @@ export const PRESET_ASSASSIN: BehaviorPreset = {
   ],
 };
 
+export const PRESET_MAGE: BehaviorPreset = {
+  id: "mage",
+  name: "Mage",
+  description: "Cast spells from safety, kite when enemies approach.",
+  rules: [
+    rule(1, "ABILITY_READY", "USE_ABILITY", undefined, "fireball"),
+    rule(2, "ABILITY_READY", "USE_ABILITY", undefined, "arcane_blast"),
+    rule(3, "ENEMY_IN_RANGE", "KITE"),
+    rule(4, "ALWAYS", "MOVE_TOWARDS_ENEMY"),
+  ],
+};
+
+export const PRESET_PALADIN: BehaviorPreset = {
+  id: "paladin",
+  name: "Paladin",
+  description: "Heal wounded allies, tank frontline, use abilities to support.",
+  rules: [
+    rule(1, "ALLY_LOW_HP", "HEAL_LOWEST_ALLY", 60),
+    rule(2, "ABILITY_READY", "USE_ABILITY", undefined, "divine_light"),
+    rule(3, "SELF_LOW_HP", "USE_ABILITY", 40, "shield_bash"),
+    rule(4, "ENEMY_IN_RANGE", "ATTACK_NEAREST"),
+    rule(5, "ALWAYS", "MOVE_TOWARDS_ENEMY"),
+  ],
+};
+
+export const PRESET_BERSERKER: BehaviorPreset = {
+  id: "berserker",
+  name: "Berserker",
+  description: "Rage when hurt, cleave with whirlwind, rush enemies.",
+  rules: [
+    rule(1, "SELF_LOW_HP", "USE_ABILITY", 50, "rage"),
+    rule(2, "ABILITY_READY", "USE_ABILITY", undefined, "whirlwind"),
+    rule(3, "ENEMY_IN_RANGE", "ATTACK_LOWEST_HP"),
+    rule(4, "ALWAYS", "MOVE_TOWARDS_ENEMY"),
+  ],
+};
+
 export const ALL_PRESETS: Record<string, BehaviorPreset> = {
   aggressive: PRESET_AGGRESSIVE,
   defensive: PRESET_DEFENSIVE,
   support: PRESET_SUPPORT,
   assassin: PRESET_ASSASSIN,
+  mage: PRESET_MAGE,
+  paladin: PRESET_PALADIN,
+  berserker: PRESET_BERSERKER,
 };
 
 export const PRESET_LIST = Object.values(ALL_PRESETS);
@@ -141,4 +181,7 @@ export const DEFAULT_PRESET_FOR_CLASS: Record<string, string> = {
   Ranger: "aggressive",
   Healer: "support",
   Assassin: "assassin",
+  Mage: "mage",
+  Paladin: "paladin",
+  Berserker: "berserker",
 };

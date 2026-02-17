@@ -138,6 +138,96 @@ const MILESTONES: Record<UnitClass, MilestoneEntry[]> = {
       perkDescription: "First move teleports directly to target",
     },
   ],
+  Mage: [
+    {
+      level: 10,
+      title: "Trained",
+      bonuses: [
+        { stat: "attack", value: 3 },
+        { stat: "critDamage", value: 3 },
+      ],
+    },
+    {
+      level: 25,
+      title: "Veteran",
+      bonuses: [
+        { stat: "attack", value: 6 },
+        { stat: "critDamage", value: 5 },
+      ],
+      perk: "spell_pierce",
+      perkDescription: "Attacks ignore 50% of target's defense",
+    },
+    {
+      level: 50,
+      title: "Elite",
+      bonuses: [
+        { stat: "attack", value: 10 },
+        { stat: "critDamage", value: 8 },
+      ],
+      perk: "arcane_mastery",
+      perkDescription: "Abilities deal 25% more damage",
+    },
+  ],
+  Paladin: [
+    {
+      level: 10,
+      title: "Trained",
+      bonuses: [
+        { stat: "hp", value: 10 },
+        { stat: "defense", value: 2 },
+      ],
+    },
+    {
+      level: 25,
+      title: "Veteran",
+      bonuses: [
+        { stat: "hp", value: 15 },
+        { stat: "defense", value: 4 },
+      ],
+      perk: "divine_shield",
+      perkDescription: "Absorb the first hit in each battle (negate all damage)",
+    },
+    {
+      level: 50,
+      title: "Elite",
+      bonuses: [
+        { stat: "hp", value: 25 },
+        { stat: "defense", value: 6 },
+      ],
+      perk: "blessed_aura",
+      perkDescription: "Nearby allies (2 tiles) take 10% less damage",
+    },
+  ],
+  Berserker: [
+    {
+      level: 10,
+      title: "Trained",
+      bonuses: [
+        { stat: "attack", value: 3 },
+        { stat: "hp", value: 5 },
+      ],
+    },
+    {
+      level: 25,
+      title: "Veteran",
+      bonuses: [
+        { stat: "attack", value: 6 },
+        { stat: "hp", value: 10 },
+      ],
+      perk: "blood_rage",
+      perkDescription: "Deal 30% more damage when below 30% HP",
+    },
+    {
+      level: 50,
+      title: "Elite",
+      bonuses: [
+        { stat: "attack", value: 10 },
+        { stat: "hp", value: 15 },
+      ],
+      perk: "last_stand",
+      perkDescription: "Survive one lethal hit with 1 HP (once per battle)",
+    },
+  ],
 };
 
 /** Get cumulative flat stat bonuses for a unit at a given level */
