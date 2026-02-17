@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
+import { CLASS_DESCRIPTIONS } from "@/lib/gamehub/tactics/types";
 import { Icons } from "@/components/icons";
 
 interface UnitCardProps {
@@ -71,7 +72,7 @@ export function UnitCard({ templateId, compact, selected, onClick, className }: 
         <div>
           <p className="font-semibold text-foreground">{unit.name}</p>
           <span className={cn("inline-block rounded-full px-2 py-0.5 text-xs font-medium border", CLASS_COLORS[unit.class])}>
-            {unit.class}
+            {unit.class} &middot; {CLASS_DESCRIPTIONS[unit.class]?.tagline}
           </span>
         </div>
       </div>

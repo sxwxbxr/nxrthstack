@@ -99,6 +99,13 @@ import {
   History,
   Sliders,
   ChevronUp,
+  AlertTriangle,
+  Circle,
+  Gem,
+  Shirt,
+  Footprints,
+  Dices,
+  Loader,
 } from "lucide-react";
 
 export const Icons = {
@@ -206,6 +213,13 @@ export const Icons = {
   History,
   Sliders,
   ChevronUp,
+  AlertTriangle,
+  Circle,
+  Gem,
+  Shirt,
+  Footprints,
+  Dices,
+  Loader,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

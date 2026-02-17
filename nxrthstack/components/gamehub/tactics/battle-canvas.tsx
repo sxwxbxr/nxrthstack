@@ -154,8 +154,8 @@ export function BattleCanvas({ events, attackerSquad, defenderSquad, mapId, maxT
         }
       }
     }
-    // Remove old floating texts
-    setFloatingTexts((prev) => prev.filter((ft) => replay.currentTick - ft.tick < 15));
+    // Remove old floating texts (6 ticks = 1.5 seconds at 4 ticks/sec)
+    setFloatingTexts((prev) => prev.filter((ft) => replay.currentTick - ft.tick < 6));
   }, [replay.currentTick, replay.tickEvents, getUnitsAtTick]);
 
   // Canvas rendering
@@ -238,8 +238,8 @@ export function BattleCanvas({ events, attackerSquad, defenderSquad, mapId, maxT
     // Draw floating texts
     for (const ft of floatingTexts) {
       const age = replay.currentTick - ft.tick;
-      const alpha = Math.max(0, 1 - age / 15);
-      const offsetY = -age * 2;
+      const alpha = Math.max(0, 1 - age / 6);
+      const offsetY = -age * 5;
       ctx.globalAlpha = alpha;
       ctx.fillStyle = ft.color;
       ctx.font = "bold 14px monospace";
@@ -249,8 +249,8 @@ export function BattleCanvas({ events, attackerSquad, defenderSquad, mapId, maxT
     }
   }, [replay.currentTick, getUnitsAtTick, mapId, floatingTexts]);
 
-  const timeSeconds = (replay.currentTick / 10).toFixed(1);
-  const maxTimeSeconds = (maxTick / 10).toFixed(1);
+  const timeSeconds = (replay.currentTick / 4).toFixed(1);
+  const maxTimeSeconds = (maxTick / 4).toFixed(1);
 
   return (
     <div className="space-y-4">

@@ -101,7 +101,7 @@ export default async function TacticsDashboardPage() {
 
       {/* Quick Actions */}
       <FadeIn delay={0.2}>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-3">
           <Link href="/dashboard/gamehub/tactics/battle">
             <ShimmerButton>
               <Icons.Swords className="h-4 w-4 mr-2" />
@@ -113,6 +113,22 @@ export default async function TacticsDashboardPage() {
               <Icons.Users className="h-4 w-4 mr-2" />
               Manage Squad
             </ShimmerButton>
+          </Link>
+          <Link href="/dashboard/gamehub/tactics/shop" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+            <Icons.ShoppingBag className="h-4 w-4" />
+            Shop
+          </Link>
+          <Link href="/dashboard/gamehub/tactics/inventory" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+            <Icons.Package className="h-4 w-4" />
+            Inventory
+          </Link>
+          <Link href="/dashboard/gamehub/tactics/wheel" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+            <Icons.Dices className="h-4 w-4" />
+            Lucky Wheel
+          </Link>
+          <Link href="/dashboard/gamehub/tactics/wizard-tower" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+            <Icons.Wand className="h-4 w-4" />
+            Wizard Tower
           </Link>
         </div>
       </FadeIn>

@@ -19,6 +19,11 @@ const tacticsNavItems = [
     icon: Icons.Users,
   },
   {
+    title: "Classes",
+    href: "/dashboard/gamehub/tactics/classes",
+    icon: Icons.BookOpen,
+  },
+  {
     title: "Battle",
     href: "/dashboard/gamehub/tactics/battle",
     icon: Icons.Swords,
@@ -27,6 +32,31 @@ const tacticsNavItems = [
     title: "History",
     href: "/dashboard/gamehub/tactics/history",
     icon: Icons.Clock,
+  },
+  {
+    title: "Shop",
+    href: "/dashboard/gamehub/tactics/shop",
+    icon: Icons.ShoppingBag,
+  },
+  {
+    title: "Inventory",
+    href: "/dashboard/gamehub/tactics/inventory",
+    icon: Icons.Package,
+  },
+  {
+    title: "Wheel",
+    href: "/dashboard/gamehub/tactics/wheel",
+    icon: Icons.Dices,
+  },
+  {
+    title: "Wizard Tower",
+    href: "/dashboard/gamehub/tactics/wizard-tower",
+    icon: Icons.Wand,
+  },
+  {
+    title: "Leaderboard",
+    href: "/dashboard/gamehub/tactics/leaderboard",
+    icon: Icons.Trophy,
   },
 ];
 

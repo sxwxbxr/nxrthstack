@@ -1563,6 +1563,8 @@ export const tacticsPlayers = pgTable("tactics_players", {
   totalWins: integer("total_wins").default(0).notNull(),
   totalLosses: integer("total_losses").default(0).notNull(),
   seasonId: integer("season_id").default(1).notNull(),
+  wheelSpinCount: integer("wheel_spin_count").default(0).notNull(),
+  totalXpEarned: integer("total_xp_earned").default(0).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
@@ -1605,12 +1607,77 @@ export const tacticsMatchCooldowns = pgTable("tactics_match_cooldowns", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Unit instances owned by players (with rarity, level, XP)
+export const tacticsUnitInstances = pgTable("tactics_unit_instances", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => tacticsPlayers.id, { onDelete: "cascade" }),
+  templateId: varchar("template_id", { length: 50 }).notNull(),
+  rarity: varchar("rarity", { length: 20 }).default("common").notNull(),
+  level: integer("level").default(1).notNull(),
+  xp: integer("xp").default(0).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Equipment items owned by players
+export const tacticsEquipment = pgTable("tactics_equipment", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => tacticsPlayers.id, { onDelete: "cascade" }),
+  unitInstanceId: uuid("unit_instance_id").references(
+    () => tacticsUnitInstances.id,
+    { onDelete: "set null" }
+  ),
+  slot: varchar("slot", { length: 20 }).notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  rarity: varchar("rarity", { length: 20 }).notNull(),
+  stats: jsonb("stats").default([]).notNull(), // EquipmentStat[]
+  enchantLevel: integer("enchant_level").default(0).notNull(),
+  cursed: boolean("cursed").default(false).notNull(),
+  curseStats: jsonb("curse_stats").default([]).notNull(), // EquipmentStat[]
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Wizard Tower enchant history
+export const tacticsEnchantHistory = pgTable("tactics_enchant_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => tacticsPlayers.id, { onDelete: "cascade" }),
+  equipmentId: uuid("equipment_id")
+    .notNull()
+    .references(() => tacticsEquipment.id, { onDelete: "cascade" }),
+  result: varchar("result", { length: 20 }).notNull(), // 'enchant' | 'curse' | 'neutral'
+  costPaid: integer("cost_paid").notNull(),
+  details: jsonb("details").default({}),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Lucky Wheel spin history
+export const tacticsWheelSpins = pgTable("tactics_wheel_spins", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => tacticsPlayers.id, { onDelete: "cascade" }),
+  costPaid: integer("cost_paid").notNull(),
+  resultTemplateId: varchar("result_template_id", { length: 50 }).notNull(),
+  resultRarity: varchar("result_rarity", { length: 20 }).notNull(),
+  compensationCurrency: integer("compensation_currency").default(0).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Tactics Relations
-export const tacticsPlayersRelations = relations(tacticsPlayers, ({ one }) => ({
+export const tacticsPlayersRelations = relations(tacticsPlayers, ({ one, many }) => ({
   user: one(users, {
     fields: [tacticsPlayers.userId],
     references: [users.id],
   }),
+  unitInstances: many(tacticsUnitInstances),
+  equipment: many(tacticsEquipment),
+  enchantHistory: many(tacticsEnchantHistory),
+  wheelSpins: many(tacticsWheelSpins),
 }));
 
 export const tacticsMatchesRelations = relations(tacticsMatches, ({ one }) => ({
@@ -1638,6 +1705,56 @@ export const tacticsMatchCooldownsRelations = relations(
       fields: [tacticsMatchCooldowns.defenderId],
       references: [users.id],
       relationName: "tacticsCooldownDefender",
+    }),
+  })
+);
+
+export const tacticsUnitInstancesRelations = relations(
+  tacticsUnitInstances,
+  ({ one, many }) => ({
+    player: one(tacticsPlayers, {
+      fields: [tacticsUnitInstances.playerId],
+      references: [tacticsPlayers.id],
+    }),
+    equipment: many(tacticsEquipment),
+  })
+);
+
+export const tacticsEquipmentRelations = relations(
+  tacticsEquipment,
+  ({ one, many }) => ({
+    player: one(tacticsPlayers, {
+      fields: [tacticsEquipment.playerId],
+      references: [tacticsPlayers.id],
+    }),
+    unitInstance: one(tacticsUnitInstances, {
+      fields: [tacticsEquipment.unitInstanceId],
+      references: [tacticsUnitInstances.id],
+    }),
+    enchantHistory: many(tacticsEnchantHistory),
+  })
+);
+
+export const tacticsEnchantHistoryRelations = relations(
+  tacticsEnchantHistory,
+  ({ one }) => ({
+    player: one(tacticsPlayers, {
+      fields: [tacticsEnchantHistory.playerId],
+      references: [tacticsPlayers.id],
+    }),
+    equipment: one(tacticsEquipment, {
+      fields: [tacticsEnchantHistory.equipmentId],
+      references: [tacticsEquipment.id],
+    }),
+  })
+);
+
+export const tacticsWheelSpinsRelations = relations(
+  tacticsWheelSpins,
+  ({ one }) => ({
+    player: one(tacticsPlayers, {
+      fields: [tacticsWheelSpins.playerId],
+      references: [tacticsPlayers.id],
     }),
   })
 );
@@ -1790,3 +1907,11 @@ export type TacticsMatch = typeof tacticsMatches.$inferSelect;
 export type NewTacticsMatch = typeof tacticsMatches.$inferInsert;
 export type TacticsMatchCooldown = typeof tacticsMatchCooldowns.$inferSelect;
 export type NewTacticsMatchCooldown = typeof tacticsMatchCooldowns.$inferInsert;
+export type TacticsUnitInstance = typeof tacticsUnitInstances.$inferSelect;
+export type NewTacticsUnitInstance = typeof tacticsUnitInstances.$inferInsert;
+export type TacticsEquipment = typeof tacticsEquipment.$inferSelect;
+export type NewTacticsEquipment = typeof tacticsEquipment.$inferInsert;
+export type TacticsEnchantHistory = typeof tacticsEnchantHistory.$inferSelect;
+export type NewTacticsEnchantHistory = typeof tacticsEnchantHistory.$inferInsert;
+export type TacticsWheelSpin = typeof tacticsWheelSpins.$inferSelect;
+export type NewTacticsWheelSpin = typeof tacticsWheelSpins.$inferInsert;

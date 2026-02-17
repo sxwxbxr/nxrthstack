@@ -20,7 +20,7 @@ export function useTacticsReplay(events: BattleEvent[], maxTick: number) {
   const lastTimeRef = useRef<number>(0);
   const tickAccumulatorRef = useRef(0);
 
-  const TICK_RATE = 10; // ticks per second at 1x speed
+  const TICK_RATE = 4; // ticks per second at 1x speed
 
   // Events up to current tick
   const currentEvents = events.filter((e) => e.tick <= currentTick);

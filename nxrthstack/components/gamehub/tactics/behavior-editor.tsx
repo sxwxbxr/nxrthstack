@@ -13,11 +13,14 @@ import {
   PRESET_LIST,
 } from "@/lib/gamehub/tactics/behaviors";
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
+import { AdvancedBehaviorEditor } from "./advanced-behavior-editor";
+import { rulesToScript } from "@/lib/gamehub/tactics/tacticsscript/parser";
 
 interface BehaviorEditorProps {
   templateId: string;
   rules: BehaviorRule[];
-  onChange: (rules: BehaviorRule[]) => void;
+  behaviorScript?: string;
+  onChange: (rules: BehaviorRule[], script?: string) => void;
   onClose: () => void;
 }
 
@@ -45,8 +48,10 @@ const ACTIONS: BehaviorAction[] = [
   "MOVE_TO_COVER",
 ];
 
-export function BehaviorEditor({ templateId, rules, onChange, onClose }: BehaviorEditorProps) {
+export function BehaviorEditor({ templateId, rules, behaviorScript, onChange, onClose }: BehaviorEditorProps) {
   const [localRules, setLocalRules] = useState<BehaviorRule[]>(rules);
+  const [mode, setMode] = useState<"simple" | "advanced">(behaviorScript ? "advanced" : "simple");
+  const [script, setScript] = useState(behaviorScript ?? "");
   const unit = ALL_UNITS[templateId];
 
   function updateRule(index: number, updates: Partial<BehaviorRule>) {
@@ -95,13 +100,31 @@ export function BehaviorEditor({ templateId, rules, onChange, onClose }: Behavio
   }
 
   function handleSave() {
-    onChange(localRules);
+    onChange(localRules, mode === "advanced" ? script : undefined);
     onClose();
+  }
+
+  function handleAdvancedSave(newRules: BehaviorRule[], newScript: string) {
+    setScript(newScript);
+    setLocalRules(newRules);
+    onChange(newRules, newScript);
+    onClose();
+  }
+
+  function switchToAdvanced() {
+    // Generate script from current dropdown rules
+    if (!script) {
+      setScript(rulesToScript(localRules));
+    }
+    setMode("advanced");
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-border bg-card p-6 max-h-[90vh] overflow-y-auto">
+      <div className={cn(
+        "w-full rounded-xl border border-border bg-card p-6 max-h-[90vh] overflow-y-auto",
+        mode === "advanced" ? "max-w-4xl" : "max-w-lg"
+      )}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-foreground">
             {unit?.name ?? "Unit"} - Behavior Rules
@@ -110,6 +133,50 @@ export function BehaviorEditor({ templateId, rules, onChange, onClose }: Behavio
             <Icons.X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Simple / Advanced Toggle */}
+        <div className="flex items-center gap-2 mb-4 p-1 rounded-lg bg-background border border-border">
+          <button
+            type="button"
+            onClick={() => setMode("simple")}
+            className={cn(
+              "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              mode === "simple"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Icons.List className="inline h-3.5 w-3.5 mr-1" />
+            Simple
+          </button>
+          <button
+            type="button"
+            onClick={switchToAdvanced}
+            className={cn(
+              "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+              mode === "advanced"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Icons.Code className="inline h-3.5 w-3.5 mr-1" />
+            Advanced
+          </button>
+        </div>
+
+        {/* Advanced Mode */}
+        {mode === "advanced" && (
+          <AdvancedBehaviorEditor
+            initialScript={script || rulesToScript(localRules)}
+            unitAbilities={unit?.abilities.map((a) => ({ id: a.id, name: a.name })) ?? []}
+            onSave={handleAdvancedSave}
+            onCancel={onClose}
+          />
+        )}
+
+        {/* Simple Mode */}
+        {mode === "simple" && (
+          <>
 
         {/* Preset Buttons */}
         <div className="mb-4">
@@ -255,6 +322,9 @@ export function BehaviorEditor({ templateId, rules, onChange, onClose }: Behavio
             Save Rules
           </button>
         </div>
+
+          </>
+        )}
       </div>
     </div>
   );

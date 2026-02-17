@@ -5,6 +5,7 @@ import type {
   BattleUnit,
   BehaviorAction,
   BehaviorRule,
+  ComputedUnitStats,
   GameState,
   Position,
   Squad,
@@ -17,14 +18,17 @@ import { createRng, type SeededRng } from "./rng";
 import { findNextStep, tileDistance } from "./pathfinding";
 import { hasLineOfSight, isOnCover } from "./los";
 
+/** Optional pre-computed stats keyed by instanceId */
+export type StatsOverrideMap = Record<string, ComputedUnitStats>;
+
 // ============================================================================
 // Constants
 // ============================================================================
 
-const TICK_RATE = 10; // ticks per second
-const MAX_TICKS = 600; // 60 seconds
+const TICK_RATE = 4; // ticks per second
+const MAX_TICKS = 160; // 40 seconds
 const COVER_DAMAGE_REDUCTION = 0.25;
-const ATTACK_COOLDOWN_TICKS = 10; // 1 second between attacks
+const ATTACK_COOLDOWN_TICKS = 4; // 1 second between attacks
 
 // ============================================================================
 // Simulation Entry Point
@@ -34,7 +38,8 @@ export function simulateBattle(
   attackerSquad: Squad,
   defenderSquad: Squad,
   mapId: string,
-  seed: number
+  seed: number,
+  statsOverride?: StatsOverrideMap
 ): BattleResult {
   const rng = createRng(seed);
   const map = selectMap(seed);
@@ -44,8 +49,8 @@ export function simulateBattle(
   const state: GameState = {
     map,
     units: [
-      ...initUnits(attackerSquad, "attacker"),
-      ...initUnits(defenderSquad, "defender"),
+      ...initUnits(attackerSquad, "attacker", statsOverride),
+      ...initUnits(defenderSquad, "defender", statsOverride),
     ],
     tick: 0,
     events: [],
@@ -94,24 +99,28 @@ export function simulateBattle(
 // Initialization
 // ============================================================================
 
-function initUnits(squad: Squad, side: UnitSide): BattleUnit[] {
+function initUnits(squad: Squad, side: UnitSide, statsOverride?: StatsOverrideMap): BattleUnit[] {
   return squad.units.map((su) => {
     const template = ALL_UNITS[su.templateId];
     if (!template) throw new Error(`Unknown unit template: ${su.templateId}`);
+
+    // Use computed stats if available (includes rarity + level + equipment bonuses)
+    const computed = statsOverride?.[su.instanceId];
+    const maxHp = computed?.maxHp ?? template.maxHp;
 
     return {
       instanceId: su.instanceId,
       templateId: su.templateId,
       side,
       position: { ...su.position },
-      currentHp: template.maxHp,
-      maxHp: template.maxHp,
-      attack: template.attack,
-      defense: template.defense,
-      speed: template.speed,
-      attackRange: template.attackRange,
-      critChance: template.critChance,
-      critMultiplier: template.critMultiplier,
+      currentHp: maxHp,
+      maxHp,
+      attack: computed?.attack ?? template.attack,
+      defense: computed?.defense ?? template.defense,
+      speed: computed?.speed ?? template.speed,
+      attackRange: computed?.attackRange ?? template.attackRange,
+      critChance: computed?.critChance ?? template.critChance,
+      critMultiplier: computed?.critMultiplier ?? template.critMultiplier,
       abilities: template.abilities.map((a) => ({ ...a })),
       abilityCooldowns: {},
       behaviorRules: su.behaviorRules,

@@ -1,12 +1,16 @@
 import { auth } from "@/lib/auth";
-import { db, tacticsPlayers, tacticsMatches, tacticsMatchCooldowns, users } from "@/lib/db";
-import { eq, ne, and, gt, sql, isNotNull } from "drizzle-orm";
+import { db, tacticsPlayers, tacticsMatches, tacticsMatchCooldowns, tacticsUnitInstances, tacticsEquipment, users } from "@/lib/db";
+import { eq, ne, and, gt, sql, isNotNull, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { simulateBattle } from "@/lib/gamehub/tactics/simulation";
+import { simulateBattle, type StatsOverrideMap } from "@/lib/gamehub/tactics/simulation";
 import { calculateRatingChange, calculateCurrencyReward } from "@/lib/gamehub/tactics/elo";
-import type { Squad } from "@/lib/gamehub/tactics/types";
+import { computeUnitStats } from "@/lib/gamehub/tactics/stats";
+import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
+import { xpForLevel, RARITY_MAX_LEVEL } from "@/lib/gamehub/tactics/rarities";
+import type { Squad, UnitInstance, EquipmentItem, EquipmentStat } from "@/lib/gamehub/tactics/types";
+import type { Rarity } from "@/lib/gamehub/tactics/rarities";
 
-const TICK_RATE = 10;
+const TICK_RATE = 4;
 const COOLDOWN_MINUTES = 30;
 const INITIAL_RATING_WINDOW = 200;
 const MAX_RATING_WINDOW = 500;
@@ -95,7 +99,12 @@ export async function POST() {
     const seed = Math.floor(Math.random() * 2147483647);
     const mapId = ""; // selectMap will pick based on seed
 
-    const result = simulateBattle(attackSquad, defenseSquad, mapId, seed);
+    // Compute stats with rarity, level, and equipment for both squads
+    const statsOverride: StatsOverrideMap = {};
+    await computeSquadStats(attacker.id, attackSquad, statsOverride);
+    await computeSquadStats(defender.id, defenseSquad, statsOverride);
+
+    const result = simulateBattle(attackSquad, defenseSquad, mapId, seed, statsOverride);
     const attackerWon = result.winner === "attacker";
 
     // Calculate rating changes
@@ -161,6 +170,11 @@ export async function POST() {
       expiresAt: new Date(now.getTime() + COOLDOWN_MINUTES * 60 * 1000),
     });
 
+    // Award XP to participating unit instances
+    const ratingDiff = Math.abs(attacker.rating - defender.rating);
+    await awardXp(attacker.id, attackSquad, attackerWon, ratingDiff, true);
+    await awardXp(defender.id, defenseSquad, !attackerWon, ratingDiff, false);
+
     return NextResponse.json({
       match: {
         matchId: match.id,
@@ -185,5 +199,154 @@ export async function POST() {
       { error: "Failed to process match" },
       { status: 500 }
     );
+  }
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/** Compute stats for all units in a squad and populate statsOverride map */
+async function computeSquadStats(
+  playerId: string,
+  squad: Squad,
+  statsOverride: StatsOverrideMap
+): Promise<void> {
+  // Get all unit instance IDs from the squad
+  const instanceIds = squad.units
+    .map((u) => u.unitInstanceId)
+    .filter((id): id is string => !!id);
+
+  if (instanceIds.length === 0) return;
+
+  // Fetch unit instances
+  const instances = await db
+    .select()
+    .from(tacticsUnitInstances)
+    .where(
+      and(
+        eq(tacticsUnitInstances.playerId, playerId),
+        inArray(tacticsUnitInstances.id, instanceIds)
+      )
+    );
+
+  // Fetch equipment for these instances
+  const equipment = await db
+    .select()
+    .from(tacticsEquipment)
+    .where(
+      and(
+        eq(tacticsEquipment.playerId, playerId),
+        inArray(tacticsEquipment.unitInstanceId, instanceIds)
+      )
+    );
+
+  // Group equipment by unit instance
+  const equipByUnit: Record<string, EquipmentItem[]> = {};
+  for (const equip of equipment) {
+    const uid = equip.unitInstanceId!;
+    if (!equipByUnit[uid]) equipByUnit[uid] = [];
+    equipByUnit[uid].push({
+      id: equip.id,
+      slot: equip.slot as EquipmentItem["slot"],
+      name: equip.name,
+      rarity: equip.rarity as Rarity,
+      stats: equip.stats as EquipmentStat[],
+      enchantLevel: equip.enchantLevel,
+      cursed: equip.cursed,
+      curseStats: equip.curseStats as EquipmentStat[],
+    });
+  }
+
+  // Compute stats for each unit
+  for (const su of squad.units) {
+    const inst = instances.find((i) => i.id === su.unitInstanceId);
+    if (!inst) continue;
+
+    const template = ALL_UNITS[su.templateId];
+    if (!template) continue;
+
+    const unitInst: UnitInstance = {
+      id: inst.id,
+      templateId: inst.templateId,
+      rarity: inst.rarity as Rarity,
+      level: inst.level,
+      xp: inst.xp,
+    };
+
+    const unitEquip = equipByUnit[inst.id] ?? [];
+    statsOverride[su.instanceId] = computeUnitStats(template, unitInst, unitEquip);
+  }
+}
+
+/** Award XP to all unit instances in a squad after battle */
+async function awardXp(
+  playerId: string,
+  squad: Squad,
+  won: boolean,
+  ratingDiff: number,
+  isAttacker: boolean
+): Promise<void> {
+  const instanceIds = squad.units
+    .map((u) => u.unitInstanceId)
+    .filter((id): id is string => !!id);
+
+  if (instanceIds.length === 0) return;
+
+  const instances = await db
+    .select()
+    .from(tacticsUnitInstances)
+    .where(
+      and(
+        eq(tacticsUnitInstances.playerId, playerId),
+        inArray(tacticsUnitInstances.id, instanceIds)
+      )
+    );
+
+  let totalXpAwarded = 0;
+
+  for (const inst of instances) {
+    // Base XP: winners get more
+    let xpGain: number;
+    if (isAttacker) {
+      xpGain = won ? 50 + Math.min(25, Math.floor(ratingDiff / 20)) : 20;
+    } else {
+      // Defense team gets less XP
+      xpGain = won ? 15 : 5;
+    }
+
+    const maxLevel = RARITY_MAX_LEVEL[inst.rarity as Rarity] ?? 10;
+    if (inst.level >= maxLevel) continue; // Already at max level
+
+    let newXp = inst.xp + xpGain;
+    let newLevel = inst.level;
+
+    // Check for level ups
+    while (newLevel < maxLevel) {
+      const needed = xpForLevel(newLevel + 1);
+      if (newXp >= needed) {
+        newXp -= needed;
+        newLevel++;
+      } else {
+        break;
+      }
+    }
+
+    totalXpAwarded += xpGain;
+
+    await db
+      .update(tacticsUnitInstances)
+      .set({ xp: newXp, level: newLevel })
+      .where(eq(tacticsUnitInstances.id, inst.id));
+  }
+
+  // Track total XP earned on player
+  if (totalXpAwarded > 0) {
+    await db
+      .update(tacticsPlayers)
+      .set({
+        totalXpEarned: sql`${tacticsPlayers.totalXpEarned} + ${totalXpAwarded}`,
+      })
+      .where(eq(tacticsPlayers.id, playerId));
   }
 }

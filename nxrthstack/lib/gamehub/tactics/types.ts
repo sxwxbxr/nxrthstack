@@ -5,6 +5,44 @@
 // --- Unit Classes ---
 export type UnitClass = "Tank" | "Ranger" | "Healer" | "Assassin";
 
+export interface ClassInfo {
+  tagline: string;
+  description: string;
+  strengths: string[];
+  weaknesses: string[];
+}
+
+export const CLASS_DESCRIPTIONS: Record<UnitClass, ClassInfo> = {
+  Tank: {
+    tagline: "Frontline Protectors",
+    description:
+      "Tanks are the backbone of any squad. With the highest HP and defense, they absorb damage and protect squishier allies. They shine in melee combat and can force enemies to focus them.",
+    strengths: ["Highest HP pool", "Strong defense", "Can protect allies"],
+    weaknesses: ["Slow movement speed", "Low damage output", "Short attack range"],
+  },
+  Ranger: {
+    tagline: "Precision Strikers",
+    description:
+      "Rangers deal devastating damage from afar. With long attack range and high critical hit potential, they excel at eliminating priority targets before they get close. Positioning is key.",
+    strengths: ["Long attack range", "High damage", "Strong critical hits"],
+    weaknesses: ["Very fragile", "Low defense", "Vulnerable in melee"],
+  },
+  Healer: {
+    tagline: "Battlefield Medics",
+    description:
+      "Healers keep your squad fighting. They restore HP, apply regeneration, and provide defensive buffs. A well-positioned healer can turn the tide of any battle.",
+    strengths: ["Sustained healing", "Defensive buffs", "Good survivability"],
+    weaknesses: ["Low damage output", "Dependent on positioning", "Limited offense"],
+  },
+  Assassin: {
+    tagline: "Shadow Killers",
+    description:
+      "Assassins are glass cannons that specialize in eliminating high-value targets. With the highest speed and damage, they strike fast and hard. Their abilities let them dash in and vanish from danger.",
+    strengths: ["Highest speed", "Burst damage", "Evasion abilities"],
+    weaknesses: ["Very low HP", "Low defense", "Abilities require close range"],
+  },
+};
+
 // --- Grid / Map ---
 export type TileType = "ground" | "obstacle" | "cover";
 
@@ -100,11 +138,67 @@ export interface BehaviorPreset {
   rules: BehaviorRule[];
 }
 
+// --- Equipment ---
+export type EquipmentSlot =
+  | "weapon"
+  | "shield"
+  | "helmet"
+  | "chestpiece"
+  | "pants"
+  | "boots"
+  | "ring1"
+  | "ring2"
+  | "necklace";
+
+export const ALL_EQUIPMENT_SLOTS: EquipmentSlot[] = [
+  "weapon", "shield", "helmet", "chestpiece", "pants", "boots", "ring1", "ring2", "necklace",
+];
+
+export type StatType = "hp" | "attack" | "defense" | "speed" | "critChance" | "critDamage";
+
+export interface EquipmentStat {
+  stat: StatType;
+  value: number;
+}
+
+export interface EquipmentItem {
+  id: string;
+  slot: EquipmentSlot;
+  name: string;
+  rarity: import("./rarities").Rarity;
+  stats: EquipmentStat[];
+  enchantLevel: number;
+  cursed: boolean;
+  curseStats: EquipmentStat[];
+}
+
+// --- Unit Instances ---
+export interface UnitInstance {
+  id: string;
+  templateId: string;
+  rarity: import("./rarities").Rarity;
+  level: number;
+  xp: number;
+}
+
+// --- Computed Stats (after rarity, level, equipment) ---
+export interface ComputedUnitStats {
+  maxHp: number;
+  attack: number;
+  defense: number;
+  speed: number;
+  attackRange: number;
+  critChance: number;
+  critMultiplier: number;
+}
+
 // --- Squad ---
 export interface SquadUnit {
+  unitInstanceId?: string; // links to tactics_unit_instances (new)
   templateId: string;
   instanceId: string;
   behaviorRules: BehaviorRule[];
+  behaviorScript?: string; // TacticsScript source (advanced mode)
   position: Position;
 }
 
