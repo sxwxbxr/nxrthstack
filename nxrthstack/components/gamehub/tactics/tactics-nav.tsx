@@ -54,6 +54,11 @@ const tacticsNavItems = [
     icon: Icons.Wand,
   },
   {
+    title: "Compare",
+    href: "/dashboard/gamehub/tactics/compare",
+    icon: Icons.BarChart,
+  },
+  {
     title: "Leaderboard",
     href: "/dashboard/gamehub/tactics/leaderboard",
     icon: Icons.Trophy,
