@@ -160,6 +160,8 @@ export function generateEquipment(
     enchantLevel: 0,
     cursed: false,
     curseStats: [],
+    equipmentLevel: 1,
+    equipmentXp: 0,
   };
 }
 

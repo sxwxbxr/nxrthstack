@@ -51,8 +51,8 @@ export function calculateCurrencyReward(
   isAttacker: boolean
 ): number {
   if (isAttacker) {
-    return attackerWon ? 50 : 10;
+    return attackerWon ? 75 : 20;
   }
   // Defender gets passive rewards for successful defense
-  return attackerWon ? 5 : 25;
+  return attackerWon ? 10 : 40;
 }

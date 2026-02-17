@@ -1,0 +1,14 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash",
+            "Edit",
+            "Read",
+            "WebSearch",
+            "WebFetch"
+        ],
+        "deny": [
+            "Bash(rm -rf *)"
+        ]
+    }
+}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { DungeonButton } from "@/components/gamehub/tactics/dungeon-button";
 import { Icons } from "@/components/icons";
 import { UNIT_LIST } from "@/lib/gamehub/tactics/units";
 
@@ -57,7 +57,7 @@ export default async function TacticsDashboardPage() {
       <FadeIn>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold">
+            <h1 className="text-4xl font-bold tactics-heading">
               <GradientText>Async PvP Tactics</GradientText>
             </h1>
             <p className="mt-2 text-muted-foreground">
@@ -70,19 +70,19 @@ export default async function TacticsDashboardPage() {
       {/* Stats */}
       <FadeIn delay={0.1}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
             <p className="text-sm text-muted-foreground">Rating</p>
             <p className="mt-2 text-3xl font-bold text-primary">
               <AnimatedCounter value={player?.rating ?? 1000} />
             </p>
           </div>
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
             <p className="text-sm text-muted-foreground">Win Rate</p>
             <p className="mt-2 text-3xl font-bold text-foreground">
               <AnimatedCounter value={winRate} suffix="%" />
             </p>
           </div>
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
             <p className="text-sm text-muted-foreground">Wins / Losses</p>
             <p className="mt-2 text-3xl font-bold text-foreground">
               <span className="text-green-400">{player?.totalWins ?? 0}</span>
@@ -90,7 +90,7 @@ export default async function TacticsDashboardPage() {
               <span className="text-red-400">{player?.totalLosses ?? 0}</span>
             </p>
           </div>
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
             <p className="text-sm text-muted-foreground">Currency</p>
             <p className="mt-2 text-3xl font-bold text-yellow-400">
               <AnimatedCounter value={player?.currency ?? 0} />
@@ -103,30 +103,30 @@ export default async function TacticsDashboardPage() {
       <FadeIn delay={0.2}>
         <div className="flex flex-wrap gap-3">
           <Link href="/dashboard/gamehub/tactics/battle">
-            <ShimmerButton>
+            <DungeonButton>
               <Icons.Swords className="h-4 w-4 mr-2" />
               Find Match
-            </ShimmerButton>
+            </DungeonButton>
           </Link>
           <Link href="/dashboard/gamehub/tactics/squad">
-            <ShimmerButton className="bg-accent">
+            <DungeonButton variant="secondary">
               <Icons.Users className="h-4 w-4 mr-2" />
               Manage Squad
-            </ShimmerButton>
+            </DungeonButton>
           </Link>
-          <Link href="/dashboard/gamehub/tactics/shop" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+          <Link href="/dashboard/gamehub/tactics/shop" className="rounded-sm border-2 border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2 tactics-button">
             <Icons.ShoppingBag className="h-4 w-4" />
             Shop
           </Link>
-          <Link href="/dashboard/gamehub/tactics/inventory" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+          <Link href="/dashboard/gamehub/tactics/inventory" className="rounded-sm border-2 border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2 tactics-button">
             <Icons.Package className="h-4 w-4" />
             Inventory
           </Link>
-          <Link href="/dashboard/gamehub/tactics/wheel" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+          <Link href="/dashboard/gamehub/tactics/wheel" className="rounded-sm border-2 border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2 tactics-button">
             <Icons.Dices className="h-4 w-4" />
             Lucky Wheel
           </Link>
-          <Link href="/dashboard/gamehub/tactics/wizard-tower" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2">
+          <Link href="/dashboard/gamehub/tactics/wizard-tower" className="rounded-sm border-2 border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors flex items-center gap-2 tactics-button">
             <Icons.Wand className="h-4 w-4" />
             Wizard Tower
           </Link>
@@ -136,7 +136,7 @@ export default async function TacticsDashboardPage() {
       {/* Unit Roster Progress */}
       <FadeIn delay={0.3}>
         <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="text-lg font-bold text-foreground mb-3">
+          <h2 className="text-lg font-bold text-foreground mb-3 tactics-heading">
             Unit Roster ({unlockedCount}/{UNIT_LIST.length})
           </h2>
           <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
@@ -168,7 +168,7 @@ export default async function TacticsDashboardPage() {
       {/* Recent Matches */}
       <FadeIn delay={0.4}>
         <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="text-lg font-bold text-foreground mb-3">Recent Matches</h2>
+          <h2 className="text-lg font-bold text-foreground mb-3 tactics-heading">Recent Matches</h2>
           {recentMatches.length === 0 ? (
             <p className="text-sm text-muted-foreground">No matches yet. Start battling!</p>
           ) : (
@@ -182,7 +182,7 @@ export default async function TacticsDashboardPage() {
                   <Link
                     key={match.id}
                     href={`/dashboard/gamehub/tactics/replay/${match.id}`}
-                    className="flex items-center justify-between rounded-lg border border-border bg-background p-3 hover:bg-accent transition-colors"
+                    className="flex items-center justify-between rounded-sm border-2 border-border bg-background p-3 hover:bg-accent transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <span className={`text-sm font-bold ${won ? "text-green-400" : "text-red-400"}`}>

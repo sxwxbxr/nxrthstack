@@ -58,6 +58,8 @@ export async function POST(request: Request) {
       enchantLevel: equipment.enchantLevel,
       cursed: equipment.cursed,
       curseStats: equipment.curseStats as EquipmentStat[],
+      equipmentLevel: equipment.equipmentLevel,
+      equipmentXp: equipment.equipmentXp,
     };
 
     const seed = Math.floor(Math.random() * 2147483647);

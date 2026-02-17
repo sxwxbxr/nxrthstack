@@ -1565,6 +1565,8 @@ export const tacticsPlayers = pgTable("tactics_players", {
   seasonId: integer("season_id").default(1).notNull(),
   wheelSpinCount: integer("wheel_spin_count").default(0).notNull(),
   totalXpEarned: integer("total_xp_earned").default(0).notNull(),
+  winStreak: integer("win_streak").default(0).notNull(),
+  lastFirstWinAt: timestamp("last_first_win_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
@@ -1637,6 +1639,8 @@ export const tacticsEquipment = pgTable("tactics_equipment", {
   enchantLevel: integer("enchant_level").default(0).notNull(),
   cursed: boolean("cursed").default(false).notNull(),
   curseStats: jsonb("curse_stats").default([]).notNull(), // EquipmentStat[]
+  equipmentLevel: integer("equipment_level").default(1).notNull(),
+  equipmentXp: integer("equipment_xp").default(0).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
@@ -1668,6 +1672,31 @@ export const tacticsWheelSpins = pgTable("tactics_wheel_spins", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Daily quests for tactics game
+export const tacticsDailyQuests = pgTable("tactics_daily_quests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => tacticsPlayers.id, { onDelete: "cascade" }),
+  questType: varchar("quest_type", { length: 50 }).notNull(),
+  progress: integer("progress").default(0).notNull(),
+  target: integer("target").notNull(),
+  reward: integer("reward").notNull(),
+  completedAt: timestamp("completed_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// One-time achievement unlocks for tactics game
+export const tacticsAchievements = pgTable("tactics_achievements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => tacticsPlayers.id, { onDelete: "cascade" }),
+  achievementId: varchar("achievement_id", { length: 50 }).notNull(),
+  unlockedAt: timestamp("unlocked_at", { mode: "date" }).defaultNow().notNull(),
+  claimed: boolean("claimed").default(false).notNull(),
+});
+
 // Tactics Relations
 export const tacticsPlayersRelations = relations(tacticsPlayers, ({ one, many }) => ({
   user: one(users, {
@@ -1678,6 +1707,8 @@ export const tacticsPlayersRelations = relations(tacticsPlayers, ({ one, many })
   equipment: many(tacticsEquipment),
   enchantHistory: many(tacticsEnchantHistory),
   wheelSpins: many(tacticsWheelSpins),
+  dailyQuests: many(tacticsDailyQuests),
+  achievements: many(tacticsAchievements),
 }));
 
 export const tacticsMatchesRelations = relations(tacticsMatches, ({ one }) => ({
@@ -1754,6 +1785,26 @@ export const tacticsWheelSpinsRelations = relations(
   ({ one }) => ({
     player: one(tacticsPlayers, {
       fields: [tacticsWheelSpins.playerId],
+      references: [tacticsPlayers.id],
+    }),
+  })
+);
+
+export const tacticsDailyQuestsRelations = relations(
+  tacticsDailyQuests,
+  ({ one }) => ({
+    player: one(tacticsPlayers, {
+      fields: [tacticsDailyQuests.playerId],
+      references: [tacticsPlayers.id],
+    }),
+  })
+);
+
+export const tacticsAchievementsRelations = relations(
+  tacticsAchievements,
+  ({ one }) => ({
+    player: one(tacticsPlayers, {
+      fields: [tacticsAchievements.playerId],
       references: [tacticsPlayers.id],
     }),
   })
@@ -1915,3 +1966,7 @@ export type TacticsEnchantHistory = typeof tacticsEnchantHistory.$inferSelect;
 export type NewTacticsEnchantHistory = typeof tacticsEnchantHistory.$inferInsert;
 export type TacticsWheelSpin = typeof tacticsWheelSpins.$inferSelect;
 export type NewTacticsWheelSpin = typeof tacticsWheelSpins.$inferInsert;
+export type TacticsDailyQuest = typeof tacticsDailyQuests.$inferSelect;
+export type NewTacticsDailyQuest = typeof tacticsDailyQuests.$inferInsert;
+export type TacticsAchievement = typeof tacticsAchievements.$inferSelect;
+export type NewTacticsAchievement = typeof tacticsAchievements.$inferInsert;

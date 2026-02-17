@@ -4,7 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { DungeonButton } from "@/components/gamehub/tactics/dungeon-button";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { EquipmentCard } from "@/components/gamehub/tactics/equipment-card";
@@ -56,16 +56,16 @@ export default function ShopPage() {
       <FadeIn>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold tactics-heading">
               <GradientText>Equipment Shop</GradientText>
             </h1>
             <p className="mt-2 text-muted-foreground">
               Buy equipment to power up your units. Stats are randomly generated.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
+          <div className="flex items-center gap-2 rounded-sm border-2 border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
             <Icons.DollarSign className="h-4 w-4 text-yellow-400" />
-            <span className="font-bold text-yellow-400">{currency.toLocaleString()}</span>
+            <span className="font-bold text-yellow-400 tactics-stat-label">{currency.toLocaleString()}</span>
           </div>
         </div>
       </FadeIn>
@@ -73,14 +73,14 @@ export default function ShopPage() {
       {/* Slot Selection */}
       <FadeIn delay={0.1}>
         <div>
-          <p className="text-sm font-medium text-muted-foreground mb-2">Equipment Slot</p>
+          <p className="text-sm font-medium text-muted-foreground mb-2 tactics-label">Equipment Slot</p>
           <div className="flex flex-wrap gap-2">
             {BUYABLE_SLOTS.map((slot) => (
               <button
                 key={slot}
                 onClick={() => setSelectedSlot(slot)}
                 className={cn(
-                  "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                  "rounded-sm border-2 px-3 py-1.5 text-sm font-medium transition-colors tactics-stat-label",
                   selectedSlot === slot
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border text-muted-foreground hover:border-primary/50"
@@ -96,7 +96,7 @@ export default function ShopPage() {
       {/* Rarity Selection */}
       <FadeIn delay={0.15}>
         <div>
-          <p className="text-sm font-medium text-muted-foreground mb-2">Rarity</p>
+          <p className="text-sm font-medium text-muted-foreground mb-2 tactics-label">Rarity</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {BUYABLE_RARITIES.map((rarity) => {
               const p = EQUIPMENT_SHOP_PRICES[rarity];
@@ -105,13 +105,13 @@ export default function ShopPage() {
                   key={rarity}
                   onClick={() => setSelectedRarity(rarity)}
                   className={cn(
-                    "rounded-lg border p-3 text-left transition-all",
+                    "rounded-sm border-2 p-3 text-left transition-all tactics-card",
                     selectedRarity === rarity
                       ? cn(RARITY_BORDERS[rarity], "bg-primary/5 ring-1 ring-primary/30")
                       : "border-border hover:border-primary/30"
                   )}
                 >
-                  <p className={cn("text-sm font-semibold", RARITY_COLORS[rarity])}>
+                  <p className={cn("text-sm font-semibold tactics-stat-label", RARITY_COLORS[rarity])}>
                     {RARITY_LABELS[rarity]}
                   </p>
                   <p className="text-xs text-yellow-400 mt-1">{p.toLocaleString()}g</p>
@@ -125,7 +125,7 @@ export default function ShopPage() {
       {/* Buy Button */}
       <FadeIn delay={0.2}>
         <div className="flex items-center gap-4">
-          <ShimmerButton
+          <DungeonButton
             onClick={handleBuy}
             disabled={!canAfford || buying}
           >
@@ -140,7 +140,7 @@ export default function ShopPage() {
                 Buy {RARITY_LABELS[selectedRarity]} {SLOT_LABELS[selectedSlot]} — {price.toLocaleString()}g
               </>
             )}
-          </ShimmerButton>
+          </DungeonButton>
           {!canAfford && (
             <p className="text-sm text-red-400">Not enough currency</p>
           )}
@@ -150,8 +150,8 @@ export default function ShopPage() {
       {/* Purchase Result */}
       {lastPurchase && (
         <FadeIn>
-          <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-6">
-            <p className="text-sm font-semibold text-green-400 mb-3">Equipment Purchased!</p>
+          <div className="rounded-sm border-2 border-green-500/30 bg-green-500/5 p-6 tactics-card">
+            <p className="text-sm font-semibold text-green-400 mb-3 tactics-heading">Equipment Purchased!</p>
             <div className="max-w-xs">
               <EquipmentCard
                 id={lastPurchase.equipment.id}

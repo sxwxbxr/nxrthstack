@@ -32,7 +32,7 @@ export default function TacticsLeaderboardPage() {
     <div className="space-y-8">
       <FadeIn>
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-3xl font-bold tactics-heading">
             <GradientText>Leaderboard</GradientText>
           </h1>
           <p className="mt-2 text-muted-foreground">
@@ -43,7 +43,7 @@ export default function TacticsLeaderboardPage() {
 
       {/* Your rank card */}
       <FadeIn delay={0.1}>
-        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+        <div className="rounded-sm border-2 border-primary/30 bg-primary/5 p-4 tactics-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 font-bold text-primary">
@@ -82,26 +82,26 @@ export default function TacticsLeaderboardPage() {
             </p>
           </div>
         ) : (
-          <div className="rounded-xl border border-border overflow-x-auto">
+          <div className="rounded-sm border-2 border-border overflow-x-auto tactics-card">
             <table className="w-full">
               <thead>
                 <tr className="bg-muted/50">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground w-16">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground w-16 tactics-label">
                     Rank
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground tactics-label">
                     Player
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 tactics-label">
                     Rating
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell tactics-label">
                     Wins
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-20 hidden md:table-cell tactics-label">
                     Losses
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-24">
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-24 tactics-label">
                     Win Rate
                   </th>
                 </tr>

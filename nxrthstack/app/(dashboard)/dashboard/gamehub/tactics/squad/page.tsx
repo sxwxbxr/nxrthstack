@@ -87,7 +87,7 @@ export default function SquadManagementPage() {
   return (
     <div className="space-y-8">
       <FadeIn>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold tactics-heading">
           <GradientText>Squad Management</GradientText>
         </h1>
         <p className="mt-2 text-muted-foreground">

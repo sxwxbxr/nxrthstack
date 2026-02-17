@@ -3,10 +3,12 @@ import { db, tacticsPlayers, tacticsMatches, tacticsMatchCooldowns, tacticsUnitI
 import { eq, ne, and, gt, sql, isNotNull, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { simulateBattle, type StatsOverrideMap } from "@/lib/gamehub/tactics/simulation";
+import { getMilestonePerks } from "@/lib/gamehub/tactics/milestones";
 import { calculateRatingChange, calculateCurrencyReward } from "@/lib/gamehub/tactics/elo";
 import { computeUnitStats } from "@/lib/gamehub/tactics/stats";
 import { ALL_UNITS } from "@/lib/gamehub/tactics/units";
 import { xpForLevel, RARITY_MAX_LEVEL } from "@/lib/gamehub/tactics/rarities";
+import { EQUIPMENT_MAX_LEVEL, equipmentXpForLevel, getEquipmentXpReward } from "@/lib/gamehub/tactics/equipment-levels";
 import type { Squad, UnitInstance, EquipmentItem, EquipmentStat } from "@/lib/gamehub/tactics/types";
 import type { Rarity } from "@/lib/gamehub/tactics/rarities";
 
@@ -134,8 +136,25 @@ export async function POST() {
       attackerWon
     );
 
-    const attackerCurrency = calculateCurrencyReward(attackerWon, true);
+    let attackerCurrency = calculateCurrencyReward(attackerWon, true);
     const defenderCurrency = calculateCurrencyReward(attackerWon, false);
+
+    // Win streak bonus
+    const newStreak = attackerWon ? (attacker.winStreak ?? 0) + 1 : 0;
+    const streakBonus = attackerWon ? Math.min(50, newStreak * 10) : 0;
+    attackerCurrency += streakBonus;
+
+    // First win of the day bonus
+    let isFirstWin = false;
+    if (attackerWon) {
+      const lastWin = attacker.lastFirstWinAt;
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      if (!lastWin || lastWin < todayStart) {
+        isFirstWin = true;
+        attackerCurrency *= 2; // double reward for first win
+      }
+    }
 
     // Store match result
     const [match] = await db
@@ -159,7 +178,7 @@ export async function POST() {
       })
       .returning();
 
-    // Update attacker rating, currency, wins/losses
+    // Update attacker rating, currency, wins/losses, streak, first win
     await db
       .update(tacticsPlayers)
       .set({
@@ -167,6 +186,8 @@ export async function POST() {
         currency: attacker.currency + attackerCurrency,
         totalWins: attackerWon ? attacker.totalWins + 1 : attacker.totalWins,
         totalLosses: attackerWon ? attacker.totalLosses : attacker.totalLosses + 1,
+        winStreak: newStreak,
+        ...(isFirstWin ? { lastFirstWinAt: now } : {}),
         updatedAt: now,
       })
       .where(eq(tacticsPlayers.userId, session.user.id));
@@ -195,6 +216,10 @@ export async function POST() {
     await awardXp(attacker.id, attackSquad, attackerWon, ratingDiff, true);
     await awardXp(defender.id, defenseSquad, !attackerWon, ratingDiff, false);
 
+    // Award XP to equipped equipment
+    await awardEquipmentXp(attacker.id, attackSquad, attackerWon, true);
+    await awardEquipmentXp(defender.id, defenseSquad, !attackerWon, false);
+
     return NextResponse.json({
       match: {
         matchId: match.id,
@@ -210,6 +235,9 @@ export async function POST() {
         durationSeconds: Math.ceil(result.durationTicks / TICK_RATE),
         stats: result.stats,
         currencyEarned: attackerCurrency,
+        streakBonus,
+        winStreak: newStreak,
+        isFirstWin,
         createdAt: match.createdAt.toISOString(),
       },
     });
@@ -275,6 +303,8 @@ async function computeSquadStats(
       enchantLevel: equip.enchantLevel,
       cursed: equip.cursed,
       curseStats: equip.curseStats as EquipmentStat[],
+      equipmentLevel: equip.equipmentLevel,
+      equipmentXp: equip.equipmentXp,
     });
   }
 
@@ -295,7 +325,9 @@ async function computeSquadStats(
     };
 
     const unitEquip = equipByUnit[inst.id] ?? [];
-    statsOverride[su.instanceId] = computeUnitStats(template, unitInst, unitEquip);
+    const computed = computeUnitStats(template, unitInst, unitEquip);
+    const perks = getMilestonePerks(template.class as import("@/lib/gamehub/tactics/types").UnitClass, inst.level);
+    statsOverride[su.instanceId] = { ...computed, perks };
   }
 }
 
@@ -368,5 +400,55 @@ async function awardXp(
         totalXpEarned: sql`${tacticsPlayers.totalXpEarned} + ${totalXpAwarded}`,
       })
       .where(eq(tacticsPlayers.id, playerId));
+  }
+}
+
+/** Award XP to all equipped equipment on units in a squad after battle */
+async function awardEquipmentXp(
+  playerId: string,
+  squad: Squad,
+  won: boolean,
+  isAttacker: boolean
+): Promise<void> {
+  const instanceIds = squad.units
+    .map((u) => u.unitInstanceId)
+    .filter((id): id is string => !!id);
+
+  if (instanceIds.length === 0) return;
+
+  // Fetch all equipment on these unit instances
+  const equippedItems = await db
+    .select()
+    .from(tacticsEquipment)
+    .where(
+      and(
+        eq(tacticsEquipment.playerId, playerId),
+        inArray(tacticsEquipment.unitInstanceId, instanceIds)
+      )
+    );
+
+  const xpReward = getEquipmentXpReward(won, isAttacker);
+
+  for (const item of equippedItems) {
+    const maxLevel = EQUIPMENT_MAX_LEVEL[item.rarity as Rarity] ?? 5;
+    if (item.equipmentLevel >= maxLevel) continue;
+
+    let newXp = item.equipmentXp + xpReward;
+    let newLevel = item.equipmentLevel;
+
+    while (newLevel < maxLevel) {
+      const needed = equipmentXpForLevel(newLevel + 1);
+      if (newXp >= needed) {
+        newXp -= needed;
+        newLevel++;
+      } else {
+        break;
+      }
+    }
+
+    await db
+      .update(tacticsEquipment)
+      .set({ equipmentXp: newXp, equipmentLevel: newLevel })
+      .where(eq(tacticsEquipment.id, item.id));
   }
 }

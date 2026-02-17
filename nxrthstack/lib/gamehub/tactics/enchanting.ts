@@ -12,10 +12,11 @@ export const MAX_ENCHANT_LEVEL = 7;
 // Enchant costs: baseCost * rarityMult * (1 + enchantLevel * 0.5)
 const BASE_ENCHANT_COST = 200;
 
-export function getEnchantCost(rarity: Rarity, enchantLevel: number): number {
+export function getEnchantCost(rarity: Rarity, enchantLevel: number, safe?: boolean): number {
   const rarityIdx = RARITY_ORDER.indexOf(rarity);
   const rarityMult = 1 + rarityIdx * 0.3;
-  return Math.floor(BASE_ENCHANT_COST * rarityMult * (1 + enchantLevel * 0.5));
+  const base = Math.floor(BASE_ENCHANT_COST * rarityMult * (1 + enchantLevel * 0.5));
+  return safe ? base * 3 : base;
 }
 
 // Success rates per enchant level (0→1, 1→2, etc.)
@@ -52,7 +53,8 @@ const ENCHANT_STAT_TYPES: StatType[] = ["hp", "attack", "defense", "speed", "cri
  */
 export function attemptEnchant(
   equipment: EquipmentItem,
-  seed: number
+  seed: number,
+  safe?: boolean
 ): {
   result: EnchantResult;
   newEnchantLevel: number;
@@ -80,15 +82,15 @@ export function attemptEnchant(
   }
 
   // Failure
-  if (rng() < NEUTRAL_CHANCE) {
-    // Neutral: nothing happens
+  if (safe || rng() < NEUTRAL_CHANCE) {
+    // Safe mode: always neutral on failure. Regular mode: 10% neutral chance.
     return {
       result: "neutral",
       newEnchantLevel: equipment.enchantLevel,
     };
   }
 
-  // Curse: add or worsen a curse stat
+  // Curse: add or worsen a curse stat (only in regular mode)
   const curseStat = ENCHANT_STAT_TYPES[Math.floor(rng() * ENCHANT_STAT_TYPES.length)];
   const curseValue = 1 + Math.floor(rng() * 3); // 1-3
 

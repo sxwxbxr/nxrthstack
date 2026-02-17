@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { motion, AnimatePresence } from "motion/react";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { DungeonButton } from "@/components/gamehub/tactics/dungeon-button";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { RARITY_LABELS, RARITY_COLORS, RARITY_BORDERS, RARITY_BG_COLORS, RARITY_GLOW, type Rarity } from "@/lib/gamehub/tactics/rarities";
@@ -88,23 +88,23 @@ export default function WheelPage() {
       <FadeIn>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold tactics-heading">
               <GradientText>Lucky Wheel</GradientText>
             </h1>
             <p className="mt-2 text-muted-foreground">
               Spin for a chance to get units at higher rarities. Cost increases with each spin.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
+          <div className="flex items-center gap-2 rounded-sm border-2 border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
             <Icons.DollarSign className="h-4 w-4 text-yellow-400" />
-            <span className="font-bold text-yellow-400">{currency.toLocaleString()}</span>
+            <span className="font-bold text-yellow-400 tactics-stat-label">{currency.toLocaleString()}</span>
           </div>
         </div>
       </FadeIn>
 
       {/* Main Wheel Area */}
       <FadeIn delay={0.1}>
-        <div className="rounded-xl border border-border bg-card p-8 text-center space-y-6">
+        <div className="rounded-sm border-2 border-border bg-card p-8 text-center space-y-6 tactics-card">
           {/* Spinning/Result Display */}
           <div className="min-h-[120px] flex items-center justify-center">
             {spinning && cycleText && (
@@ -127,7 +127,7 @@ export default function WheelPage() {
                   className="space-y-3"
                 >
                   <div className={cn(
-                    "inline-block rounded-xl border-2 px-8 py-4",
+                    "inline-block rounded-sm border-2 px-8 py-4",
                     RARITY_BORDERS[result.rarity],
                     RARITY_BG_COLORS[result.rarity],
                     RARITY_GLOW[result.rarity]
@@ -160,10 +160,10 @@ export default function WheelPage() {
 
           {/* Spin Button */}
           <div>
-            <ShimmerButton
+            <DungeonButton
               onClick={handleSpin}
               disabled={!canSpin || spinning}
-              className="text-lg px-10 py-3"
+              size="lg"
             >
               {spinning ? (
                 <>
@@ -176,7 +176,7 @@ export default function WheelPage() {
                   SPIN — {cost.toLocaleString()}g
                 </>
               )}
-            </ShimmerButton>
+            </DungeonButton>
             {!canSpin && !spinning && (
               <p className="text-sm text-red-400 mt-2">Not enough currency</p>
             )}
@@ -190,8 +190,8 @@ export default function WheelPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Collection Progress */}
         <FadeIn delay={0.2}>
-          <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+          <div className="rounded-sm border-2 border-border bg-card p-5 tactics-card">
+            <p className="text-sm font-semibold text-muted-foreground mb-3 tactics-label">
               Collection ({collection.length} units)
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -236,8 +236,8 @@ export default function WheelPage() {
 
         {/* Recent Spins */}
         <FadeIn delay={0.25}>
-          <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+          <div className="rounded-sm border-2 border-border bg-card p-5 tactics-card">
+            <p className="text-sm font-semibold text-muted-foreground mb-3 tactics-label">
               Recent Spins
             </p>
             {recentSpins.length === 0 ? (

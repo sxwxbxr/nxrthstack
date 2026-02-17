@@ -17,9 +17,12 @@ import { selectMap } from "./maps";
 import { createRng, type SeededRng } from "./rng";
 import { findNextStep, tileDistance } from "./pathfinding";
 import { hasLineOfSight, isOnCover } from "./los";
+import { getMilestonePerks } from "./milestones";
+import type { UnitClass } from "./types";
 
 /** Optional pre-computed stats keyed by instanceId */
-export type StatsOverrideMap = Record<string, ComputedUnitStats>;
+export type StatsOverrideEntry = ComputedUnitStats & { perks?: string[] };
+export type StatsOverrideMap = Record<string, StatsOverrideEntry>;
 
 // ============================================================================
 // Constants
@@ -62,11 +65,13 @@ export function simulateBattle(
 
   // Attack cooldown tracking
   const attackCooldowns = new Map<string, number>();
+  // Track first_strike usage per unit
+  const firstStrikeUsed = new Set<string>();
 
   // Main simulation loop
   while (state.tick < MAX_TICKS && !state.winner) {
     state.tick++;
-    simulateTick(state, rng, attackCooldowns);
+    simulateTick(state, rng, attackCooldowns, firstStrikeUsed);
     checkWinCondition(state);
   }
 
@@ -108,6 +113,9 @@ function initUnits(squad: Squad, side: UnitSide, statsOverride?: StatsOverrideMa
     const computed = statsOverride?.[su.instanceId];
     const maxHp = computed?.maxHp ?? template.maxHp;
 
+    // Perks are computed alongside stats and passed through the override
+    const perks = computed?.perks ?? [];
+
     return {
       instanceId: su.instanceId,
       templateId: su.templateId,
@@ -124,6 +132,7 @@ function initUnits(squad: Squad, side: UnitSide, statsOverride?: StatsOverrideMa
       abilities: template.abilities.map((a) => ({ ...a })),
       abilityCooldowns: {},
       behaviorRules: su.behaviorRules,
+      perks,
       isAlive: true,
       buffs: [],
     };
@@ -137,10 +146,27 @@ function initUnits(squad: Squad, side: UnitSide, statsOverride?: StatsOverrideMa
 function simulateTick(
   state: GameState,
   rng: SeededRng,
-  attackCooldowns: Map<string, number>
+  attackCooldowns: Map<string, number>,
+  firstStrikeUsed: Set<string>
 ): void {
   // Process buffs (tick down, apply effects like regen/poison)
   processBuffs(state);
+
+  // Process aura perk: healers with "aura" regen nearby allies 2 HP/tick
+  for (const unit of state.units) {
+    if (!unit.isAlive || !unit.perks.includes("aura")) continue;
+    const allies = state.units.filter(
+      (u) => u.isAlive && u.side === unit.side && u.instanceId !== unit.instanceId &&
+        tileDistance(u.position, unit.position) <= 2
+    );
+    for (const ally of allies) {
+      const heal = Math.min(2, ally.maxHp - ally.currentHp);
+      if (heal > 0) {
+        ally.currentHp += heal;
+        state.events.push({ tick: state.tick, type: "HEAL", unitId: ally.instanceId, value: heal });
+      }
+    }
+  }
 
   // Sort units by speed (higher = faster), ties broken by RNG
   const aliveUnits = state.units
@@ -157,7 +183,7 @@ function simulateTick(
 
     const action = evaluateBehavior(unit, state, rng);
     if (action) {
-      executeAction(unit, action, state, rng, occupiedTiles, attackCooldowns);
+      executeAction(unit, action, state, rng, occupiedTiles, attackCooldowns, firstStrikeUsed);
     }
   }
 }
@@ -356,7 +382,8 @@ function executeAction(
   state: GameState,
   rng: SeededRng,
   occupiedTiles: Set<string>,
-  attackCooldowns: Map<string, number>
+  attackCooldowns: Map<string, number>,
+  firstStrikeUsed: Set<string>
 ): void {
   switch (action.action) {
     case "ATTACK_NEAREST":
@@ -369,9 +396,25 @@ function executeAction(
       const dist = tileDistance(unit.position, action.target.position);
       const los = hasLineOfSight(state.map.tiles, unit.position, action.target.position);
       if (dist <= unit.attackRange && los) {
-        performAttack(unit, action.target, state, rng, attackCooldowns);
+        performAttack(unit, action.target, state, rng, attackCooldowns, firstStrikeUsed);
       } else {
-        moveTowards(unit, action.target.position, state, occupiedTiles);
+        // shadow_step: first move teleports to target
+        if (unit.perks.includes("shadow_step") && !firstStrikeUsed.has(unit.instanceId + "_move")) {
+          firstStrikeUsed.add(unit.instanceId + "_move");
+          const adjPos = findAdjacentPosition(unit, action.target.position, state);
+          if (adjPos) {
+            const oldKey = `${unit.position.x},${unit.position.y}`;
+            occupiedTiles.delete(oldKey);
+            occupiedTiles.add(`${adjPos.x},${adjPos.y}`);
+            state.events.push({
+              tick: state.tick, type: "MOVE", unitId: unit.instanceId,
+              fromPosition: { ...unit.position }, toPosition: adjPos,
+            });
+            unit.position = adjPos;
+          }
+        } else {
+          moveTowards(unit, action.target.position, state, occupiedTiles);
+        }
       }
       break;
     }
@@ -468,7 +511,8 @@ function performAttack(
   target: BattleUnit,
   state: GameState,
   rng: SeededRng,
-  attackCooldowns: Map<string, number>
+  attackCooldowns: Map<string, number>,
+  firstStrikeUsed?: Set<string>
 ): void {
   // Check attack cooldown
   const cooldownKey = attacker.instanceId;
@@ -482,9 +526,26 @@ function performAttack(
     return; // Can't target vanished units
   }
 
+  // Piercing perk: ignore 25% of target defense
+  const effectiveDefense = attacker.perks.includes("piercing")
+    ? target.defense * 0.75
+    : target.defense;
+
   const isCrit = rng.chance(attacker.critChance);
-  const baseDamage = Math.max(1, attacker.attack - target.defense / 2);
-  let damage = isCrit ? Math.round(baseDamage * attacker.critMultiplier) : Math.round(baseDamage);
+  const baseDamage = Math.max(1, attacker.attack - effectiveDefense / 2);
+
+  // Headshot perk: crits deal +50% bonus
+  const critMult = isCrit
+    ? attacker.critMultiplier * (attacker.perks.includes("headshot") ? 1.5 : 1)
+    : 1;
+
+  let damage = Math.round(baseDamage * critMult);
+
+  // First strike perk: first attack does 1.5× damage
+  if (attacker.perks.includes("first_strike") && firstStrikeUsed && !firstStrikeUsed.has(attacker.instanceId)) {
+    firstStrikeUsed.add(attacker.instanceId);
+    damage = Math.round(damage * 1.5);
+  }
 
   // Defense buffs
   const defenseBoost = target.buffs
@@ -499,6 +560,11 @@ function performAttack(
     damage = Math.max(1, Math.round(damage * (1 - COVER_DAMAGE_REDUCTION)));
   }
 
+  // Fortify perk: 20% less damage when below 50% HP
+  if (target.perks.includes("fortify") && target.currentHp < target.maxHp * 0.5) {
+    damage = Math.max(1, Math.round(damage * 0.8));
+  }
+
   state.events.push({
     tick: state.tick,
     type: "ATTACK",
@@ -509,6 +575,12 @@ function performAttack(
   });
 
   applyDamage(target, damage, state, isCrit);
+
+  // Thorns perk: reflect 15% melee damage
+  if (target.isAlive && target.perks.includes("thorns") && attacker.attackRange <= 1) {
+    const thornsDmg = Math.max(1, Math.round(damage * 0.15));
+    applyDamage(attacker, thornsDmg, state, false);
+  }
 }
 
 function performAbility(
@@ -663,7 +735,11 @@ function applyHeal(
   amount: number,
   state: GameState
 ): void {
-  const actualHeal = Math.min(target.maxHp - target.currentHp, amount);
+  // Overheal perk: healing can exceed max HP by 10%
+  const healCap = target.perks.includes("overheal")
+    ? Math.floor(target.maxHp * 1.1)
+    : target.maxHp;
+  const actualHeal = Math.min(healCap - target.currentHp, amount);
   target.currentHp += actualHeal;
 
   if (actualHeal > 0) {

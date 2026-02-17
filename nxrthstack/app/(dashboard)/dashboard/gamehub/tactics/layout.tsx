@@ -10,7 +10,7 @@ export default function TacticsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-6">
+    <div className="tactics-theme space-y-6">
       <TacticsNav />
       {children}
     </div>

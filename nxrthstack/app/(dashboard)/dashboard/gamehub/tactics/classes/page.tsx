@@ -40,7 +40,7 @@ export default function ClassesPage() {
     <div className="space-y-8">
       <FadeIn>
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-3xl font-bold tactics-heading">
             <GradientText>Classes & Units</GradientText>
           </h1>
           <p className="mt-2 text-muted-foreground">
@@ -56,14 +56,14 @@ export default function ClassesPage() {
 
         return (
           <FadeIn key={cls} delay={0.1 * (i + 1)}>
-            <div className={cn("rounded-xl border p-6 space-y-5", CLASS_COLORS[cls])}>
+            <div className={cn("rounded-sm border-2 p-6 space-y-5 tactics-card", CLASS_COLORS[cls])}>
               {/* Class Header */}
               <div className="flex items-start gap-4">
-                <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border", CLASS_BADGE[cls])}>
+                <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border-2", CLASS_BADGE[cls])}>
                   <ClassIcon className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">{cls}</h2>
+                  <h2 className="text-2xl font-bold text-foreground tactics-heading">{cls}</h2>
                   <p className={cn("text-sm font-medium", CLASS_ACCENT[cls])}>{info.tagline}</p>
                   <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{info.description}</p>
                 </div>
@@ -97,10 +97,10 @@ export default function ClassesPage() {
 
               {/* Units */}
               <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Units</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-3 tactics-label">Units</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {classUnits.map((unit) => (
-                    <div key={unit.id} className="rounded-lg border border-border bg-card p-4">
+                    <div key={unit.id} className="rounded-sm border-2 border-border bg-card p-4 tactics-card">
                       <div className="flex items-center gap-3 mb-2">
                         <div className={cn("flex h-8 w-8 items-center justify-center rounded-md border", CLASS_BADGE[cls])}>
                           <ClassIcon className="h-4 w-4" />

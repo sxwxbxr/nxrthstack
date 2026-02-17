@@ -106,6 +106,9 @@ import {
   Footprints,
   Dices,
   Loader,
+  ScrollText,
+  Medal,
+  Coins,
 } from "lucide-react";
 
 export const Icons = {
@@ -220,6 +223,9 @@ export const Icons = {
   Footprints,
   Dices,
   Loader,
+  ScrollText,
+  Medal,
+  Coins,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

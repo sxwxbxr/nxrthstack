@@ -170,6 +170,8 @@ export interface EquipmentItem {
   enchantLevel: number;
   cursed: boolean;
   curseStats: EquipmentStat[];
+  equipmentLevel: number;
+  equipmentXp: number;
 }
 
 // --- Unit Instances ---
@@ -251,6 +253,7 @@ export interface BattleUnit {
   abilities: Ability[];
   abilityCooldowns: Record<string, number>; // abilityId → tick when ready
   behaviorRules: BehaviorRule[];
+  perks: string[];
   isAlive: boolean;
   buffs: ActiveBuff[];
 }

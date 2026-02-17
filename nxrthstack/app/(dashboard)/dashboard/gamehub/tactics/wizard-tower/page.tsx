@@ -4,7 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { DungeonButton } from "@/components/gamehub/tactics/dungeon-button";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { EquipmentCard } from "@/components/gamehub/tactics/equipment-card";
@@ -79,16 +79,16 @@ export default function WizardTowerPage() {
       <FadeIn>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold tactics-heading">
               <GradientText>Wizard Tower</GradientText>
             </h1>
             <p className="mt-2 text-muted-foreground">
               Enchant your equipment to boost stats. But beware of curses...
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
+          <div className="flex items-center gap-2 rounded-sm border-2 border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
             <Icons.DollarSign className="h-4 w-4 text-yellow-400" />
-            <span className="font-bold text-yellow-400">{currency.toLocaleString()}</span>
+            <span className="font-bold text-yellow-400 tactics-stat-label">{currency.toLocaleString()}</span>
           </div>
         </div>
       </FadeIn>
@@ -96,8 +96,8 @@ export default function WizardTowerPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Equipment Selection */}
         <FadeIn delay={0.1} className="lg:col-span-2">
-          <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+          <div className="rounded-sm border-2 border-border bg-card p-5 tactics-card">
+            <p className="text-sm font-semibold text-muted-foreground mb-3 tactics-label">
               Select Equipment to Enchant
             </p>
             {equipment.length === 0 ? (
@@ -139,13 +139,13 @@ export default function WizardTowerPage() {
         {/* Enchant Panel */}
         <FadeIn delay={0.15}>
           <div className="space-y-4">
-            <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-5 space-y-4">
+            <div className="rounded-sm border-2 border-primary/30 bg-primary/5 p-5 space-y-4 tactics-card">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-purple-500/30 bg-purple-500/10">
-                  <Icons.Wand className="h-5 w-5 text-purple-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-primary/30 bg-primary/10">
+                  <Icons.Wand className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-bold text-purple-400">Enchantment Altar</p>
+                  <p className="font-bold text-primary tactics-heading">Enchantment Altar</p>
                   <p className="text-xs text-muted-foreground">The arcane energies swirl...</p>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function WizardTowerPage() {
                       Max enchant level reached!
                     </p>
                   ) : (
-                    <ShimmerButton
+                    <DungeonButton
                       onClick={handleEnchant}
                       disabled={!canEnchant || enchanting}
                       className="w-full"
@@ -199,7 +199,7 @@ export default function WizardTowerPage() {
                           Enchant — {cost.toLocaleString()}g
                         </>
                       )}
-                    </ShimmerButton>
+                    </DungeonButton>
                   )}
                 </>
               ) : (
@@ -255,8 +255,8 @@ export default function WizardTowerPage() {
             </div>
 
             {/* Recent Enchant History */}
-            <div className="rounded-xl border border-border bg-card p-5">
-              <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+            <div className="rounded-sm border-2 border-border bg-card p-5 tactics-card">
+              <p className="text-sm font-semibold text-muted-foreground mb-3 tactics-label">
                 Recent Enchants
               </p>
               {history.length === 0 ? (

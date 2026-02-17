@@ -59,6 +59,16 @@ const tacticsNavItems = [
     icon: Icons.BarChart,
   },
   {
+    title: "Quests",
+    href: "/dashboard/gamehub/tactics/quests",
+    icon: Icons.ScrollText,
+  },
+  {
+    title: "Achievements",
+    href: "/dashboard/gamehub/tactics/achievements",
+    icon: Icons.Medal,
+  },
+  {
     title: "Leaderboard",
     href: "/dashboard/gamehub/tactics/leaderboard",
     icon: Icons.Trophy,
@@ -69,30 +79,38 @@ export function TacticsNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-2 border-b border-border pb-4 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
-      {tacticsNavItems.map((item) => {
-        const isActive = item.exact
-          ? pathname === item.href
-          : pathname.startsWith(item.href);
+    <nav className="relative border-b-2 border-border pb-3 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="flex gap-1">
+        {tacticsNavItems.map((item) => {
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
 
-        return (
-          <Link key={item.href} href={item.href}>
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={cn(
-                "flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:bg-accent hover:text-foreground"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.title}
-            </motion.div>
-          </Link>
-        );
-      })}
+          return (
+            <Link key={item.href} href={item.href}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={cn(
+                  "relative flex shrink-0 items-center gap-2 rounded-sm px-3 py-2 text-xs font-medium transition-all whitespace-nowrap tactics-stat-label border-2",
+                  isActive
+                    ? "border-primary bg-primary/10 text-primary shadow-[0_0_8px_2px_var(--tactics-glow-gold)]"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                )}
+              >
+                <item.icon className="h-3.5 w-3.5" />
+                {item.title}
+                {isActive && (
+                  <motion.div
+                    layoutId="tactics-nav-indicator"
+                    className="absolute -bottom-[13px] left-2 right-2 h-0.5 bg-primary"
+                  />
+                )}
+              </motion.div>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

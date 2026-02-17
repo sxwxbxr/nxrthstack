@@ -37,8 +37,8 @@ export function ReplayClient({ events, attackerSquad, defenderSquad, mapId, maxT
       />
 
       {/* Battle Stats */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h3 className="text-sm font-semibold text-foreground mb-3">Battle Stats</h3>
+      <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
+        <h3 className="text-sm font-semibold text-foreground mb-3 tactics-heading">Battle Stats</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Attacker Damage</p>

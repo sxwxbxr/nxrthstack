@@ -147,16 +147,16 @@ export default function InventoryPage() {
       <FadeIn>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold tactics-heading">
               <GradientText>Inventory</GradientText>
             </h1>
             <p className="mt-2 text-muted-foreground">
               Manage your equipment. Equip, reroll, or sell items.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
+          <div className="flex items-center gap-2 rounded-sm border-2 border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
             <Icons.DollarSign className="h-4 w-4 text-yellow-400" />
-            <span className="font-bold text-yellow-400">{currency.toLocaleString()}</span>
+            <span className="font-bold text-yellow-400 tactics-stat-label">{currency.toLocaleString()}</span>
           </div>
         </div>
       </FadeIn>
@@ -167,7 +167,7 @@ export default function InventoryPage() {
           <button
             onClick={() => setFilterSlot("all")}
             className={cn(
-              "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+              "rounded-sm border-2 px-3 py-1.5 text-sm font-medium transition-colors tactics-stat-label",
               filterSlot === "all"
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border text-muted-foreground hover:border-primary/50"
@@ -182,7 +182,7 @@ export default function InventoryPage() {
                 key={slot}
                 onClick={() => setFilterSlot(slot)}
                 className={cn(
-                  "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                  "rounded-sm border-2 px-3 py-1.5 text-sm font-medium transition-colors tactics-stat-label",
                   filterSlot === slot
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border text-muted-foreground hover:border-primary/50"
@@ -199,7 +199,7 @@ export default function InventoryPage() {
         {/* Equipment Grid */}
         <FadeIn delay={0.15} className="lg:col-span-2">
           {filtered.length === 0 ? (
-            <div className="text-center py-12 rounded-xl border border-border bg-card">
+            <div className="text-center py-12 rounded-sm border-2 border-border bg-card tactics-card">
               <Icons.Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No equipment yet</p>
               <p className="text-sm text-muted-foreground mt-1">Visit the shop to buy some!</p>
@@ -233,7 +233,7 @@ export default function InventoryPage() {
         {/* Detail Panel */}
         <FadeIn delay={0.2}>
           {selected ? (
-            <div className="rounded-xl border border-border bg-card p-5 space-y-4 sticky top-4">
+            <div className="rounded-sm border-2 border-border bg-card p-5 space-y-4 sticky top-4 tactics-card">
               <div>
                 <p className={cn("text-lg font-bold", RARITY_COLORS[selected.rarity as Rarity])}>
                   {selected.name}
@@ -254,7 +254,7 @@ export default function InventoryPage() {
 
               {/* Stats with lock toggles */}
               <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground mb-2 tactics-label">
                   Stats (click to lock for reroll)
                 </p>
                 <div className="space-y-1.5">
@@ -313,7 +313,7 @@ export default function InventoryPage() {
                   <button
                     onClick={handleUnequip}
                     disabled={equipping}
-                    className="flex items-center justify-center gap-2 w-full rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-400 transition-colors hover:bg-orange-500/20 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 w-full rounded-sm border-2 border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-400 transition-colors hover:bg-orange-500/20 disabled:opacity-50"
                   >
                     <Icons.ArrowRight className="h-4 w-4" />
                     {equipping ? "Unequipping..." : "Unequip"}
@@ -322,7 +322,7 @@ export default function InventoryPage() {
                   <button
                     onClick={() => setShowEquipPicker(!showEquipPicker)}
                     disabled={equipping || units.length === 0}
-                    className="flex items-center justify-center gap-2 w-full rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-400 transition-colors hover:bg-green-500/20 disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 w-full rounded-sm border-2 border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-400 transition-colors hover:bg-green-500/20 disabled:opacity-50"
                   >
                     <Icons.Shield className="h-4 w-4" />
                     Equip to Unit
@@ -343,7 +343,7 @@ export default function InventoryPage() {
                 <button
                   onClick={handleReroll}
                   disabled={rerolling || !canAffordReroll(currency, selected.rarity as Rarity, lockedStats.size)}
-                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 w-full rounded-sm border-2 border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Icons.RefreshCw className={cn("h-4 w-4", rerolling && "animate-spin")} />
                   Reroll Stats — {getRerollCost(selected.rarity as Rarity, lockedStats.size)}g
@@ -354,7 +354,7 @@ export default function InventoryPage() {
                 <button
                   onClick={handleSell}
                   disabled={selling}
-                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 w-full rounded-sm border-2 border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
                 >
                   <Icons.Trash2 className="h-4 w-4" />
                   Sell — +{getSellPrice(selected.rarity as Rarity)}g
@@ -362,7 +362,7 @@ export default function InventoryPage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-border bg-card p-6 text-center">
+            <div className="rounded-sm border-2 border-border bg-card p-6 text-center tactics-card">
               <Icons.Eye className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">Select an item to view details</p>
             </div>
@@ -397,8 +397,8 @@ function EquipUnitPicker({
   });
 
   return (
-    <div className="rounded-lg border border-border bg-background p-3 space-y-2">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+    <div className="rounded-sm border-2 border-border bg-background p-3 space-y-2">
+      <p className="text-xs font-semibold text-muted-foreground tactics-label">
         Choose unit to equip
       </p>
       <div className="max-h-48 overflow-y-auto space-y-1.5">

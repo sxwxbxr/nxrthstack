@@ -44,7 +44,7 @@ export default async function MatchHistoryPage() {
   return (
     <div className="space-y-8">
       <FadeIn>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold tactics-heading">
           <GradientText>Match History</GradientText>
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -54,7 +54,7 @@ export default async function MatchHistoryPage() {
 
       <FadeIn delay={0.1}>
         {matches.length === 0 ? (
-          <div className="text-center py-12 rounded-xl border border-border bg-card">
+          <div className="text-center py-12 rounded-sm border-2 border-border bg-card tactics-card">
             <Icons.Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-foreground font-medium">No matches yet</p>
             <p className="text-sm text-muted-foreground mt-1">
@@ -62,22 +62,22 @@ export default async function MatchHistoryPage() {
             </p>
             <Link
               href="/dashboard/gamehub/tactics/battle"
-              className="inline-block mt-4 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="inline-block mt-4 rounded-sm bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors tactics-button tactics-button-primary"
             >
               Find Match
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="rounded-sm border-2 border-border bg-card overflow-hidden tactics-card">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-background">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Result</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Role</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Rating</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Duration</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Date</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Replay</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground tactics-label">Result</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground tactics-label">Role</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground tactics-label">Rating</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground tactics-label">Duration</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground tactics-label">Date</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground tactics-label">Replay</th>
                 </tr>
               </thead>
               <tbody>

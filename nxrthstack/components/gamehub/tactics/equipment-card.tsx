@@ -47,6 +47,8 @@ interface EquipmentCardProps {
   enchantLevel: number;
   cursed: boolean;
   curseStats: EquipmentStat[];
+  equipmentLevel?: number;
+  equipmentXp?: number;
   equipped?: boolean;
   unitName?: string;
   onClick?: () => void;
@@ -62,6 +64,8 @@ export function EquipmentCard({
   enchantLevel,
   cursed,
   curseStats,
+  equipmentLevel,
+  equipmentXp,
   equipped,
   unitName,
   onClick,
@@ -74,7 +78,7 @@ export function EquipmentCard({
     <div
       onClick={onClick}
       className={cn(
-        "rounded-lg border p-3 transition-all",
+        "relative rounded-sm border-2 p-3 transition-all overflow-hidden tactics-card",
         RARITY_BORDERS[r],
         RARITY_BG_COLORS[r],
         RARITY_GLOW[r],
@@ -84,20 +88,26 @@ export function EquipmentCard({
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-2">
-        <div className={cn("flex h-7 w-7 items-center justify-center rounded-md border", RARITY_BORDERS[r])}>
+        <div className={cn("flex h-7 w-7 items-center justify-center rounded-sm border-2", RARITY_BORDERS[r])}>
           <SlotIcon className={cn("h-3.5 w-3.5", RARITY_COLORS[r])} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className={cn("text-sm font-semibold truncate", RARITY_COLORS[r])}>
+          <p className={cn("text-sm font-semibold truncate tactics-stat-label", RARITY_COLORS[r])}>
             {name}
             {enchantLevel > 0 && (
               <span className="text-yellow-400"> +{enchantLevel}</span>
             )}
           </p>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>{SLOT_LABELS[slot] ?? slot}</span>
+            <span className="tactics-label">{SLOT_LABELS[slot] ?? slot}</span>
             <span>&middot;</span>
-            <span className={RARITY_COLORS[r]}>{RARITY_LABELS[r]}</span>
+            <span className={cn("tactics-label", RARITY_COLORS[r])}>{RARITY_LABELS[r]}</span>
+            {(equipmentLevel ?? 1) > 1 && (
+              <>
+                <span>&middot;</span>
+                <span className="text-cyan-400 tactics-label">Lv.{equipmentLevel}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -107,7 +117,7 @@ export function EquipmentCard({
         <div className="space-y-0.5">
           {stats.map((s, i) => (
             <div key={i} className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">{STAT_LABELS[s.stat] ?? s.stat}</span>
+              <span className="text-muted-foreground tactics-stat-label">{STAT_LABELS[s.stat] ?? s.stat}</span>
               <span className="font-medium text-green-400">+{s.value}</span>
             </div>
           ))}
@@ -115,7 +125,7 @@ export function EquipmentCard({
             <>
               {curseStats.map((s, i) => (
                 <div key={`curse-${i}`} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{STAT_LABELS[s.stat] ?? s.stat}</span>
+                  <span className="text-muted-foreground tactics-stat-label">{STAT_LABELS[s.stat] ?? s.stat}</span>
                   <span className="font-medium text-red-400">-{s.value}</span>
                 </div>
               ))}

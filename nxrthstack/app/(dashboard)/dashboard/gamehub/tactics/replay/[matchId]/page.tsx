@@ -55,7 +55,7 @@ export default async function ReplayPage({
             <Icons.ChevronLeft className="h-5 w-5" />
           </a>
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-2xl font-bold tactics-heading">
               <GradientText>Battle Replay</GradientText>
             </h1>
             <p className="text-sm text-muted-foreground">

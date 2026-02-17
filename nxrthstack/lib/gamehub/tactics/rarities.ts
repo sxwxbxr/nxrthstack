@@ -66,10 +66,10 @@ export const RARITY_GLOW: Record<Rarity, string> = {
   common: "",
   uncommon: "",
   rare: "shadow-blue-500/20 shadow-lg",
-  epic: "shadow-purple-500/20 shadow-lg",
-  legendary: "shadow-orange-500/25 shadow-xl",
-  mythic: "shadow-red-500/30 shadow-xl",
-  secret: "shadow-pink-500/40 shadow-2xl",
+  epic: "shadow-purple-500/25 shadow-lg",
+  legendary: "shadow-orange-500/30 shadow-xl animate-[tactics-pulse-legendary_3s_ease-in-out_infinite]",
+  mythic: "shadow-red-500/35 shadow-xl animate-[tactics-pulse-mythic_2.5s_ease-in-out_infinite]",
+  secret: "shadow-pink-500/40 shadow-2xl animate-[tactics-pulse-mythic_2s_ease-in-out_infinite]",
 };
 
 // Stat multipliers per rarity (applied to base template stats)

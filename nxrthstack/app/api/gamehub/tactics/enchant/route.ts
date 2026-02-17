@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { equipmentId } = body as { equipmentId: string };
+    const { equipmentId, safe } = body as { equipmentId: string; safe?: boolean };
 
     if (!equipmentId) {
       return NextResponse.json({ error: "Missing equipmentId" }, { status: 400 });
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Equipment is at max enchant level" }, { status: 400 });
     }
 
-    const cost = getEnchantCost(equipment.rarity as Rarity, equipment.enchantLevel);
+    const cost = getEnchantCost(equipment.rarity as Rarity, equipment.enchantLevel, !!safe);
     if (player.currency < cost) {
       return NextResponse.json({ error: "Not enough currency" }, { status: 400 });
     }
@@ -57,10 +57,12 @@ export async function POST(request: Request) {
       enchantLevel: equipment.enchantLevel,
       cursed: equipment.cursed,
       curseStats: equipment.curseStats as EquipmentStat[],
+      equipmentLevel: equipment.equipmentLevel,
+      equipmentXp: equipment.equipmentXp,
     };
 
     const seed = Math.floor(Math.random() * 2147483647);
-    const result = attemptEnchant(equipItem, seed);
+    const result = attemptEnchant(equipItem, seed, !!safe);
 
     // Deduct currency
     await db

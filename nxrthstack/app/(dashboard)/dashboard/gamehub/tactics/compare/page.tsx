@@ -35,6 +35,8 @@ interface UnitRow {
     enchantLevel: number;
     cursed: boolean;
     curseStats: EquipmentStat[];
+    equipmentLevel?: number;
+    equipmentXp?: number;
   }[];
 }
 
@@ -111,6 +113,8 @@ export default function ComparePage() {
         enchantLevel: e.enchantLevel,
         cursed: e.cursed,
         curseStats: e.curseStats,
+        equipmentLevel: e.equipmentLevel ?? 1,
+        equipmentXp: e.equipmentXp ?? 0,
       }));
 
       return {
@@ -133,7 +137,7 @@ export default function ComparePage() {
   return (
     <div className="space-y-8">
       <FadeIn>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold tactics-heading">
           <GradientText>Compare Units</GradientText>
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -152,7 +156,7 @@ export default function ComparePage() {
                 key={slot}
                 onClick={() => setActiveSlot(slot)}
                 className={cn(
-                  "rounded-xl border p-4 transition-all cursor-pointer",
+                  "rounded-sm border-2 p-4 transition-all cursor-pointer tactics-card",
                   isActive ? "border-primary ring-2 ring-primary/30" : "border-border",
                   data ? RARITY_BG_COLORS[data.unit.rarity as Rarity] : "bg-card"
                 )}
@@ -194,7 +198,7 @@ export default function ComparePage() {
       {/* Stat Comparison Bars */}
       {computedStats[0] && computedStats[1] && (
         <FadeIn delay={0.15}>
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
             <h2 className="text-lg font-bold text-foreground mb-4">Stat Comparison</h2>
             <div className="space-y-4">
               {STAT_CONFIG.map(({ key, label, color, barColor }) => {
@@ -255,7 +259,7 @@ export default function ComparePage() {
                 const data = computedStats[slot]!;
                 return (
                   <div key={slot}>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    <p className="text-xs font-semibold text-muted-foreground tactics-label mb-2">
                       {RARITY_LABELS[data.unit.rarity as Rarity]} {data.template.name} Equipment
                     </p>
                     {data.unit.equipment.length === 0 ? (
@@ -283,7 +287,7 @@ export default function ComparePage() {
       {/* Single unit stat card when only one is selected */}
       {(computedStats[0] || computedStats[1]) && !(computedStats[0] && computedStats[1]) && (
         <FadeIn delay={0.15}>
-          <div className="rounded-xl border border-border bg-card p-6">
+          <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
             <p className="text-sm text-muted-foreground text-center">
               Select a second unit to compare stats side-by-side
             </p>
@@ -293,7 +297,7 @@ export default function ComparePage() {
 
       {/* Unit Selection Grid */}
       <FadeIn delay={0.2}>
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-sm border-2 border-border bg-card p-6 tactics-card">
           <h2 className="text-lg font-bold text-foreground mb-1">
             Your Units ({units.length})
           </h2>
@@ -321,7 +325,7 @@ export default function ComparePage() {
                     type="button"
                     onClick={() => selectUnit(unit.id)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg border p-3 text-left transition-all hover:scale-[1.01]",
+                      "flex items-center gap-3 rounded-sm border-2 p-3 text-left transition-all hover:scale-[1.01]",
                       RARITY_BORDERS[r],
                       RARITY_BG_COLORS[r],
                       isSelected && "ring-2 ring-primary"

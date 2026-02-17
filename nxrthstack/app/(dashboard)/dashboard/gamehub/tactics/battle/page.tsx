@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { FadeIn } from "@/components/ui/fade-in";
 import { GradientText } from "@/components/ui/gradient-text";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { DungeonButton } from "@/components/gamehub/tactics/dungeon-button";
 import { MatchResult } from "@/components/gamehub/tactics/match-result";
 import { Icons } from "@/components/icons";
 import type { MatchData } from "@/lib/gamehub/tactics/types";
@@ -47,7 +47,7 @@ export default function BattlePage() {
   return (
     <div className="space-y-8">
       <FadeIn>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold tactics-heading">
           <GradientText>Battle Arena</GradientText>
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -60,17 +60,17 @@ export default function BattlePage() {
         {state === "idle" && (
           <FadeIn delay={0.1}>
             <div className="text-center space-y-6">
-              <div className="rounded-xl border border-border bg-card p-8">
+              <div className="rounded-sm border-2 border-border bg-card p-8 tactics-card">
                 <Icons.Swords className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h2 className="text-xl font-bold text-foreground mb-2">Ready to Battle?</h2>
+                <h2 className="text-xl font-bold text-foreground mb-2 tactics-heading">Ready to Battle?</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Your attack squad will fight against another player&apos;s defense squad.
                   The battle is simulated instantly and you can watch the replay.
                 </p>
-                <ShimmerButton onClick={findMatch}>
+                <DungeonButton onClick={findMatch}>
                   <Icons.Swords className="h-4 w-4 mr-2" />
                   Find Match
-                </ShimmerButton>
+                </DungeonButton>
               </div>
             </div>
           </FadeIn>
@@ -101,7 +101,7 @@ export default function BattlePage() {
             <button
               type="button"
               onClick={reset}
-              className="w-full rounded-lg border border-border bg-card py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+              className="w-full rounded-sm border-2 border-border bg-card py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors tactics-button"
             >
               <Icons.Swords className="inline h-4 w-4 mr-2" />
               Battle Again
@@ -113,7 +113,7 @@ export default function BattlePage() {
         {state === "error" && (
           <FadeIn>
             <div className="text-center space-y-4">
-              <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-8">
+              <div className="rounded-sm border-2 border-red-500/30 bg-red-500/5 p-8 tactics-card">
                 <Icons.AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
                 <p className="text-foreground font-medium mb-2">{errorMessage}</p>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -122,7 +122,7 @@ export default function BattlePage() {
                 <button
                   type="button"
                   onClick={reset}
-                  className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                  className="rounded-sm bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors tactics-button tactics-button-primary"
                 >
                   Try Again
                 </button>
