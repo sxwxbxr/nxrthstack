@@ -98,6 +98,7 @@ import {
   Terminal,
   History,
   Sliders,
+  ChevronUp,
 } from "lucide-react";
 
 export const Icons = {
@@ -204,6 +205,7 @@ export const Icons = {
   Terminal,
   History,
   Sliders,
+  ChevronUp,
   // Legacy lowercase aliases for backwards compatibility
   globe: Globe,
   monitor: Monitor,

@@ -6,46 +6,36 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
 
-const gameHubNavItems = [
+const tacticsNavItems = [
   {
-    title: "Home",
-    href: "/dashboard/gamehub",
-    icon: Icons.Home,
+    title: "Dashboard",
+    href: "/dashboard/gamehub/tactics",
+    icon: Icons.LayoutDashboard,
     exact: true,
   },
   {
-    title: "Rainbow Six Siege",
-    href: "/dashboard/gamehub/r6",
-    icon: Icons.Gamepad,
+    title: "Squad",
+    href: "/dashboard/gamehub/tactics/squad",
+    icon: Icons.Users,
   },
   {
-    title: "Pokemon",
-    href: "/dashboard/gamehub/pokemon",
-    icon: Icons.Sparkles,
-  },
-  {
-    title: "Minecraft",
-    href: "/dashboard/gamehub/minecraft",
-    icon: Icons.Package,
-  },
-  {
-    title: "Tactics",
-    href: "/dashboard/gamehub/tactics",
+    title: "Battle",
+    href: "/dashboard/gamehub/tactics/battle",
     icon: Icons.Swords,
   },
   {
-    title: "Feedback",
-    href: "/dashboard/gamehub/feedback",
-    icon: Icons.Message,
+    title: "History",
+    href: "/dashboard/gamehub/tactics/history",
+    icon: Icons.Clock,
   },
 ];
 
-export function GameHubNav() {
+export function TacticsNav() {
   const pathname = usePathname();
 
   return (
     <nav className="flex gap-2 border-b border-border pb-4 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
-      {gameHubNavItems.map((item) => {
+      {tacticsNavItems.map((item) => {
         const isActive = item.exact
           ? pathname === item.href
           : pathname.startsWith(item.href);

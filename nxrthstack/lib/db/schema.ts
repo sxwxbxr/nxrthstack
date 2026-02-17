@@ -1541,6 +1541,107 @@ export const mcServerEventsRelations = relations(
   })
 );
 
+// ============================================================================
+// Async PvP Tactics
+// ============================================================================
+
+// Player profiles for the tactics game
+export const tacticsPlayers = pgTable("tactics_players", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  rating: integer("rating").default(1000).notNull(),
+  ratingDeviation: integer("rating_deviation").default(350).notNull(),
+  currency: integer("currency").default(0).notNull(),
+  unlockedUnitIds: jsonb("unlocked_unit_ids")
+    .default(["knight", "archer", "cleric", "shadow"])
+    .notNull(),
+  attackSquad: jsonb("attack_squad"), // Squad JSON
+  defenseSquad: jsonb("defense_squad"), // Squad JSON
+  totalWins: integer("total_wins").default(0).notNull(),
+  totalLosses: integer("total_losses").default(0).notNull(),
+  seasonId: integer("season_id").default(1).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Match results with replay data
+export const tacticsMatches = pgTable("tactics_matches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  attackerId: uuid("attacker_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  defenderId: uuid("defender_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  attackerRatingBefore: integer("attacker_rating_before").notNull(),
+  defenderRatingBefore: integer("defender_rating_before").notNull(),
+  attackerRatingChange: integer("attacker_rating_change").notNull(),
+  defenderRatingChange: integer("defender_rating_change").notNull(),
+  attackerSquadSnapshot: jsonb("attacker_squad_snapshot").notNull(),
+  defenderSquadSnapshot: jsonb("defender_squad_snapshot").notNull(),
+  mapId: varchar("map_id", { length: 50 }).notNull(),
+  seed: integer("seed").notNull(),
+  winner: varchar("winner", { length: 20 }).notNull(), // 'attacker' | 'defender'
+  durationTicks: integer("duration_ticks").notNull(),
+  durationSeconds: integer("duration_seconds").notNull(),
+  stats: jsonb("stats").notNull(), // BattleStats JSON
+  events: jsonb("events").notNull(), // BattleEvent[] JSON
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Cooldowns to prevent repeated matches against same defender
+export const tacticsMatchCooldowns = pgTable("tactics_match_cooldowns", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  attackerId: uuid("attacker_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  defenderId: uuid("defender_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+// Tactics Relations
+export const tacticsPlayersRelations = relations(tacticsPlayers, ({ one }) => ({
+  user: one(users, {
+    fields: [tacticsPlayers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const tacticsMatchesRelations = relations(tacticsMatches, ({ one }) => ({
+  attacker: one(users, {
+    fields: [tacticsMatches.attackerId],
+    references: [users.id],
+    relationName: "tacticsAttacker",
+  }),
+  defender: one(users, {
+    fields: [tacticsMatches.defenderId],
+    references: [users.id],
+    relationName: "tacticsDefender",
+  }),
+}));
+
+export const tacticsMatchCooldownsRelations = relations(
+  tacticsMatchCooldowns,
+  ({ one }) => ({
+    attacker: one(users, {
+      fields: [tacticsMatchCooldowns.attackerId],
+      references: [users.id],
+      relationName: "tacticsCooldownAttacker",
+    }),
+    defender: one(users, {
+      fields: [tacticsMatchCooldowns.defenderId],
+      references: [users.id],
+      relationName: "tacticsCooldownDefender",
+    }),
+  })
+);
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -1681,3 +1782,11 @@ export type NewMcDashboardPreferences =
   typeof mcDashboardPreferences.$inferInsert;
 export type McServerEvent = typeof mcServerEvents.$inferSelect;
 export type NewMcServerEvent = typeof mcServerEvents.$inferInsert;
+
+// Tactics Types
+export type TacticsPlayer = typeof tacticsPlayers.$inferSelect;
+export type NewTacticsPlayer = typeof tacticsPlayers.$inferInsert;
+export type TacticsMatch = typeof tacticsMatches.$inferSelect;
+export type NewTacticsMatch = typeof tacticsMatches.$inferInsert;
+export type TacticsMatchCooldown = typeof tacticsMatchCooldowns.$inferSelect;
+export type NewTacticsMatchCooldown = typeof tacticsMatchCooldowns.$inferInsert;
