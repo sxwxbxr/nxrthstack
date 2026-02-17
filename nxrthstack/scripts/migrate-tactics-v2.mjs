@@ -54,7 +54,7 @@ async function runMigrations() {
   for (const migration of migrations) {
     const label = migration.split("\n")[0].trim().substring(0, 80);
     try {
-      await sql(migration);
+      await sql.query(migration);
       console.log(`  ✓ ${label}`);
     } catch (error) {
       console.error(`  ✗ ${label}`);
