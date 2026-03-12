@@ -1,13 +1,15 @@
-# NxrthServer Complete Setup Guide — Windows 11
+# NxrthServer Complete Setup Guide — Home Server (Windows 11)
 
-**Last Updated:** 2026-02-13
+**Last Updated:** 2026-03-11
+
+> **Target Machine:** The Home Server — the same Windows 11 Pro machine that runs the MCP server (`homeserver-remote`). All NxrthStack services (Discord Bot, Minecraft, NAS, MC Agent) run alongside the MCP server on this host. Remote management via Tailscale SSH or MCP shell.
 
 ---
 
 ## Quick Start
 
 ```powershell
-# 1. Clone the repo on the business PC
+# 1. Clone the repo on the Home Server (via SSH, RDP, or MCP shell)
 git clone https://github.com/sxwxbxr/nxrthstack.git C:\Temp\nxrthstack
 
 # 2. Run setup as Administrator
@@ -39,6 +41,7 @@ Remove-Item -Recurse -Force C:\Temp\nxrthstack
 16. [Backup & Recovery](#16-backup--recovery)
 17. [Troubleshooting](#17-troubleshooting)
 18. [Quick Reference Card](#18-quick-reference-card)
+19. [Remote Management via MCP](#19-remote-management-via-mcp)
 
 ---
 
@@ -46,7 +49,7 @@ Remove-Item -Recurse -Force C:\Temp\nxrthstack
 
 ```
 +-------------------------------------------------------------+
-|              Business PC (Windows 11 Pro)                    |
+|              Home Server (Windows 11 Pro)                    |
 |                                                              |
 |  +----------------+  +----------------+  +----------------+ |
 |  | Discord Bot    |  | Minecraft      |  | NAS Storage    | |
@@ -65,6 +68,7 @@ Remove-Item -Recurse -Force C:\Temp\nxrthstack
 |  |  mc-api.sweber.dev     -> localhost:3003                 | |
 |  +---------------------------------------------------------+ |
 |                                                               |
+|  MCP Server (homeserver-remote — desktop automation)         |
 |  Tailscale VPN (system tray — for remote access + uploads)   |
 +-------------------------------------------------------------+
          |
@@ -74,6 +78,12 @@ Remove-Item -Recurse -Force C:\Temp\nxrthstack
 | (shared database)   |   | nxrthstack.sweber.dev  |
 +---------------------+   +------------------------+
 ```
+
+### Co-Existing Services
+
+The Home Server also runs the **MCP server** (`homeserver-remote`) for remote desktop automation. NxrthStack services do not conflict with MCP — they use separate ports and processes. Keep in mind:
+- MCP server should remain running during setup (no reboot until Section 18)
+- If RAM is tight, reduce Minecraft's `-Xmx` in the start script (Section 6)
 
 ### Data Flow
 
@@ -88,14 +98,14 @@ Remove-Item -Recurse -Force C:\Temp\nxrthstack
 
 ## 2. Prerequisites
 
-All installed automatically by `setup.ps1` via winget:
+All installed automatically by `setup.ps1` via winget. If the Home Server already has some of these (e.g. Tailscale for MCP access), the setup will skip them.
 
 | Package | winget ID | Purpose |
 |---------|-----------|---------|
 | Node.js LTS | `OpenJS.NodeJS.LTS` | Runtime for bot, NAS, agent |
 | Java 21 (Temurin) | `EclipseAdoptium.Temurin.21.JRE` | Minecraft server runtime |
 | cloudflared | `Cloudflare.cloudflared` | Tunnel daemon |
-| Tailscale | `Tailscale.Tailscale` | VPN for remote access |
+| Tailscale | `Tailscale.Tailscale` | VPN for remote access (likely already installed) |
 
 Global npm packages:
 | Package | Purpose |
@@ -220,6 +230,8 @@ PM2 auto-resurrects via:
 1. **pm2-windows-startup** (npm package, creates a Windows service)
 2. **Scheduled Task "PM2-Resurrect-NxrthServer"** (fallback, runs `pm2 resurrect`)
 
+> **Home Server Note:** The MCP server starts independently (its own Windows service). PM2 only manages NxrthStack Node.js services — no conflict.
+
 After adding or removing services, always save:
 ```powershell
 pm2 save
@@ -336,11 +348,14 @@ View logs in **Event Viewer**: Windows Logs → Application → Source: cloudfla
 
 ### Purpose
 
-- Remote access to the PC from anywhere on your tailnet
+- Remote access to the Home Server from anywhere on your tailnet
 - Large file uploads bypassing Cloudflare's ~100MB limit
 - Let Minecraft players connect without public port forwarding
+- SSH/MCP access for headless server management
 
 ### Setup
+
+> **Home Server:** Tailscale is likely already installed and authenticated for MCP access. If so, skip this step.
 
 1. Click the Tailscale icon in the system tray
 2. Sign in with your account
@@ -704,10 +719,11 @@ Admins configure which Discord channel receives which events via the `webhookCon
 ### Full System Recovery
 
 1. Fresh Windows install
-2. Clone repo, run `setup.ps1`
-3. Restore `.env` files from backup
-4. Restore `world/` and `clips/` directories
-5. `pm2 restart all`
+2. Reinstall MCP server (`homeserver-remote`) first for remote access
+3. Clone repo, run `setup.ps1`
+4. Restore `.env` files from backup
+5. Restore `world/` and `clips/` directories
+6. `pm2 restart all`
 
 ---
 
@@ -725,6 +741,8 @@ Admins configure which Discord channel receives which events via the `webhookCon
 | **MC Agent can't connect to RCON** | Verify MC server is running. Check RCON password matches in `server.properties` and Agent `.env`. Verify `enable-rcon=true`. |
 | **Node.js not found after winget install** | Close terminal, open a NEW PowerShell window. The PATH needs to refresh. |
 | **"Execution policy" error running setup.ps1** | Run: `PowerShell -ExecutionPolicy Bypass -File setup.ps1` |
+| **Port conflict with MCP server** | MCP uses its own ports. If a port conflict occurs, check `netstat -ano | findstr :<port>` to identify the conflicting process. |
+| **Home Server unreachable after reboot** | Wait 60s for all services to start. Check Tailscale is connected: `tailscale status`. If MCP is down, use local console or RDP. |
 
 ---
 
@@ -781,3 +799,46 @@ curl https://bot.sweber.dev
 curl https://nxrthstore.sweber.dev/health
 curl https://mc-api.sweber.dev/status
 ```
+
+---
+
+## 19. Remote Management via MCP
+
+The Home Server runs the `homeserver-remote` MCP server, which enables remote desktop automation from any Claude Code session on your dev machine.
+
+### Common Remote Operations via MCP
+
+| Task | MCP Approach |
+|------|-------------|
+| Check service status | `Shell` tool → `pm2 status` |
+| View logs | `Shell` tool → `pm2 logs --lines 50` |
+| Restart a service | `Shell` tool → `pm2 restart nxrthstack-bot` |
+| Check system resources | `Shell` tool → `tasklist /FI "IMAGENAME eq node.exe"` |
+| View Minecraft console | `Shell` tool → `pm2 logs minecraft-agent` |
+| Check tunnel status | `Shell` tool → `Get-Service cloudflared` |
+| Take screenshot of desktop | `Snapshot` tool |
+| Run setup script | `Shell` tool → `PowerShell -ExecutionPolicy Bypass -File setup.ps1` |
+
+### Workflow: Deploy from Dev Machine to Home Server
+
+1. Develop and test locally on your dev machine
+2. Push changes to GitHub
+3. Via MCP `Shell` on the Home Server:
+   ```powershell
+   cd C:\Temp && git clone https://github.com/sxwxbxr/nxrthstack.git
+   # Copy changed service files to C:\NxrthServer\
+   # npm install if deps changed
+   pm2 restart <service-name>
+   Remove-Item -Recurse -Force C:\Temp\nxrthstack
+   ```
+
+### Important: MCP + NxrthStack Coexistence
+
+- MCP server runs independently — not managed by PM2
+- Both use Tailscale for connectivity but don't conflict
+- If the Home Server needs a reboot, all services (MCP + NxrthStack) auto-start:
+  - MCP: its own Windows service
+  - NxrthStack Node.js: PM2 auto-resurrect
+  - Minecraft: Scheduled Task (30s delay)
+  - Cloudflare Tunnel: Windows service
+  - Tailscale: Windows service

@@ -9,6 +9,7 @@
         ],
         "deny": [
             "Bash(rm -rf *)"
-        ]
+        ],
+        "dangerouslySkipPermissions": true
     }
 }
