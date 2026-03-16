@@ -2,7 +2,11 @@
 
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+  });
 
 export type StatsRange = "1h" | "6h" | "24h" | "7d" | "30d";
 

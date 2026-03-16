@@ -48,6 +48,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Guard against oversized payloads
+    const MAX_SNAPSHOTS = 500;
+    const MAX_EVENTS = 2000;
+    if (snapshots?.length > MAX_SNAPSHOTS || events?.length > MAX_EVENTS) {
+      return NextResponse.json(
+        { error: `Payload too large. Max ${MAX_SNAPSHOTS} snapshots, ${MAX_EVENTS} events` },
+        { status: 413 }
+      );
+    }
+
     let statsInserted = 0;
     let eventsInserted = 0;
 

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { mcScheduledActions } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { jwtVerify } from "jose";
 import { getServerAgent } from "@/lib/gamehub/minecraft";
+
+const VALID_CALLBACK_STATUSES = ["executed", "failed"] as const;
 
 /**
  * POST /api/gamehub/minecraft/server/scheduler/callback
@@ -22,6 +24,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!VALID_CALLBACK_STATUSES.includes(status)) {
+      return NextResponse.json(
+        { error: "Invalid status. Must be: executed, failed" },
+        { status: 400 }
+      );
+    }
+
     // Verify the token against the server's agentSecret
     const server = await getServerAgent(serverId);
     const secret = new TextEncoder().encode(server.agentSecret);
@@ -35,15 +44,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update the action status
+    // Update the action status — scoped to serverId to prevent cross-server writes
     await db
       .update(mcScheduledActions)
       .set({
         status,
         executedAt: new Date(),
-        resultMessage: resultMessage ?? null,
+        resultMessage: resultMessage
+          ? String(resultMessage).slice(0, 500)
+          : null,
       })
-      .where(eq(mcScheduledActions.id, actionId));
+      .where(
+        and(
+          eq(mcScheduledActions.id, actionId),
+          eq(mcScheduledActions.serverId, serverId)
+        )
+      );
 
     return NextResponse.json({ success: true });
   } catch (error) {

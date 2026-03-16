@@ -8,7 +8,7 @@ import {
 } from "@/lib/gamehub/minecraft";
 import { db } from "@/lib/db";
 import { mcScheduledActions, gamingSessions } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 /**
  * DELETE /api/gamehub/minecraft/server/scheduler/[id]
@@ -83,14 +83,16 @@ export async function DELETE(
       );
     }
 
-    // Cancel all pending actions for this session
-    for (const action of actions) {
-      if (action.status === "pending") {
-        await db
-          .update(mcScheduledActions)
-          .set({ status: "cancelled" })
-          .where(eq(mcScheduledActions.id, action.id));
-      }
+    // Cancel all pending actions for this session in a single query
+    const pendingIds = actions
+      .filter((a) => a.status === "pending")
+      .map((a) => a.id);
+
+    if (pendingIds.length > 0) {
+      await db
+        .update(mcScheduledActions)
+        .set({ status: "cancelled" })
+        .where(inArray(mcScheduledActions.id, pendingIds));
     }
 
     // Cancel the gaming session

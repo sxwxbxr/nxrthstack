@@ -2,7 +2,11 @@
 
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+  });
 
 export interface ScheduledSession {
   id: string;
