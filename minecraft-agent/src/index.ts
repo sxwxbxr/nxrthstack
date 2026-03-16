@@ -9,6 +9,10 @@ import playersRouter from "./routes/players.js";
 import filesRouter from "./routes/files.js";
 import configRouter from "./routes/config.js";
 import backupsRouter from "./routes/backups.js";
+import statsHistoryRouter from "./routes/stats-history.js";
+import schedulerRouter from "./routes/scheduler.js";
+import { startCollecting } from "./services/stats-collector.js";
+import { startScheduler } from "./services/scheduler.js";
 
 const PORT = parseInt(process.env.PORT || "3003");
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -52,6 +56,8 @@ app.use("/players", playersRouter);
 app.use("/files", filesRouter);
 app.use("/config", configRouter);
 app.use("/backups", backupsRouter);
+app.use(statsHistoryRouter);
+app.use(schedulerRouter);
 
 // Error handler
 app.use(
@@ -70,4 +76,8 @@ app.listen(PORT, () => {
   console.log(`[Agent] Minecraft agent listening on port ${PORT}`);
   console.log(`[Agent] Server directory: ${process.env.MC_SERVER_DIR || "/opt/minecraft"}`);
   console.log(`[Agent] Allowed origins: ${ALLOWED_ORIGINS.join(", ") || "none"}`);
+
+  // Start background services
+  startCollecting();   // Collect stats every 60s, push to Vercel every 5min
+  startScheduler();    // Check for due scheduled actions every 10s
 });

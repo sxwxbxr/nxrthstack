@@ -5,6 +5,8 @@ import { useMcStatus, type McStatus } from "@/hooks/use-mc-status";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/fade-in";
+import { McServerControls } from "@/components/minecraft/mc-server-controls";
+import { hasMinRole } from "@/lib/gamehub/minecraft-roles";
 
 function formatUptime(seconds: number): string {
   if (seconds <= 0) return "—";
@@ -89,7 +91,7 @@ function PlayerList({ status }: { status: McStatus }) {
 }
 
 export default function McOverviewPage() {
-  const { serverId, serverName } = useMcContext();
+  const { serverId, serverName, userRole } = useMcContext();
   const { status, isLoading } = useMcStatus(serverId);
 
   if (isLoading || !status) {
@@ -129,6 +131,7 @@ export default function McOverviewPage() {
               {status.version && ` — ${status.version}`}
             </p>
           </div>
+          {hasMinRole(userRole, "operator") && <McServerControls />}
         </div>
       </FadeIn>
 

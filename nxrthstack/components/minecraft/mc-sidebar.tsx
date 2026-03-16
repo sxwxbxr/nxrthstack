@@ -49,6 +49,16 @@ const navItems = [
     icon: Icons.History,
   },
   {
+    title: "Stats",
+    path: "/stats",
+    icon: Icons.BarChart3,
+  },
+  {
+    title: "Scheduler",
+    path: "/scheduler",
+    icon: Icons.Calendar,
+  },
+  {
     title: "Settings",
     path: "/settings",
     icon: Icons.Settings,
@@ -57,7 +67,6 @@ const navItems = [
 
 const comingSoonItems = [
   { title: "Modpacks", icon: Icons.Package },
-  { title: "Scheduler", icon: Icons.Calendar },
   { title: "Discord", icon: Icons.MessageCircle },
 ];
 

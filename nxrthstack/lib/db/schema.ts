@@ -9,6 +9,8 @@ import {
   bigint,
   jsonb,
   primaryKey,
+  real,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -1456,12 +1458,74 @@ export const mcServerEvents = pgTable("mc_server_events", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// Time-series server metrics for historical charts
+export const mcServerStats = pgTable(
+  "mc_server_stats",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    serverId: uuid("server_id")
+      .notNull()
+      .references(() => mcServers.id, { onDelete: "cascade" }),
+    timestamp: timestamp("timestamp", { mode: "date" }).defaultNow().notNull(),
+    playersOnline: integer("players_online").default(0).notNull(),
+    playersMax: integer("players_max").default(0).notNull(),
+    tps: real("tps"),
+    memoryUsedMb: integer("memory_used_mb"),
+    memoryMaxMb: integer("memory_max_mb"),
+    cpuPercent: real("cpu_percent"),
+    diskUsedMb: integer("disk_used_mb"),
+    isOnline: boolean("is_online").default(false).notNull(),
+  },
+  (table) => [index("mc_stats_server_time_idx").on(table.serverId, table.timestamp)]
+);
+
+// Player join/leave/death events parsed from console
+export const mcPlayerEvents = pgTable(
+  "mc_player_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    serverId: uuid("server_id")
+      .notNull()
+      .references(() => mcServers.id, { onDelete: "cascade" }),
+    playerName: varchar("player_name", { length: 50 }).notNull(),
+    playerUuid: varchar("player_uuid", { length: 36 }),
+    eventType: varchar("event_type", { length: 20 }).notNull(),
+    details: jsonb("details"),
+    timestamp: timestamp("timestamp", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [index("mc_player_events_server_time_idx").on(table.serverId, table.timestamp)]
+);
+
+// Scheduled automation actions (start/stop/rcon for sessions)
+export const mcScheduledActions = pgTable("mc_scheduled_actions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serverId: uuid("server_id")
+    .notNull()
+    .references(() => mcServers.id, { onDelete: "cascade" }),
+  sessionId: uuid("session_id").references(() => gamingSessions.id, {
+    onDelete: "set null",
+  }),
+  createdById: uuid("created_by_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  action: varchar("action", { length: 30 }).notNull(),
+  scheduledAt: timestamp("scheduled_at", { mode: "date" }).notNull(),
+  payload: jsonb("payload"),
+  status: varchar("status", { length: 20 }).default("pending").notNull(),
+  executedAt: timestamp("executed_at", { mode: "date" }),
+  resultMessage: varchar("result_message", { length: 500 }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Minecraft Dashboard Relations
 export const mcServersRelations = relations(mcServers, ({ many }) => ({
   accessCodes: many(mcAccessCodes),
   accessGrants: many(mcAccessGrants),
   layouts: many(mcDashboardLayouts),
   events: many(mcServerEvents),
+  stats: many(mcServerStats),
+  playerEvents: many(mcPlayerEvents),
+  scheduledActions: many(mcScheduledActions),
 }));
 
 export const mcAccessCodesRelations = relations(
@@ -1536,6 +1600,41 @@ export const mcServerEventsRelations = relations(
     }),
     user: one(users, {
       fields: [mcServerEvents.userId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const mcServerStatsRelations = relations(mcServerStats, ({ one }) => ({
+  server: one(mcServers, {
+    fields: [mcServerStats.serverId],
+    references: [mcServers.id],
+  }),
+}));
+
+export const mcPlayerEventsRelations = relations(
+  mcPlayerEvents,
+  ({ one }) => ({
+    server: one(mcServers, {
+      fields: [mcPlayerEvents.serverId],
+      references: [mcServers.id],
+    }),
+  })
+);
+
+export const mcScheduledActionsRelations = relations(
+  mcScheduledActions,
+  ({ one }) => ({
+    server: one(mcServers, {
+      fields: [mcScheduledActions.serverId],
+      references: [mcServers.id],
+    }),
+    session: one(gamingSessions, {
+      fields: [mcScheduledActions.sessionId],
+      references: [gamingSessions.id],
+    }),
+    createdBy: one(users, {
+      fields: [mcScheduledActions.createdById],
       references: [users.id],
     }),
   })
@@ -1978,6 +2077,12 @@ export type NewMcDashboardPreferences =
   typeof mcDashboardPreferences.$inferInsert;
 export type McServerEvent = typeof mcServerEvents.$inferSelect;
 export type NewMcServerEvent = typeof mcServerEvents.$inferInsert;
+export type McServerStat = typeof mcServerStats.$inferSelect;
+export type NewMcServerStat = typeof mcServerStats.$inferInsert;
+export type McPlayerEvent = typeof mcPlayerEvents.$inferSelect;
+export type NewMcPlayerEvent = typeof mcPlayerEvents.$inferInsert;
+export type McScheduledAction = typeof mcScheduledActions.$inferSelect;
+export type NewMcScheduledAction = typeof mcScheduledActions.$inferInsert;
 
 // Tactics Types
 export type TacticsPlayer = typeof tacticsPlayers.$inferSelect;
