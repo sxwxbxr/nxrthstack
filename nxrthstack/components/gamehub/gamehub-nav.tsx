@@ -24,11 +24,6 @@ const gameHubNavItems = [
     icon: Icons.Sparkles,
   },
   {
-    title: "Minecraft",
-    href: "/dashboard/gamehub/minecraft",
-    icon: Icons.Package,
-  },
-  {
     title: "Tactics",
     href: "/dashboard/gamehub/tactics",
     icon: Icons.Swords,
